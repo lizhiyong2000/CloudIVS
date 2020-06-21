@@ -1,0 +1,62 @@
+[package]
+name = "cloudivs"
+version = "0.1.0"
+authors = ["lizhiyong2000 <lizhiyong2000@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[workspace]
+members = ["common", "storage", "ffmpeg"]
+
+[dependencies]
+common = { package = "cloudivs-common", path = "common" }
+storage = { package = "cloudivs-storage", path = "storage" }
+ffmpeg = { package = "cloudivs-ffmpeg", path = "ffmpeg" }
+
+base64 = "0.11.0"
+bytes = "0.5.3"
+byteorder = "1.0"
+cstr = "0.1.7"
+cursive = "0.14.0"
+#db = { package = "moonfire-db", path = "db" }
+structopt = { version = "0.3.13", features = ["default", "wrap_help"] }
+
+failure = "0.1.1"
+futures = "0.3"
+fnv = "1.0"
+http = "0.2.0"
+http-serve = { git = "https://github.com/scottlamb/http-serve", branch = "dir", features = ["dir"] }
+hyper = "0.13.0"
+lazy_static = "1.0"
+libc = "0.2"
+log = { version = "0.4", features = ["release_max_level_info"] }
+memchr = "2.0.2"
+memmap = "0.7"
+mylog = { git = "https://github.com/scottlamb/mylog" }
+nix = "0.17.0"
+nom = "5.1.1"
+openssl = "0.10"
+parking_lot = { version = "0.10", features = [] }
+protobuf = { git = "https://github.com/stepancheg/rust-protobuf" }
+reffers = "0.6.0"
+ring = "0.14.6"
+rusqlite = "0.22.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+smallvec = "1.0"
+time = "0.1"
+tokio = { version = "0.2.0", features = ["blocking", "macros", "parking_lot", "rt-threaded", "signal"] }
+tokio-tungstenite = "0.10.1"
+url = "2.1.1"
+uuid = { version = "0.8", features = ["serde", "std", "v4"] }
+
+[dev-dependencies]
+reqwest = { version = "0.10.1", features = ["json"] }
+tempdir = "0.3"
+
+[profile.release]
+debug = true
+
+[profile.bench]
+debug = true
