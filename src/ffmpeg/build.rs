@@ -4,6 +4,8 @@ fn main() {
         pkg_config::Config::new().atleast_version("56.0").probe("libavcodec").unwrap(),
         pkg_config::Config::new().atleast_version("57.5").probe("libavformat").unwrap(),
     ];
+
+    print!("{}", libraries);
     let mut wrapper = cc::Build::new();
 
     for lib in &libraries {
