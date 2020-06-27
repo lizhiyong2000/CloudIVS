@@ -148,9 +148,12 @@ impl WriteTo for SdesChunk {
 
             let text = item.text();
             track_assert!(text.len() <= 0xFFFF, ErrorKind::Invalid);
-            track_try!(writer.write_u16be(text.len() as u16));
+            // track_try!(writer.write_u16be(text.len() as u16));
+            track_try!(writer.write_u8(text.len() as u8));
+
             track_try!(writer.write_all(text.as_bytes()));
-            write_bytes += 2 + text.len();
+            // write_bytes += 2 + text.len();
+            write_bytes += 1 + text.len();
         }
         track_try!(writer.write_u8(SDES_ITEM_TYPE_END));
         write_bytes += 1;
@@ -199,4 +202,109 @@ impl SdesItem {
             SdesItem::Priv(ref t) => t,
         }
     }
+}
+
+
+#[cfg(test)]
+mod tests {
+
+    // use super::SenderReportPacket;
+    // use super::ReceiverReportPacket;
+    use crate::protocol::rtcp::traits::{ReadFrom, WriteTo};
+    use crate::protocol::rtcp::report_packet::ReceptionReport;
+    use crate::protocol::rtcp::constants::SDES_ITEM_TYPE_CNAME;
+    use super::SourceDescriptionPacket;
+    use crate::protocol::rtcp::source_description_packet::{SdesItem, SdesChunk};
+
+    struct Setup {
+        data: Vec<u8>,
+        // SR values.
+        ssrc: u32 ,
+        itemType: u8,
+        itemLength: u8,
+        value: String ,
+    }
+
+    impl Setup {
+        fn new() -> Self {
+            Self {
+                data: vec![
+                    0x81, 0xca, 0x00, 0x06, // Type: 202 (SDES), Count: 1, Length: 6
+                    0x9f, 0x65, 0xe7, 0x42, // SSRC: 0x9f65e742
+                    0x01, 0x10, 0x74, 0x37, // Item Type: 1 (CNAME), Length: 16, Value: t7mkYnCm46OcINy/
+                    0x6d, 0x6b, 0x59, 0x6e,
+                    0x43, 0x6d, 0x34, 0x36,
+                    0x4f, 0x63, 0x49, 0x4e,
+                    0x79, 0x2f, 0x00, 0x00
+                ],
+
+                ssrc:0x9f65e742,
+                itemType: SDES_ITEM_TYPE_CNAME ,
+                itemLength: 16 ,
+                value: String::from("t7mkYnCm46OcINy/") ,
+
+            }
+        }
+    }
+
+
+    #[test]
+    fn test_sdes_parse() {
+        let setup = Setup::new();
+
+        let reader = &mut &setup.data[..];
+        let sdp = SourceDescriptionPacket::read_from(reader).unwrap();
+
+        assert_eq!(sdp.chunks.len(), 1);
+
+        let chunk = sdp.chunks.get(0).unwrap();
+
+        assert_eq!(chunk.ssrc_or_csrc, setup.ssrc);
+        assert_eq!(chunk.items.len(), 1);
+
+        let item = chunk.items.get(0).unwrap();
+
+
+        assert_eq!(item.item_type(), setup.itemType);
+        assert_eq!(item.text().len() as u8, setup.itemLength);
+        assert_eq!(item.text(), &setup.value[..]);
+
+
+        let serialized = sdp.to_bytes().unwrap();
+
+        assert_eq!(serialized, setup.data);
+
+    }
+
+
+    #[test]
+    fn test_sender_report_create() {
+        let setup = Setup::new();
+
+        let item = SdesItem::Cname(setup.value.clone());
+
+        assert_eq!(item.item_type(), setup.itemType);
+        assert_eq!(item.text().len() as u8, setup.itemLength);
+        assert_eq!(item.text(), &setup.value[..]);
+
+        let chunk = SdesChunk{
+            ssrc_or_csrc:setup.ssrc,
+            items: vec![item],
+        };
+
+        assert_eq!(chunk.ssrc_or_csrc, setup.ssrc);
+
+        let sdes = SourceDescriptionPacket {
+            chunks: vec![chunk]
+        };
+
+        let serialized = sdes.to_bytes().unwrap();
+        assert_eq!(serialized, setup.data);
+
+    }
+
+
+
+
+
 }
