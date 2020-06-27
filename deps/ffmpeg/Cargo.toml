@@ -1,7 +1,7 @@
 [package]
 name = "cloudmedia-ffmpeg"
 version = "0.0.1"
-authors = ["lizhiyong2000 <lizhiyong2000@gmail.com>"]
+authors = ["Scott Lamb <slamb@slamb.org>"]
 readme = "../README.md"
 edition = "2018"
 #links = "ffmpeg"
