@@ -7,21 +7,21 @@ use super::types::*;
 use super::rtcp_packet::*;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct RtcpGoodbye {
-    pub ssrc_csrc_list: Vec<SsrcOrCsrc>,
+pub struct GoodbyePacket {
+    pub ssrc_csrc_list: Vec<u32>,
     pub reason: Option<String>,
 }
-impl RtcpGoodbye {
+impl GoodbyePacket {
     pub fn new() -> Self {
-        RtcpGoodbye {
+        GoodbyePacket {
             ssrc_csrc_list: Vec::new(),
             reason: None,
         }
     }
 }
-impl PacketTrait for RtcpGoodbye {}
-impl RtcpPacketTrait for RtcpGoodbye {}
-impl ReadFrom for RtcpGoodbye {
+impl PacketTrait for GoodbyePacket {}
+impl RtcpPacketTrait for GoodbyePacket {}
+impl ReadFrom for GoodbyePacket {
     fn read_from<R: Read>(reader: &mut R) -> Result<Self> {
         let (source_count, payload) = track_try!(read_sctp(reader, RTCP_PACKET_TYPE_BYE));
         let reader = &mut &payload[..];
@@ -31,13 +31,13 @@ impl ReadFrom for RtcpGoodbye {
         if let Ok(len) = reader.read_u8() {
             reason = Some(track_try!(reader.read_string(len as usize)));
         }
-        Ok(RtcpGoodbye {
+        Ok(GoodbyePacket {
             ssrc_csrc_list: list,
             reason: reason,
         })
     }
 }
-impl WriteTo for RtcpGoodbye {
+impl WriteTo for GoodbyePacket {
     fn write_to<W: Write>(&self, writer: &mut W) -> Result<()> {
         let mut payload = Vec::new();
         for x in self.ssrc_csrc_list.iter() {

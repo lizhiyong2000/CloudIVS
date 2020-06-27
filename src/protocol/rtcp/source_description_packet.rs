@@ -7,18 +7,58 @@ use super::types::*;
 use super::rtcp_packet::*;
 
 
+/*
+
+        0                   1                   2                   3
+        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+header |V=2|P|    SC   |  PT=SDES=202  |             length            |
+       +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
+chunk  |                          SSRC/CSRC_1                          |
+  1    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       |                           SDES items                          |
+       |                              ...                              |
+       +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
+chunk  |                          SSRC/CSRC_2                          |
+  2    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       |                           SDES items                          |
+       |                              ...                              |
+       +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
+
+RTP SDES item types:
+    https://tools.ietf.org/html/rfc3550#section-12.2
+    http://www.iana.org/assignments/rtp-parameters/rtp-parameters.xhtml#rtp-parameters-5
+
+    abbrev.  name                            value
+    END      end of SDES list                    0
+    CNAME    canonical name                      1
+    NAME     user name                           2
+    EMAIL    user's electronic mail address      3
+    PHONE    user's phone number                 4
+    LOC      geographic user location            5
+    TOOL     name of application or tool         6
+    NOTE     notice about the source             7
+    PRIV     private extensions                  8
+
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |    CNAME=1    |     length    | user and domain name        ...
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+*/
+
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct RtcpSourceDescription {
+pub struct SourceDescriptionPacket {
     pub chunks: Vec<SdesChunk>,
 }
-impl RtcpSourceDescription {
+impl SourceDescriptionPacket {
     pub fn new() -> Self {
-        RtcpSourceDescription { chunks: Vec::new() }
+        SourceDescriptionPacket { chunks: Vec::new() }
     }
 }
-impl PacketTrait for RtcpSourceDescription {}
-impl RtcpPacketTrait for RtcpSourceDescription {}
-impl ReadFrom for RtcpSourceDescription {
+impl PacketTrait for SourceDescriptionPacket {}
+impl RtcpPacketTrait for SourceDescriptionPacket {}
+impl ReadFrom for SourceDescriptionPacket {
     fn read_from<R: Read>(reader: &mut R) -> Result<Self> {
         let (source_count, payload) = track_try!(read_sctp(reader, RTCP_PACKET_TYPE_SDES));
         let reader = &mut &payload[..];
@@ -28,10 +68,10 @@ impl ReadFrom for RtcpSourceDescription {
                 .map(|_| SdesChunk::read_from(reader))
                 .collect()
         );
-        Ok(RtcpSourceDescription { chunks: chunks })
+        Ok(SourceDescriptionPacket { chunks: chunks })
     }
 }
-impl WriteTo for RtcpSourceDescription {
+impl WriteTo for SourceDescriptionPacket {
     fn write_to<W: Write>(&self, writer: &mut W) -> Result<()> {
         let mut payload = Vec::new();
         for chunk in self.chunks.iter() {
@@ -51,7 +91,7 @@ impl WriteTo for RtcpSourceDescription {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SdesChunk {
-    pub ssrc_or_csrc: SsrcOrCsrc,
+    pub ssrc_or_csrc: u32,
     pub items: Vec<SdesItem>,
 }
 impl ReadFrom for SdesChunk {

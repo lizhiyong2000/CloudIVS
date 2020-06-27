@@ -47,18 +47,50 @@ block  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
 
+
+
+/*
+        0                   1                   2                   3
+        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+header |V=2|P|    RC   |   PT=RR=201   |             length            |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       |                     SSRC of packet sender                     |
+       +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
+report |                 SSRC_1 (SSRC of first source)                 |
+block  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  1    | fraction lost |       cumulative number of packets lost       |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       |           extended highest sequence number received           |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       |                      interarrival jitter                      |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       |                         last SR (LSR)                         |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       |                   delay since last SR (DLSR)                  |
+       +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
+report |                 SSRC_2 (SSRC of second source)                |
+block  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  2    :                               ...                             :
+       +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
+       |                  profile-specific extensions                  |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+*/
+
+
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ReceptionReport {
-    pub ssrc: Ssrc,
+    pub ssrc: u32,
     pub fraction_lost: u8,
     pub packets_lost: U24,
     pub seq_num_ext: u32,
     pub jitter: u32,
-    pub last_sr_timestamp: NtpMiddleTimetamp,
+    pub last_sr_timestamp: u32,
     pub delay_since_last_sr: u32,
 }
 impl ReceptionReport {
-    pub fn new(ssrc: Ssrc) -> Self {
+    pub fn new(ssrc: u32) -> Self {
         ReceptionReport {
             ssrc: ssrc,
             fraction_lost: 0,
@@ -110,20 +142,22 @@ impl WriteTo for ReceptionReport {
 
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct RtcpSenderReport {
-    pub ssrc: Ssrc,
-    pub ntp_timestamp: NtpTimestamp,
-    pub rtp_timestamp: RtpTimestamp,
+pub struct SenderReportPacket {
+    pub ssrc: u32,
+    pub ntp_sec: u32,
+    pub ntp_frac: u32,
+    pub rtp_timestamp: u32,
     pub sent_packets: u32,
     pub sent_octets: u32,
     pub reception_reports: Vec<ReceptionReport>,
     pub extensions: Vec<u8>,
 }
-impl RtcpSenderReport {
-    pub fn new(ssrc: Ssrc) -> Self {
-        RtcpSenderReport {
+impl SenderReportPacket {
+    pub fn new(ssrc: u32) -> Self {
+        SenderReportPacket {
             ssrc: ssrc,
-            ntp_timestamp: 0,
+            ntp_sec: 0,
+            ntp_frac:0,
             rtp_timestamp: 0,
             sent_packets: 0,
             sent_octets: 0,
@@ -132,16 +166,17 @@ impl RtcpSenderReport {
         }
     }
 }
-impl PacketTrait for RtcpSenderReport {}
-impl RtcpPacketTrait for RtcpSenderReport {}
-impl ReadFrom for RtcpSenderReport {
+impl PacketTrait for SenderReportPacket {}
+impl RtcpPacketTrait for SenderReportPacket {}
+impl ReadFrom for SenderReportPacket {
     fn read_from<R: Read>(reader: &mut R) -> Result<Self> {
         let (reception_report_count, payload) = track_try!(read_sctp(reader, RTCP_PACKET_TYPE_SR));
         let reader = &mut &payload[..];
 
         let ssrc = track_try!(reader.read_u32be());
 
-        let ntp_timestamp = track_try!(reader.read_u64be());
+        let ntp_sec = track_try!(reader.read_u32be());
+        let ntp_frac  = track_try!(reader.read_u32be());
         let rtp_timestamp = track_try!(reader.read_u32be());
         let sent_packets = track_try!(reader.read_u32be());
         let sent_octets = track_try!(reader.read_u32be());
@@ -153,9 +188,10 @@ impl ReadFrom for RtcpSenderReport {
         }
         let extensions = track_try!(reader.read_all_bytes());
 
-        Ok(RtcpSenderReport {
+        Ok(SenderReportPacket {
             ssrc: ssrc,
-            ntp_timestamp: ntp_timestamp,
+            ntp_sec: ntp_sec,
+            ntp_frac: ntp_frac,
             rtp_timestamp: rtp_timestamp,
             sent_packets: sent_packets,
             sent_octets: sent_octets,
@@ -164,11 +200,12 @@ impl ReadFrom for RtcpSenderReport {
         })
     }
 }
-impl WriteTo for RtcpSenderReport {
+impl WriteTo for SenderReportPacket {
     fn write_to<W: Write>(&self, writer: &mut W) -> Result<()> {
         let mut payload = Vec::new();
         track_try!((&mut payload).write_u32be(self.ssrc));
-        track_try!((&mut payload).write_u64be(self.ntp_timestamp));
+        track_try!((&mut payload).write_u32be(self.ntp_sec));
+        track_try!((&mut payload).write_u32be(self.ntp_frac));
         track_try!((&mut payload).write_u32be(self.rtp_timestamp));
         track_try!((&mut payload).write_u32be(self.sent_packets));
         track_try!((&mut payload).write_u32be(self.sent_octets));
@@ -196,23 +233,23 @@ impl WriteTo for RtcpSenderReport {
 
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct RtcpReceiverReport {
-    pub ssrc: Ssrc,
+pub struct ReceiverReportPacket {
+    pub ssrc: u32,
     pub reception_reports: Vec<ReceptionReport>,
     pub extensions: Vec<u8>,
 }
-impl RtcpReceiverReport {
-    pub fn new(ssrc: Ssrc) -> Self {
-        RtcpReceiverReport {
+impl ReceiverReportPacket {
+    pub fn new(ssrc: u32) -> Self {
+        ReceiverReportPacket {
             ssrc: ssrc,
             reception_reports: Vec::new(),
             extensions: Vec::new(),
         }
     }
 }
-impl PacketTrait for RtcpReceiverReport {}
-impl RtcpPacketTrait for RtcpReceiverReport {}
-impl ReadFrom for RtcpReceiverReport {
+impl PacketTrait for ReceiverReportPacket {}
+impl RtcpPacketTrait for ReceiverReportPacket {}
+impl ReadFrom for ReceiverReportPacket {
     fn read_from<R: Read>(reader: &mut R) -> Result<Self> {
         let (reception_report_count, payload) = track_try!(read_sctp(reader, RTCP_PACKET_TYPE_RR));
         let reader = &mut &payload[..];
@@ -226,14 +263,14 @@ impl ReadFrom for RtcpReceiverReport {
         }
         let extensions = track_try!(reader.read_all_bytes());
 
-        Ok(RtcpReceiverReport {
+        Ok(ReceiverReportPacket {
             ssrc: ssrc,
             reception_reports: reception_reports,
             extensions: extensions,
         })
     }
 }
-impl WriteTo for RtcpReceiverReport {
+impl WriteTo for ReceiverReportPacket {
     fn write_to<W: Write>(&self, writer: &mut W) -> Result<()> {
         let mut payload = Vec::new();
         track_try!((&mut payload).write_u32be(self.ssrc));
@@ -254,4 +291,99 @@ impl WriteTo for RtcpReceiverReport {
         ));
         Ok(())
     }
+}
+
+
+
+#[cfg(test)]
+mod tests {
+
+    use super::SenderReportPacket;
+    use crate::protocol::rtcp::traits::{ReadFrom, WriteTo};
+
+    struct Setup {
+        data: Vec<u8>,
+        // SR values.
+        ssrc: u32 ,
+        ntpSec: u32 ,
+        ntpFrac: u32 ,
+        rtpTs: u32 ,
+        packetCount: u32 ,
+        octetCount: u32 ,
+    }
+
+    impl Setup {
+        fn new() -> Self {
+            Self {
+                data: vec![
+                    0x80, 0xc8, 0x00, 0x06, // Type: 200 (Sender Report), Count: 0, Length: 6
+                    0x5d, 0x93, 0x15, 0x34, // SSRC: 0x5d931534
+                    0xdd, 0x3a, 0xc1, 0xb4, // NTP Sec: 3711615412
+                    0x76, 0x54, 0x71, 0x71, // NTP Frac: 1985245553
+                    0x00, 0x08, 0xcf, 0x00, // RTP timestamp: 577280
+                    0x00, 0x00, 0x0e, 0x18, // Packet count: 3608
+                    0x00, 0x08, 0xcf, 0x00  // Octet count: 577280
+                ],
+
+                ssrc:0x5d931534,
+                ntpSec: 3711615412 ,
+                ntpFrac: 1985245553 ,
+                rtpTs: 577280 ,
+                packetCount: 3608 ,
+                octetCount:577280 ,
+            }
+        }
+    }
+
+    #[test]
+    fn test_sender_report_parse() {
+        let setup = Setup::new();
+
+        let reader = &mut &setup.data[..];
+        let sr = SenderReportPacket::read_from(reader).unwrap();
+
+        assert_eq!(sr.ssrc, setup.ssrc);
+        assert_eq!(sr.ntp_sec, setup.ntpSec);
+        assert_eq!(sr.ntp_frac, setup.ntpFrac);
+        assert_eq!(sr.rtp_timestamp, setup.rtpTs);
+        assert_eq!(sr.sent_packets, setup.packetCount);
+        assert_eq!(sr.sent_octets, setup.octetCount);
+
+        let serialized = sr.to_bytes().unwrap();
+
+        assert_eq!(serialized, setup.data);
+
+    }
+
+
+    #[test]
+    fn test_sender_report_create() {
+        let setup = Setup::new();
+
+        let reader = &mut &setup.data[..];
+        let sr = SenderReportPacket {
+            ssrc: setup.ssrc,
+            ntp_sec: setup.ntpSec,
+            ntp_frac: setup.ntpFrac,
+            rtp_timestamp: setup.rtpTs,
+            sent_packets: setup.packetCount,
+            sent_octets: setup.octetCount,
+            reception_reports: Vec::new(),
+            extensions: Vec::new(),
+        };
+
+        assert_eq!(sr.ssrc, setup.ssrc);
+        assert_eq!(sr.ntp_sec, setup.ntpSec);
+        assert_eq!(sr.ntp_frac, setup.ntpFrac);
+        assert_eq!(sr.rtp_timestamp, setup.rtpTs);
+        assert_eq!(sr.sent_packets, setup.packetCount);
+        assert_eq!(sr.sent_octets, setup.octetCount);
+
+        let serialized = sr.to_bytes().unwrap();
+
+        assert_eq!(serialized, setup.data);
+
+    }
+
+
 }

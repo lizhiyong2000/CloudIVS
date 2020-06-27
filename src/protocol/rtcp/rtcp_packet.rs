@@ -312,25 +312,16 @@ impl WritePacket for RtcpPacketWriter {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct RtcpCompoundPacket<T> {
-    pub packets: Vec<T>,
-}
-impl<T> RtcpCompoundPacket<T> {
-    pub fn new(packets: Vec<T>) -> Self {
-        RtcpCompoundPacket { packets: packets }
-    }
-}
-impl<T: PacketTrait> PacketTrait for RtcpCompoundPacket<T> {}
-impl<T: RtcpPacketTrait> RtcpPacketTrait for RtcpCompoundPacket<T> {}
+
+
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum RtcpPacket {
-    Sr(RtcpSenderReport),
-    Rr(RtcpReceiverReport),
-    Sdes(RtcpSourceDescription),
-    Bye(RtcpGoodbye),
-    App(RtcpApplicationDefined),
+    Sr(SenderReportPacket),
+    Rr(ReceiverReportPacket),
+    Sdes(SourceDescriptionPacket),
+    Bye(GoodbyePacket),
+    App(ApplicationDefinedPacket),
 }
 impl PacketTrait for RtcpPacket {}
 impl RtcpPacketTrait for RtcpPacket {}
@@ -342,16 +333,16 @@ impl ReadFrom for RtcpPacket {
         let reader = &mut (&buf[..]).chain(reader);
         let packet_type = buf[1];
         match packet_type {
-            RTCP_PACKET_TYPE_SR => track_err!(RtcpSenderReport::read_from(reader).map(From::from)),
+            RTCP_PACKET_TYPE_SR => track_err!(SenderReportPacket::read_from(reader).map(From::from)),
             RTCP_PACKET_TYPE_RR => {
-                track_err!(RtcpReceiverReport::read_from(reader).map(From::from))
+                track_err!(ReceiverReportPacket::read_from(reader).map(From::from))
             }
             RTCP_PACKET_TYPE_SDES => {
-                track_err!(RtcpSourceDescription::read_from(reader).map(From::from))
+                track_err!(SourceDescriptionPacket::read_from(reader).map(From::from))
             }
-            RTCP_PACKET_TYPE_BYE => track_err!(RtcpGoodbye::read_from(reader).map(From::from)),
+            RTCP_PACKET_TYPE_BYE => track_err!(GoodbyePacket::read_from(reader).map(From::from)),
             RTCP_PACKET_TYPE_APP => {
-                track_err!(RtcpApplicationDefined::read_from(reader).map(From::from))
+                track_err!(ApplicationDefinedPacket::read_from(reader).map(From::from))
             }
             _ => track_panic!(
                 ErrorKind::Unsupported,
@@ -372,28 +363,47 @@ impl WriteTo for RtcpPacket {
         }
     }
 }
-impl From<RtcpSenderReport> for RtcpPacket {
-    fn from(f: RtcpSenderReport) -> Self {
+
+
+
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RtcpCompoundPacket<T> {
+    pub packets: Vec<T>,
+}
+impl<T> RtcpCompoundPacket<T> {
+    pub fn new(packets: Vec<T>) -> Self {
+        RtcpCompoundPacket { packets: packets }
+    }
+}
+impl<T: PacketTrait> PacketTrait for RtcpCompoundPacket<T> {}
+impl<T: RtcpPacketTrait> RtcpPacketTrait for RtcpCompoundPacket<T> {}
+
+
+
+
+impl From<SenderReportPacket> for RtcpPacket {
+    fn from(f: SenderReportPacket) -> Self {
         RtcpPacket::Sr(f)
     }
 }
-impl From<RtcpReceiverReport> for RtcpPacket {
-    fn from(f: RtcpReceiverReport) -> Self {
+impl From<ReceiverReportPacket> for RtcpPacket {
+    fn from(f: ReceiverReportPacket) -> Self {
         RtcpPacket::Rr(f)
     }
 }
-impl From<RtcpSourceDescription> for RtcpPacket {
-    fn from(f: RtcpSourceDescription) -> Self {
+impl From<SourceDescriptionPacket> for RtcpPacket {
+    fn from(f: SourceDescriptionPacket) -> Self {
         RtcpPacket::Sdes(f)
     }
 }
-impl From<RtcpGoodbye> for RtcpPacket {
-    fn from(f: RtcpGoodbye) -> Self {
+impl From<GoodbyePacket> for RtcpPacket {
+    fn from(f: GoodbyePacket) -> Self {
         RtcpPacket::Bye(f)
     }
 }
-impl From<RtcpApplicationDefined> for RtcpPacket {
-    fn from(f: RtcpApplicationDefined) -> Self {
+impl From<ApplicationDefinedPacket> for RtcpPacket {
+    fn from(f: ApplicationDefinedPacket) -> Self {
         RtcpPacket::App(f)
     }
 }
@@ -456,113 +466,6 @@ pub fn write_sctp<W: Write>(
 
     Ok(())
 }
-
-
-
-
-
-
-/*
-        0                   1                   2                   3
-        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-header |V=2|P|    RC   |   PT=RR=201   |             length            |
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       |                     SSRC of packet sender                     |
-       +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
-report |                 SSRC_1 (SSRC of first source)                 |
-block  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-  1    | fraction lost |       cumulative number of packets lost       |
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       |           extended highest sequence number received           |
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       |                      interarrival jitter                      |
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       |                         last SR (LSR)                         |
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       |                   delay since last SR (DLSR)                  |
-       +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
-report |                 SSRC_2 (SSRC of second source)                |
-block  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-  2    :                               ...                             :
-       +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
-       |                  profile-specific extensions                  |
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-*/
-struct ReceiverReportPacket{
-
-}
-
-/*
-
-        0                   1                   2                   3
-        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-header |V=2|P|    SC   |  PT=SDES=202  |             length            |
-       +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
-chunk  |                          SSRC/CSRC_1                          |
-  1    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       |                           SDES items                          |
-       |                              ...                              |
-       +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
-chunk  |                          SSRC/CSRC_2                          |
-  2    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       |                           SDES items                          |
-       |                              ...                              |
-       +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
-
-RTP SDES item types:
-    https://tools.ietf.org/html/rfc3550#section-12.2
-    http://www.iana.org/assignments/rtp-parameters/rtp-parameters.xhtml#rtp-parameters-5
-
-    abbrev.  name                            value
-    END      end of SDES list                    0
-    CNAME    canonical name                      1
-    NAME     user name                           2
-    EMAIL    user's electronic mail address      3
-    PHONE    user's phone number                 4
-    LOC      geographic user location            5
-    TOOL     name of application or tool         6
-    NOTE     notice about the source             7
-    PRIV     private extensions                  8
-
-    0                   1                   2                   3
-    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |    CNAME=1    |     length    | user and domain name        ...
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-*/
-struct SourceDescriptionPacket{
-
-}
-
-
-#[derive(Debug)]
-pub enum SDES_ITEM {
-    // http://www.iana.org/assignments/rtp-parameters/rtp-parameters.xhtml#rtp-parameters-5
-    END  { value: u8, length: u8, content: String },      // 0
-    CNAME{ value: u8, length: u8, content: String },      // 1
-    NAME { value: u8, length: u8, content: String },      // 2
-    EMAIL{ value: u8, length: u8, content: String },      // 3
-    PHONE{ value: u8, length: u8, content: String },      // 4
-    LOC  { value: u8, length: u8, content: String },      // 5
-    TOOL { value: u8, length: u8, content: String },      // 6
-    NOTE { value: u8, length: u8, content: String },      // 7
-    PRIV { value: u8, length: u8, content: String },      // 8
-    H323_CADDR { value: u8, length: u8, content: String },// 9
-    APSI       { value: u8, length: u8, content: String },// 10
-    RGRP       { value: u8, length: u8, content: String },// 11
-    UNASSIGNED { value: u8, length: u8, content: String },// 12 - 255, Unassigned
-}
-
-struct GoodbyePacket{
-
-}
-
-struct ApplicationDefinedPacket{
-
-}
-
 
 
 #[cfg(test)]

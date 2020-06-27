@@ -3,8 +3,8 @@
 mod rtcp;
 
 // pub use self::rtcp::*;
-// pub use self::rtcp::{RtcpApplicationDefined, RtcpGoodbye, RtcpSourceDescription};
-// pub use self::rtcp::{RtcpPacket, RtcpPacketReader, RtcpReceiverReport, RtcpSenderReport};
+// pub use self::rtcp::{ApplicationDefinedPacket, GoodbyePacket, SourceDescriptionPacket};
+// pub use self::rtcp::{RtcpPacket, RtcpPacketReader, ReceiverReportPacket, SenderReportPacket};
 //
 // pub use self::rtcp::{RTCP_PACKET_TYPE_APP, RTCP_PACKET_TYPE_BYE};
 // pub use self::rtcp::{RTCP_PACKET_TYPE_RR, RTCP_PACKET_TYPE_SDES, RTCP_PACKET_TYPE_SR};
