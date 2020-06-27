@@ -1,5 +1,5 @@
 [package]
-name = "cloudivs-ffmpeg"
+name = "cloudmedia-ffmpeg"
 version = "0.0.1"
 authors = ["lizhiyong2000 <lizhiyong2000@gmail.com>"]
 readme = "../README.md"
