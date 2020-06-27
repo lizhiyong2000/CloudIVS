@@ -299,9 +299,11 @@ impl WriteTo for ReceiverReportPacket {
 mod tests {
 
     use super::SenderReportPacket;
+    use super::ReceiverReportPacket;
     use crate::protocol::rtcp::traits::{ReadFrom, WriteTo};
+    use crate::protocol::rtcp::report_packet::ReceptionReport;
 
-    struct Setup {
+    struct SetupSR {
         data: Vec<u8>,
         // SR values.
         ssrc: u32 ,
@@ -312,7 +314,7 @@ mod tests {
         octetCount: u32 ,
     }
 
-    impl Setup {
+    impl SetupSR {
         fn new() -> Self {
             Self {
                 data: vec![
@@ -335,9 +337,50 @@ mod tests {
         }
     }
 
+
+    struct SetupRR {
+        data: Vec<u8>,
+        sender_ssrc: u32,
+        // SR values.
+        ssrc: u32 ,
+        fractionLost: u8 ,
+        totalLost: u32 ,
+        lastSeq: u32 ,
+        jitter: u32 ,
+        lastSenderReport:u32 ,
+        delaySinceLastSenderReport: u32
+    }
+
+    impl SetupRR {
+        fn new() -> Self {
+            Self {
+                data: vec![
+                    0x81, 0xc9, 0x00, 0x07, // Type: 201 (Receiver Report), Count: 1, Length: 7
+                    0x5d, 0x93, 0x15, 0x34, // Sender SSRC: 0x5d931534
+                    // Receiver Report
+                    0x01, 0x93, 0x2d, 0xb4, // SSRC. 0x01932db4
+                    0x00, 0x00, 0x00, 0x01, // Fraction lost: 0, Total lost: 1
+                    0x00, 0x00, 0x00, 0x00, // Extended highest sequence number: 0
+                    0x00, 0x00, 0x00, 0x00, // Jitter: 0
+                    0x00, 0x00, 0x00, 0x00, // Last SR: 0
+                    0x00, 0x00, 0x00, 0x05  // DLSR: 0
+                ],
+                sender_ssrc: 0x5d931534,
+                ssrc:0x01932db4,
+                fractionLost: 0 ,
+                totalLost: 1 ,
+                lastSeq: 0 ,
+                jitter: 0 ,
+                lastSenderReport:0 ,
+                delaySinceLastSenderReport:5
+
+            }
+        }
+    }
+
     #[test]
     fn test_sender_report_parse() {
-        let setup = Setup::new();
+        let setup = SetupSR::new();
 
         let reader = &mut &setup.data[..];
         let sr = SenderReportPacket::read_from(reader).unwrap();
@@ -358,7 +401,7 @@ mod tests {
 
     #[test]
     fn test_sender_report_create() {
-        let setup = Setup::new();
+        let setup = SetupSR::new();
 
         let reader = &mut &setup.data[..];
         let sr = SenderReportPacket {
@@ -381,6 +424,76 @@ mod tests {
 
         let serialized = sr.to_bytes().unwrap();
 
+        assert_eq!(serialized, setup.data);
+
+    }
+
+
+
+    #[test]
+    fn test_receiver_report_parse() {
+        let setup = SetupRR::new();
+
+        let reader = &mut &setup.data[..];
+        let rrp = ReceiverReportPacket::read_from(reader).unwrap();
+
+        assert_eq!(rrp.ssrc, setup.sender_ssrc);
+
+        assert_eq!(rrp.reception_reports.len(), 1);
+
+        let rr: &ReceptionReport = rrp.reception_reports.get(0).unwrap();
+
+        assert_eq!(rr.ssrc, setup.ssrc);
+        assert_eq!(rr.fraction_lost, setup.fractionLost);
+        assert_eq!(rr.packets_lost, setup.totalLost);
+        assert_eq!(rr.seq_num_ext, setup.lastSeq);
+        assert_eq!(rr.jitter, setup.jitter);
+        assert_eq!(rr.last_sr_timestamp, setup.lastSenderReport);
+        assert_eq!(rr.delay_since_last_sr, setup.delaySinceLastSenderReport);
+
+        let serialized = rrp.to_bytes().unwrap();
+
+        assert_eq!(serialized, setup.data);
+
+    }
+
+
+    #[test]
+    fn test_receiver_report_create() {
+        let setup = SetupRR::new();
+
+        let reader = &mut &setup.data[..];
+
+        let rr = ReceptionReport{
+            ssrc: setup.ssrc,
+            fraction_lost: setup.fractionLost,
+            packets_lost: setup.totalLost,
+            seq_num_ext: setup.lastSeq,
+            jitter: setup.jitter,
+            last_sr_timestamp: setup.lastSenderReport,
+            delay_since_last_sr: setup.delaySinceLastSenderReport,
+        };
+
+        assert_eq!(rr.ssrc, setup.ssrc);
+        assert_eq!(rr.fraction_lost, setup.fractionLost);
+        assert_eq!(rr.packets_lost, setup.totalLost);
+        assert_eq!(rr.seq_num_ext, setup.lastSeq);
+        assert_eq!(rr.jitter, setup.jitter);
+        assert_eq!(rr.last_sr_timestamp, setup.lastSenderReport);
+        assert_eq!(rr.delay_since_last_sr, setup.delaySinceLastSenderReport);
+
+        let reports = vec![rr];
+
+        let rrp = ReceiverReportPacket {
+            ssrc:setup.sender_ssrc,
+            reception_reports: reports,
+            extensions: Vec::new()
+        };
+
+        assert_eq!(rrp.ssrc, setup.sender_ssrc);
+        assert_eq!(rrp.reception_reports.len(), 1);
+
+        let serialized = rrp.to_bytes().unwrap();
         assert_eq!(serialized, setup.data);
 
     }
