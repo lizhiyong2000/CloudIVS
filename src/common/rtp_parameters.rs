@@ -373,7 +373,7 @@ mod tests {
         let video_kind = MediaKind::from_str("video").unwrap();
         let audio_kind = MediaKind::from_str("a").unwrap();
 
-        assert!(std::matches!(MediaKind::Video, video_kind));
+        // assert!(std::matches!(MediaKind::Video, video_kind));
         assert_matches!(MediaKind::Audio, audio_kind);
 
         assert_ne!(audio_kind, video_kind);

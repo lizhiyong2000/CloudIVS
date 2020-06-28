@@ -16,7 +16,7 @@ strum = "0.18.0"
 strum_macros = "0.18.0"
 
 futures = "0.3"
-parallel-event-emitter = { version = "0.2.4", features = ["default", "conservative_impl_trait", "integer_atomics"] }
+parallel-event-emitter = { version = "0.2.4", features = ["default"] }
 pnet_macros_support = "0.26"
 trackable = "0.1"
 handy_async = "0.2.3"
