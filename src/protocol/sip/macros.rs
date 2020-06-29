@@ -1,7 +1,7 @@
 /// Generate a URI domain from an domain name.
 /// ```rust
 /// # #[macro_use]
-/// # extern crate libsip;
+/// # extern crate cloudmedia;
 /// # fn main() {
 /// let domain = domain!("example.com");
 /// let domain = domain!("example.com", 5060);
@@ -20,7 +20,7 @@ macro_rules! domain {
 /// Generate a URI domain from an ip address.
 /// ```rust
 /// # #[macro_use]
-/// # extern crate libsip;
+/// # extern crate cloudmedia;
 /// # fn main() {
 /// let domain = ip_domain!(192, 168, 0, 1);
 /// let domain = ip_domain!(192, 168, 0, 1, 5060);
@@ -40,7 +40,7 @@ macro_rules! ip_domain {
 /// Generate a URI authentication from credentials.
 /// ```rust
 /// # #[macro_use]
-/// # extern crate libsip;
+/// # extern crate cloudmedia;
 /// # fn main() {
 /// let auth = uri_auth!("user");
 /// let auth = uri_auth!("user", "pass");
@@ -49,33 +49,33 @@ macro_rules! ip_domain {
 #[macro_export]
 macro_rules! uri_auth {
     ($u:tt) => {
-        crate::protocol::sip::UriAuth::new($u)
+        cloudmedia::protocol::sip::UriAuth::new($u)
     };
     ($u:tt, $p:tt) => {
-        crate::protocol::sip::UriAuth::new($u).password($p)
+        cloudmedia::protocol::sip::UriAuth::new($u).password($p)
     };
 }
 
 /// Generate `NamedHeader` from a uri;
 /// ```rust
 /// # #[macro_use]
-/// # extern crate libsip;
+/// # extern crate cloudmedia;
 /// # fn main() {
-/// let uri = libsip::Uri::sip(domain!("example.com"));
+/// let uri = cloudmedia::protocol::sip::Uri::sip(domain!("example.com"));
 /// let domain = named_header!(uri);
 /// # }
 /// ```
 #[macro_export]
 macro_rules! named_header {
     ($u:tt) => {
-        libsip::NamedHeader {
+        cloudmedia::protocol::sip::NamedHeader {
             display_name: None,
             uri: $u,
             params: ::std::collections::HashMap::new(),
         }
     };
     ($u:tt, $name:tt) => {
-        libsip::NamedHeader {
+        cloudmedia::protocol::sip::NamedHeader {
             display_name: Some($name.into()),
             uri: $u,
             params: ::std::collections::HashMap::new()

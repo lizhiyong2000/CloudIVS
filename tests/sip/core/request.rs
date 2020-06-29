@@ -1,4 +1,4 @@
-use libsip::*;
+use cloudmedia::protocol::sip::*;
 
 use nom::error::VerboseError;
 

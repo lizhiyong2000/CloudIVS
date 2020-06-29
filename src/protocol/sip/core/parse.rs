@@ -4,7 +4,7 @@ use nom::character::is_alphanumeric;
 /// # Examples
 ///
 /// ```
-/// use libsip::core::parse::is_token;
+/// use cloudmedia::protocol::sip::core::parse::is_token;
 /// assert!(is_token('a' as u8));
 /// assert!(is_token('+' as u8));
 /// assert!(!is_token('=' as u8));

@@ -1,4 +1,4 @@
-use libsip::{headers::parse::parse_mime_version_header, Header};
+use cloudmedia::protocol::sip::{headers::parse::parse_mime_version_header, Header};
 
 use nom::error::VerboseError;
 

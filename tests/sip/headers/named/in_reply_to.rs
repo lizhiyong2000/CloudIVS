@@ -1,5 +1,5 @@
-use libsip::Header;
-use libsip::headers::parse::parse_in_reply_to_header;
+use cloudmedia::protocol::sip::Header;
+use cloudmedia::protocol::sip::headers::parse::parse_in_reply_to_header;
 
 use nom::error::VerboseError;
 

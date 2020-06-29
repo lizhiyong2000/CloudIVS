@@ -1,6 +1,6 @@
-use libsip::*;
+use cloudmedia::protocol::sip::*;
 use nom::error::VerboseError;
-use libsip::headers::parse::parse_www_authenticate_header;
+use cloudmedia::protocol::sip::headers::parse::parse_www_authenticate_header;
 
 use std::collections::HashMap;
 

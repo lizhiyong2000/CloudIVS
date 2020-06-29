@@ -1,4 +1,4 @@
-use libsip::{
+use cloudmedia::protocol::sip::{
     headers::{parse::parse_accept_encoding_header, ContentType},
     Header,
 };

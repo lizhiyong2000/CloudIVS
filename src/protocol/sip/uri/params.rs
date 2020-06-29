@@ -17,7 +17,7 @@ use nom::{
 
 /// Uri Parameters.
 ///
-/// TODO: Expand this enum. Similar to `libsip::Header`
+/// TODO: Expand this enum. Similar to `cloudmedia::protocol::sip::Header`
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum UriParam {
     Transport(Transport),

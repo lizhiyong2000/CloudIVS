@@ -1,5 +1,5 @@
-use libsip::*;
-use libsip::uri::parse_domain;
+use cloudmedia::protocol::sip::*;
+use cloudmedia::protocol::sip::uri::parse_domain;
 use nom::error::VerboseError;
 
 use std::net::Ipv4Addr;

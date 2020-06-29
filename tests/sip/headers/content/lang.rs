@@ -1,4 +1,4 @@
-use libsip::{
+use cloudmedia::protocol::sip::{
     headers::{parse::parse_content_language_header, Language},
     Header,
 };

@@ -1,7 +1,7 @@
 
 
 #[macro_use]
-mod macros;
+pub mod macros;
 
 mod client;
 pub mod core;
