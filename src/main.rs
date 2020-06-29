@@ -1,5 +1,6 @@
 // Strum contains all the trait definitions
 #![allow(non_snake_case)]
+#![recursion_limit="256"]
 
 extern crate strum;
 #[macro_use]
@@ -12,6 +13,11 @@ use strum_macros::{Display, EnumIter}; // etc.
 //
 
 extern crate handy_async;
+
+
+#[macro_use]
+extern crate nom;
+extern crate serde;
 
 #[cfg(test)]
 #[macro_use]
