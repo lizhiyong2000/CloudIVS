@@ -26,3 +26,5 @@ RFC
 - https://github.com/versatica/mediasoup
 - https://github.com/sile/rtp
 - https://github.com/ByteHeathen/libsip
+- https://github.com/dholroyd/rtp-rs/
+- https://github.com/OpenAnsible/rust-rtp/
