@@ -1,15 +1,15 @@
 use std::io::{Read, Write};
+
 use handy_async::sync_io::{ReadExt, WriteExt};
 
-
-use crate::protocol::traits::*;
-use crate::protocol::types::*;
-use super::rtcp_packet::*;
-use super::constants::*;
-use crate::protocol::traits::{ReadPacket, WritePacket, PacketTrait, Result, ReadFrom, WriteTo};
-use crate::protocol::rtp::traits::RtcpPacketTrait;
 use crate::protocol::error::ErrorKind;
+use crate::protocol::rtp::traits::RtcpPacketTrait;
+use crate::protocol::traits::*;
+use crate::protocol::traits::{PacketTrait, ReadFrom, ReadPacket, Result, WritePacket, WriteTo};
+use crate::protocol::types::*;
 
+use super::constants::*;
+use super::rtcp_packet::*;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GoodbyePacket {
@@ -73,11 +73,11 @@ impl WriteTo for GoodbyePacket {
 
 #[cfg(test)]
 mod tests {
-
-    use crate::protocol::rtp::rtcp::report_packet::ReceptionReport;
     use crate::protocol::rtp::rtcp::constants::SDES_ITEM_TYPE_CNAME;
-    use super::GoodbyePacket;
+    use crate::protocol::rtp::rtcp::report_packet::ReceptionReport;
     use crate::protocol::traits::{ReadFrom, WriteTo};
+
+    use super::GoodbyePacket;
 
     struct Setup {
         data: Vec<u8>,

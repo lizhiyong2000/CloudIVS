@@ -1,29 +1,28 @@
 use std::collections::HashMap;
+use std::io::{Read, Write};
 use std::str::FromStr;
 
+use handy_async::sync_io::{ReadExt, WriteExt};
+use pnet_macros_support::packet::PrimitiveValues;
 use strum;
 use strum_macros::EnumString;
-use pnet_macros_support::packet::PrimitiveValues;
-use handy_async::sync_io::{ReadExt, WriteExt};
-use std::io::{Read, Write};
-use crate::protocol::error::ErrorKind;
 
+use crate::protocol::error::ErrorKind;
+use crate::protocol::rtp::constants::RTP_VERSION;
+use crate::protocol::rtp::rtcp::constants::*;
+use crate::protocol::rtp::rtcp::payload_specific_feedback::RtcpPayloadSpecificFeedback;
+use crate::protocol::rtp::rtcp::transport_layer_feedback::RtcpTransportLayerFeedback;
+use crate::protocol::rtp::traits::RtcpPacketTrait;
+use crate::protocol::traits::{PacketData, PacketTrait, ReadFrom, ReadPacket, Result, WritePacket, WriteTo};
 // use super::traits::*;
 use crate::protocol::types::*;
 
-use crate::protocol::traits::{ReadPacket, WritePacket, PacketTrait, Result, ReadFrom, WriteTo, PacketData};
-
+use super::app_defined_packet::*;
+use super::bye_packet::*;
+use super::payload_specific_feedback;
 use super::report_packet::*;
 use super::source_description_packet::*;
-use super::bye_packet::*;
-use super::app_defined_packet::*;
 use super::transport_layer_feedback;
-use super::payload_specific_feedback;
-use crate::protocol::rtp::rtcp::transport_layer_feedback::RtcpTransportLayerFeedback;
-use crate::protocol::rtp::rtcp::payload_specific_feedback::RtcpPayloadSpecificFeedback;
-use crate::protocol::rtp::traits::RtcpPacketTrait;
-use crate::protocol::rtp::constants::RTP_VERSION;
-use crate::protocol::rtp::rtcp::constants::*;
 
 /// RTCP message types.
 ///
@@ -507,11 +506,13 @@ pub fn write_sctp<W: Write>(
 mod tests {
     use std::str::FromStr;
 
-    use super::RtcpPacketType;
     // use super::CommonHeader;
     use pnet_macros_support::packet::PrimitiveValues;
+
     use crate::protocol::rtp::rtcp::rtcp_packet::CommonHeader;
     use crate::protocol::traits::PacketData;
+
+    use super::RtcpPacketType;
 
     #[test]
     fn test_packet_type() {

@@ -1,21 +1,17 @@
+use std::io::Read;
+
 use crypto;
 use handy_async::sync_io::{ReadExt, WriteExt};
 use num::BigUint;
 use splay_tree::SplaySet;
-use std::io::Read;
-
-// use io::{ReadFrom, WriteTo};
 
 use crate::protocol::error::ErrorKind;
-
-use crate::protocol::traits::{ReadPacket, WritePacket, PacketTrait, Result, ReadFrom, WriteTo};
-
-use crate::protocol::types::U48;
-use crate::protocol::rtp::traits::{RtpPacketTrait, RtcpPacketTrait};
-
 use crate::protocol::rtp::rtp::{*};
+use crate::protocol::rtp::traits::{RtcpPacketTrait, RtpPacketTrait};
+use crate::protocol::traits::{PacketTrait, ReadFrom, ReadPacket, Result, WritePacket, WriteTo};
+use crate::protocol::types::U48;
 
-
+// use io::{ReadFrom, WriteTo};
 
 pub type PacketIndex = U48;
 
@@ -327,9 +323,9 @@ fn prf_n(master_key: &[u8], x: BigUint, n: usize) -> Vec<u8> {
 
 #[cfg(test)]
 mod test {
+    use crate::protocol::rtp::rtcp::rtcp_packet::RtcpPacketReader;
 
     use super::*;
-    use crate::protocol::rtp::rtcp::rtcp_packet::RtcpPacketReader;
 
     #[test]
     fn rtp_decryption_works() {

@@ -1,15 +1,16 @@
 use std::io::{Read, Write};
+
 use handy_async::sync_io::{ReadExt, WriteExt};
 
-
-use crate::protocol::traits::*;
-use crate::protocol::types::*;
-use super::rtcp_packet::*;
-use super::constants::*;
-use crate::protocol::traits::{ReadPacket, WritePacket, PacketTrait, Result, ReadFrom, WriteTo};
+use crate::protocol::error::ErrorKind;
 use crate::protocol::rtp::rtcp::constants::{*};
 use crate::protocol::rtp::traits::RtcpPacketTrait;
-use crate::protocol::error::ErrorKind;
+use crate::protocol::traits::*;
+use crate::protocol::traits::{PacketTrait, ReadFrom, ReadPacket, Result, WritePacket, WriteTo};
+use crate::protocol::types::*;
+
+use super::constants::*;
+use super::rtcp_packet::*;
 
 /*
 
@@ -211,14 +212,14 @@ impl SdesItem {
 
 #[cfg(test)]
 mod tests {
-
+    use crate::protocol::rtp::rtcp::constants::SDES_ITEM_TYPE_CNAME;
     // use super::SenderReportPacket;
     // use super::ReceiverReportPacket;
     use crate::protocol::rtp::rtcp::report_packet::ReceptionReport;
-    use super::SourceDescriptionPacket;
+    use crate::protocol::rtp::rtcp::source_description_packet::{SdesChunk, SdesItem};
     use crate::protocol::traits::{ReadFrom, WriteTo};
-    use crate::protocol::rtp::rtcp::constants::SDES_ITEM_TYPE_CNAME;
-    use crate::protocol::rtp::rtcp::source_description_packet::{SdesItem, SdesChunk};
+
+    use super::SourceDescriptionPacket;
 
     struct Setup {
         data: Vec<u8>,

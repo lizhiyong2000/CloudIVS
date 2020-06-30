@@ -1,15 +1,17 @@
-use handy_async::sync_io::{ReadExt, WriteExt};
 use std::io::{Read, Write};
 
-use super::constants::RTP_VERSION;
+use handy_async::sync_io::{ReadExt, WriteExt};
+
 // use io::{ReadFrom, WriteTo};
 // use traits::{self, Packet};
 // use types::{Csrc, RtpTimestamp, Ssrc, U7};
 // use {ErrorKind, Result};
 use crate::protocol::error::ErrorKind;
-use crate::protocol::traits::{ReadPacket, WritePacket, PacketTrait, Result, ReadFrom, WriteTo};
-use crate::protocol::types::U7;
 use crate::protocol::rtp::traits::RtpPacketTrait;
+use crate::protocol::traits::{PacketTrait, ReadFrom, ReadPacket, Result, WritePacket, WriteTo};
+use crate::protocol::types::U7;
+
+use super::constants::RTP_VERSION;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RtpPacketReader;

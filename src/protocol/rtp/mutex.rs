@@ -1,9 +1,8 @@
 use std::io::{Read, Write};
 
-use crate::protocol::traits::{WritePacket, ReadPacket, PacketTrait, Result};
-
-use crate::protocol::rtp::traits::{RtpPacketTrait, RtcpPacketTrait};
 use crate::protocol::error::ErrorKind;
+use crate::protocol::rtp::traits::{RtcpPacketTrait, RtpPacketTrait};
+use crate::protocol::traits::{PacketTrait, ReadPacket, Result, WritePacket};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MuxPacketReader<T, U> {

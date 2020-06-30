@@ -1,10 +1,11 @@
 use std::io::{Read, Write};
-use crate::protocol::types::U5;
-use crate::protocol::traits::Result;
-use crate::protocol::rtp::constants::RTP_VERSION;
+
+use handy_async::sync_io::{ReadExt, WriteExt};
 
 use crate::protocol::error::ErrorKind;
-use handy_async::sync_io::{ReadExt, WriteExt};
+use crate::protocol::rtp::constants::RTP_VERSION;
+use crate::protocol::traits::Result;
+use crate::protocol::types::U5;
 
 pub fn write_common<W: Write>(
     writer: &mut W,
