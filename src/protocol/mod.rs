@@ -5,6 +5,8 @@ pub mod rtcp;
 #[macro_use]
 pub mod sip;
 
+pub mod sdp;
+
 // pub use self::rtcp::*;
 // pub use self::rtcp::{ApplicationDefinedPacket, GoodbyePacket, SourceDescriptionPacket};
 // pub use self::rtcp::{RtcpPacket, RtcpPacketReader, ReceiverReportPacket, SenderReportPacket};

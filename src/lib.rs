@@ -21,6 +21,17 @@ extern crate handy_async;
 extern crate nom;
 extern crate serde;
 
+
+#[macro_use]
+extern crate log;
+
+#[cfg(feature = "serialize")]
+#[macro_use]
+extern crate serde_derive;
+#[cfg(feature = "serialize")]
+extern crate serde;
+extern crate url;
+
 #[cfg(test)]
 #[macro_use]
 extern crate assert_matches;
