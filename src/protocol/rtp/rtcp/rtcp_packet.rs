@@ -6,16 +6,24 @@ use strum_macros::EnumString;
 use pnet_macros_support::packet::PrimitiveValues;
 use handy_async::sync_io::{ReadExt, WriteExt};
 use std::io::{Read, Write};
+use crate::protocol::error::ErrorKind;
 
-use super::constants::*;
-use super::traits::*;
-use super::types::*;
+// use super::traits::*;
+use crate::protocol::types::*;
+
+use crate::protocol::traits::{ReadPacket, WritePacket, PacketTrait, Result, ReadFrom, WriteTo, PacketData};
 
 use super::report_packet::*;
 use super::source_description_packet::*;
 use super::bye_packet::*;
 use super::app_defined_packet::*;
-
+use super::transport_layer_feedback;
+use super::payload_specific_feedback;
+use crate::protocol::rtp::rtcp::transport_layer_feedback::RtcpTransportLayerFeedback;
+use crate::protocol::rtp::rtcp::payload_specific_feedback::RtcpPayloadSpecificFeedback;
+use crate::protocol::rtp::traits::RtcpPacketTrait;
+use crate::protocol::rtp::constants::RTP_VERSION;
+use crate::protocol::rtp::rtcp::constants::*;
 
 /// RTCP message types.
 ///
@@ -294,7 +302,9 @@ impl ReadPacket for RtcpPacketReader {
             | RTCP_PACKET_TYPE_RR
             | RTCP_PACKET_TYPE_SDES
             | RTCP_PACKET_TYPE_BYE
-            | RTCP_PACKET_TYPE_APP => true,
+            | RTCP_PACKET_TYPE_APP
+            | RTCP_PACKET_TYPE_RTPFB
+            | RTCP_PACKET_TYPE_PSFB => true,
             _ => false,
         }
     }
@@ -322,6 +332,8 @@ pub enum RtcpPacket {
     Sdes(SourceDescriptionPacket),
     Bye(GoodbyePacket),
     App(ApplicationDefinedPacket),
+    Rtpfb(RtcpTransportLayerFeedback),
+    Psfb(RtcpPayloadSpecificFeedback),
 }
 impl PacketTrait for RtcpPacket {}
 impl RtcpPacketTrait for RtcpPacket {}
@@ -344,11 +356,19 @@ impl ReadFrom for RtcpPacket {
             RTCP_PACKET_TYPE_APP => {
                 track_err!(ApplicationDefinedPacket::read_from(reader).map(From::from))
             }
-            _ => track_panic!(
+            RTCP_PACKET_TYPE_RTPFB => {
+                track_err!(RtcpTransportLayerFeedback::read_from(reader).map(From::from))
+            }
+            RTCP_PACKET_TYPE_PSFB => {
+                track_err!(RtcpPayloadSpecificFeedback::read_from(reader).map(From::from))
+            }
+            _ => {
+                track_assert_eq!(buf[0] >> 6, RTP_VERSION, ErrorKind::Invalid);
+                track_panic!(
                 ErrorKind::Unsupported,
                 "Unknown packet type: {}",
                 packet_type
-            ),
+            )},
         }
     }
 }
@@ -360,6 +380,8 @@ impl WriteTo for RtcpPacket {
             RtcpPacket::Sdes(ref p) => track_err!(p.write_to(writer)),
             RtcpPacket::Bye(ref p) => track_err!(p.write_to(writer)),
             RtcpPacket::App(ref p) => track_err!(p.write_to(writer)),
+            RtcpPacket::Rtpfb(ref p) => track_err!(p.write_to(writer)),
+            RtcpPacket::Psfb(ref p) => track_err!(p.write_to(writer)),
         }
     }
 }
@@ -407,6 +429,19 @@ impl From<ApplicationDefinedPacket> for RtcpPacket {
         RtcpPacket::App(f)
     }
 }
+
+
+impl From<RtcpTransportLayerFeedback> for RtcpPacket {
+    fn from(f: RtcpTransportLayerFeedback) -> Self {
+        RtcpPacket::Rtpfb(f)
+    }
+}
+impl From<RtcpPayloadSpecificFeedback> for RtcpPacket {
+    fn from(f: RtcpPayloadSpecificFeedback) -> Self {
+        RtcpPacket::Psfb(f)
+    }
+}
+
 
 pub fn read_sctp<R: Read>(reader: &mut R, expected_type: u8) -> Result<(U5, Vec<u8>)> {
     let b = track_try!(reader.read_u8());
@@ -475,8 +510,8 @@ mod tests {
     use super::RtcpPacketType;
     // use super::CommonHeader;
     use pnet_macros_support::packet::PrimitiveValues;
-    use crate::protocol::rtcp::rtcp_packet::CommonHeader;
-    use crate::protocol::rtcp::traits::PacketData;
+    use crate::protocol::rtp::rtcp::rtcp_packet::CommonHeader;
+    use crate::protocol::traits::PacketData;
 
     #[test]
     fn test_packet_type() {

@@ -1,12 +1,16 @@
 use std::io::{Read, Write};
 use handy_async::sync_io::{ReadExt, WriteExt};
 
-use super::constants::*;
-use super::traits::*;
-use super::types::*;
+
+use crate::protocol::traits::*;
+use crate::protocol::types::*;
 use super::rtcp_packet::*;
+use super::constants::*;
 
-
+use crate::protocol::traits::{ReadPacket, WritePacket, PacketTrait, Result, ReadFrom, WriteTo};
+use crate::protocol::types::U24;
+use crate::protocol::rtp::traits::RtcpPacketTrait;
+use crate::protocol::error::ErrorKind;
 
 /*
         0                   1                   2                   3
@@ -300,8 +304,8 @@ mod tests {
 
     use super::SenderReportPacket;
     use super::ReceiverReportPacket;
-    use crate::protocol::rtcp::traits::{ReadFrom, WriteTo};
-    use crate::protocol::rtcp::report_packet::ReceptionReport;
+    use crate::protocol::rtp::rtcp::report_packet::ReceptionReport;
+    use crate::protocol::traits::{ReadFrom, WriteTo};
 
     struct SetupSR {
         data: Vec<u8>,
