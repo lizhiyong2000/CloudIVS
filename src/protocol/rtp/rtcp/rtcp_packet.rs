@@ -356,10 +356,10 @@ impl ReadFrom for RtcpPacket {
                 track_err!(ApplicationDefinedPacket::read_from(reader).map(From::from))
             }
             RTCP_PACKET_TYPE_RTPFB => {
-                track_err!(RtcpTransportLayerFeedback::read_from(reader).map(From::from))
+                track_err!(TransportLayerFeedbackPacket::read_from(reader).map(From::from))
             }
             RTCP_PACKET_TYPE_PSFB => {
-                track_err!(RtcpPayloadSpecificFeedback::read_from(reader).map(From::from))
+                track_err!(PayloadSpecificFeedbackPacket::read_from(reader).map(From::from))
             }
             _ => {
                 track_assert_eq!(buf[0] >> 6, RTP_VERSION, ErrorKind::Invalid);
