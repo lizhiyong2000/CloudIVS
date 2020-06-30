@@ -12,15 +12,15 @@ use super::constants::*;
 use super::feedback::*;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum RtcpPayloadSpecificFeedback {
+pub enum PayloadSpecificFeedbackPacket {
     Pli(PictureLossIndication),
     Sli(SliceLossIndication),
     Rpsi(ReferencePictureSelectionIndication),
     Afb(ApplicationLayerFeedback),
 }
-impl PacketTrait for RtcpPayloadSpecificFeedback {}
-impl RtcpPacketTrait for RtcpPayloadSpecificFeedback {}
-impl ReadFrom for RtcpPayloadSpecificFeedback {
+impl PacketTrait for PayloadSpecificFeedbackPacket {}
+impl RtcpPacketTrait for PayloadSpecificFeedbackPacket {}
+impl ReadFrom for PayloadSpecificFeedbackPacket {
     fn read_from<R: Read>(reader: &mut R) -> Result<Self> {
         let (fb_message_type, rest) = track_try!(read_common(reader, RTCP_PACKET_TYPE_PSFB));
         let reader = &mut &rest[..];
@@ -45,10 +45,10 @@ impl ReadFrom for RtcpPayloadSpecificFeedback {
         }
     }
 }
-impl WriteTo for RtcpPayloadSpecificFeedback {
+impl WriteTo for PayloadSpecificFeedbackPacket {
     fn write_to<W: Write>(&self, writer: &mut W) -> Result<()> {
         match *self {
-            RtcpPayloadSpecificFeedback::Pli(ref f) => {
+            PayloadSpecificFeedbackPacket::Pli(ref f) => {
                 let payload = track_try!(f.to_bytes());
                 track_err!(write_common(
                     writer,
@@ -57,7 +57,7 @@ impl WriteTo for RtcpPayloadSpecificFeedback {
                     &payload
                 ))
             }
-            RtcpPayloadSpecificFeedback::Sli(ref f) => {
+            PayloadSpecificFeedbackPacket::Sli(ref f) => {
                 let payload = track_try!(f.to_bytes());
                 track_err!(write_common(
                     writer,
@@ -66,7 +66,7 @@ impl WriteTo for RtcpPayloadSpecificFeedback {
                     &payload
                 ))
             }
-            RtcpPayloadSpecificFeedback::Rpsi(ref f) => {
+            PayloadSpecificFeedbackPacket::Rpsi(ref f) => {
                 let payload = track_try!(f.to_bytes());
                 track_err!(write_common(
                     writer,
@@ -75,7 +75,7 @@ impl WriteTo for RtcpPayloadSpecificFeedback {
                     &payload
                 ))
             }
-            RtcpPayloadSpecificFeedback::Afb(ref f) => {
+            PayloadSpecificFeedbackPacket::Afb(ref f) => {
                 let payload = track_try!(f.to_bytes());
                 track_err!(write_common(
                     writer,
@@ -87,24 +87,24 @@ impl WriteTo for RtcpPayloadSpecificFeedback {
         }
     }
 }
-impl From<PictureLossIndication> for RtcpPayloadSpecificFeedback {
+impl From<PictureLossIndication> for PayloadSpecificFeedbackPacket {
     fn from(f: PictureLossIndication) -> Self {
-        RtcpPayloadSpecificFeedback::Pli(f)
+        PayloadSpecificFeedbackPacket::Pli(f)
     }
 }
-impl From<SliceLossIndication> for RtcpPayloadSpecificFeedback {
+impl From<SliceLossIndication> for PayloadSpecificFeedbackPacket {
     fn from(f: SliceLossIndication) -> Self {
-        RtcpPayloadSpecificFeedback::Sli(f)
+        PayloadSpecificFeedbackPacket::Sli(f)
     }
 }
-impl From<ReferencePictureSelectionIndication> for RtcpPayloadSpecificFeedback {
+impl From<ReferencePictureSelectionIndication> for PayloadSpecificFeedbackPacket {
     fn from(f: ReferencePictureSelectionIndication) -> Self {
-        RtcpPayloadSpecificFeedback::Rpsi(f)
+        PayloadSpecificFeedbackPacket::Rpsi(f)
     }
 }
-impl From<ApplicationLayerFeedback> for RtcpPayloadSpecificFeedback {
+impl From<ApplicationLayerFeedback> for PayloadSpecificFeedbackPacket {
     fn from(f: ApplicationLayerFeedback) -> Self {
-        RtcpPayloadSpecificFeedback::Afb(f)
+        PayloadSpecificFeedbackPacket::Afb(f)
     }
 }
 

@@ -10,8 +10,8 @@ use strum_macros::EnumString;
 use crate::protocol::error::ErrorKind;
 use crate::protocol::rtp::constants::RTP_VERSION;
 use crate::protocol::rtp::rtcp::constants::*;
-use crate::protocol::rtp::rtcp::payload_specific_feedback::RtcpPayloadSpecificFeedback;
-use crate::protocol::rtp::rtcp::transport_layer_feedback::RtcpTransportLayerFeedback;
+use crate::protocol::rtp::rtcp::payload_specific_feedback::PayloadSpecificFeedbackPacket;
+use crate::protocol::rtp::rtcp::transport_layer_feedback::TransportLayerFeedbackPacket;
 use crate::protocol::rtp::traits::RtcpPacketTrait;
 use crate::protocol::traits::{PacketData, PacketTrait, ReadFrom, ReadPacket, Result, WritePacket, WriteTo};
 // use super::traits::*;
@@ -331,8 +331,8 @@ pub enum RtcpPacket {
     Sdes(SourceDescriptionPacket),
     Bye(GoodbyePacket),
     App(ApplicationDefinedPacket),
-    Rtpfb(RtcpTransportLayerFeedback),
-    Psfb(RtcpPayloadSpecificFeedback),
+    Rtpfb(TransportLayerFeedbackPacket),
+    Psfb(PayloadSpecificFeedbackPacket),
 }
 impl PacketTrait for RtcpPacket {}
 impl RtcpPacketTrait for RtcpPacket {}
@@ -430,13 +430,13 @@ impl From<ApplicationDefinedPacket> for RtcpPacket {
 }
 
 
-impl From<RtcpTransportLayerFeedback> for RtcpPacket {
-    fn from(f: RtcpTransportLayerFeedback) -> Self {
+impl From<TransportLayerFeedbackPacket> for RtcpPacket {
+    fn from(f: TransportLayerFeedbackPacket) -> Self {
         RtcpPacket::Rtpfb(f)
     }
 }
-impl From<RtcpPayloadSpecificFeedback> for RtcpPacket {
-    fn from(f: RtcpPayloadSpecificFeedback) -> Self {
+impl From<PayloadSpecificFeedbackPacket> for RtcpPacket {
+    fn from(f: PayloadSpecificFeedbackPacket) -> Self {
         RtcpPacket::Psfb(f)
     }
 }

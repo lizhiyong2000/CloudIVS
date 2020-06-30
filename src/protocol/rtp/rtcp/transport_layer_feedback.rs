@@ -11,12 +11,12 @@ use super::constants::*;
 use super::feedback::*;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum RtcpTransportLayerFeedback {
+pub enum TransportLayerFeedbackPacket {
     Nack(GenericNack),
 }
-impl PacketTrait for RtcpTransportLayerFeedback {}
-impl RtcpPacketTrait for RtcpTransportLayerFeedback {}
-impl ReadFrom for RtcpTransportLayerFeedback {
+impl PacketTrait for TransportLayerFeedbackPacket {}
+impl RtcpPacketTrait for TransportLayerFeedbackPacket {}
+impl ReadFrom for TransportLayerFeedbackPacket {
     fn read_from<R: Read>(reader: &mut R) -> Result<Self> {
         let (fb_message_type, rest) = track_try!(read_common(reader, RTCP_PACKET_TYPE_RTPFB));
         match fb_message_type {
@@ -31,10 +31,10 @@ impl ReadFrom for RtcpTransportLayerFeedback {
         }
     }
 }
-impl WriteTo for RtcpTransportLayerFeedback {
+impl WriteTo for TransportLayerFeedbackPacket {
     fn write_to<W: Write>(&self, writer: &mut W) -> Result<()> {
         match *self {
-            RtcpTransportLayerFeedback::Nack(ref f) => {
+            TransportLayerFeedbackPacket::Nack(ref f) => {
                 let payload = track_try!(f.to_bytes());
                 track_err!(write_common(
                     writer,
@@ -46,8 +46,8 @@ impl WriteTo for RtcpTransportLayerFeedback {
         }
     }
 }
-impl From<GenericNack> for RtcpTransportLayerFeedback {
+impl From<GenericNack> for TransportLayerFeedbackPacket {
     fn from(f: GenericNack) -> Self {
-        RtcpTransportLayerFeedback::Nack(f)
+        TransportLayerFeedbackPacket::Nack(f)
     }
 }
