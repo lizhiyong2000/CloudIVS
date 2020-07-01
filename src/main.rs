@@ -2,10 +2,14 @@
 #![allow(non_snake_case)]
 #![allow(dead_code)]
 #![recursion_limit="256"]
+#![feature(int_error_matching)]
 
-extern crate strum;
+
 #[macro_use]
 extern crate strum_macros;
+
+
+extern crate strum;
 
 #[macro_use]
 extern crate trackable;
@@ -29,6 +33,11 @@ extern crate serde_derive;
 #[cfg(feature = "serialize")]
 extern crate serde;
 extern crate url;
+
+#[macro_use]
+extern crate futures;
+
+
 
 #[cfg(test)]
 #[macro_use]

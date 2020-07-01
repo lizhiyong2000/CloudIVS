@@ -3,6 +3,7 @@
 #![allow(dead_code)]
 #![allow(unused)]
 #![recursion_limit="256"]
+#![feature(int_error_matching)]
 
 extern crate strum;
 #[macro_use]
