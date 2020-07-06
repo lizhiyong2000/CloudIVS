@@ -147,13 +147,17 @@ impl SendRequest {
             match timer.poll() {
                 Poll::Ready(_) => {
                     self.cancel_request();
-                    return Err(OperationError::RequestTimedOut(RequestTimeoutType::Short));
+                    // return Err(OperationError::RequestTimedOut(RequestTimeoutType::Short));
+                    return Poll::Pending
                 }
+
                 Poll::Pending => (),
                 Err(ref error) if error.is_at_capacity() => {
                     self.cancel_request();
-                    return Err(OperationError::RequestCancelled);
+                    // return Err(OperationError::RequestCancelled);
+                    return Poll::Pending
                 }
+
                 _ => panic!("timer should not be shutdown"),
             }
         }
@@ -191,11 +195,13 @@ impl Future for SendRequest {
         }
 
         if let Err(error) = self.poll_max_timer() {
-            return Err(error);
+            // return Err(error);
+            return Poll::Pending
         }
 
         if let Err(error) = self.poll_timer() {
-            return Err(error);
+            // return Err(error);
+            return Poll::Pending
         }
 
         Poll::Pending

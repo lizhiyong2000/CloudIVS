@@ -6,6 +6,8 @@ use tower_service::Service;
 use crate::protocol::rtsp::request::Request;
 use crate::protocol::rtsp::response::Response;
 use std::task::Poll;
+use futures::stream::empty;
+
 
 pub struct EmptyService;
 
@@ -15,7 +17,7 @@ impl Service<Request<BytesMut>> for EmptyService {
     type Future = Box<dyn Future<Output = Self::Response> + Send + 'static>;
 
     fn call(&mut self, _: Request<BytesMut>) -> Self::Future {
-        Box::new(futures::empty())
+        Box::new(empty())
     }
 
     fn poll_ready(&mut self) -> Poll<()> {

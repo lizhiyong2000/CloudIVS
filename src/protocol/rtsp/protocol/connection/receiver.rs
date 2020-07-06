@@ -26,6 +26,7 @@ use crate::protocol::rtsp::response::{
 use crate::protocol::rtsp::status::StatusCode;
 use std::task::{Poll, Context};
 use std::pin::Pin;
+use std::sync::mpsc::TrySendError;
 
 /// Receiver responsible for processing incoming messages, including forwarding requests to the
 /// request handler and matching responses to pending requests.
@@ -597,12 +598,12 @@ impl Future for ForwardingReceiver {
                     .start_send((incoming_sequence_number, request))
                     .map_err(|_| ())?
                 {
-                    AsyncSink::Ready => {
+                    Ok(()) => {
                         incoming_sequence_number = incoming_sequence_number.wrapping_increment()
                     }
-                    AsyncSink::NotReady((_, request)) => {
+                    Result::Err(_0) => {
                         self.buffered_requests
-                            .insert(incoming_sequence_number, request);
+                            .insert(incoming_sequence_number, request.clone());
                         self.incoming_sequence_number = Some(incoming_sequence_number);
                         return Poll::Pending;
                     }
@@ -610,7 +611,7 @@ impl Future for ForwardingReceiver {
             }
 
             self.incoming_sequence_number = Some(incoming_sequence_number);
-        }
+        } else {}
 
         Poll::Ready(())
     }

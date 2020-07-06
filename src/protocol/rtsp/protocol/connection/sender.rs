@@ -108,7 +108,7 @@ where
     fn try_send_message(&mut self, message: Message) -> Poll<()> {
         debug_assert!(self.buffered_message.is_none());
 
-        if let AsyncSink::NotReady(message) = self.sink.start_send(message)? {
+        if let Ok(()) = self.sink.start_send(message)? {
             self.buffered_message = Some(message);
             return Poll::Pending;
         }
