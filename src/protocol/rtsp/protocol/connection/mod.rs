@@ -17,7 +17,7 @@ use futures::future::{Either, Shared};
 use futures::stream::{SplitSink, SplitStream};
 use futures::channel::mpsc::{self, UnboundedSender};
 use futures::channel::oneshot;
-// use futures::{future, Future, Stream, Sink};
+use futures::{future, Future, Stream, Sink, SinkExt, FutureExt, StreamExt};
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::mem;
@@ -39,7 +39,6 @@ use crate::protocol::rtsp::request::Request;
 use crate::protocol::rtsp::response::Response;
 use std::pin::Pin;
 use futures::task::{Context, Poll};
-use futures::{Future, future};
 
 pub const DEFAULT_CONTINUE_WAIT_DURATION: Duration = Duration::from_secs(5);
 pub const DEFAULT_DECODE_TIMEOUT_DURATION: Duration = Duration::from_secs(10);
