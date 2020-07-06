@@ -45,14 +45,21 @@ pub const DEFAULT_DECODE_TIMEOUT_DURATION: Duration = Duration::from_secs(10);
 pub const DEFAULT_GRACEFUL_SHUTDOWN_TIMEOUT_DURATION: Duration = Duration::from_secs(10);
 pub const DEFAULT_REQUEST_BUFFER_SIZE: usize = 10;
 
+// impl<T, I, U> Sink<I> for Framed<T, U>
+//     where
+//         T: AsyncWrite + Unpin,
+//         U: Encoder<Item = I> + Unpin,
+//         U::Error: From<io::Error>,
+
 /// Represents an RTSP connection between two RTSP agents.
+///
 ///
 /// RTSP servers and clients are both capable of sending and receiving requests and responses. As a
 /// result, they share the same underlying connection logic.
 #[must_use = "futures do nothing unless polled"]
 pub struct Connection<TTransport>
 where
-    TTransport: AsyncRead + AsyncWrite + Send + 'static,
+    TTransport: AsyncRead + AsyncWrite + Send + Unpin + 'static,
 {
     /// A shared atomic that determines whether we are allowed to send requests through this
     /// connection.
@@ -73,7 +80,7 @@ where
 
 impl<TTransport> Connection<TTransport>
 where
-    TTransport: AsyncRead + AsyncWrite + Send + 'static,
+    TTransport: AsyncRead + AsyncWrite + Send + Unpin + 'static,
 {
     /// Returns whether the receiver is shutdown.
     fn is_receiver_shutdown(&self) -> bool {
@@ -266,7 +273,7 @@ where
 
 impl<TTransport> Future for Connection<TTransport>
 where
-    TTransport: AsyncRead + AsyncWrite + Send + 'static,
+    TTransport: AsyncRead + AsyncWrite + Send + Unpin + 'static,
 {
     type Output = ();
 
@@ -597,7 +604,7 @@ impl ConnectionShutdownSender {
 
     /// Attemps to shutdown the connection if it has not already been shutdown.
     pub fn shutdown(&mut self, shutdown_type: ShutdownType) {
-        if let Some(tx_initiate_shutdown) = self.tx_initiate_shutdown.take() {
+        if let Some(mut tx_initiate_shutdown) = self.tx_initiate_shutdown.take() {
             let _ = tx_initiate_shutdown.send(shutdown_type);
         }
     }
