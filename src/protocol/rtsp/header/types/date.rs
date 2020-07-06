@@ -129,14 +129,14 @@ impl TypedHeader for Date {
     ///
     /// ```
     /// # extern crate chrono;
-    /// # extern crate rtsp;
+    /// # extern crate cloudmedia;
     /// #
     /// use chrono::{TimeZone, Utc};
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::map::TypedHeader;
-    /// use rtsp::header::types::Date;
-    /// use rtsp::header::value::HeaderValue;
+    /// use cloudmedia::protocol::rtsp::header::map::TypedHeader;
+    /// use cloudmedia::protocol::rtsp::header::types::Date;
+    /// use cloudmedia::protocol::rtsp::header::value::HeaderValue;
     ///
     /// let raw_header: Vec<HeaderValue> = vec![];
     /// assert_eq!(Date::decode(&mut raw_header.iter()).unwrap(), None);
@@ -170,14 +170,14 @@ impl TypedHeader for Date {
     ///
     /// ```
     /// # extern crate chrono;
-    /// # extern crate rtsp;
+    /// # extern crate cloudmedia;
     /// #
     /// use chrono::{TimeZone, Utc};
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::map::TypedHeader;
-    /// use rtsp::header::types::Date;
-    /// use rtsp::header::value::HeaderValue;
+    /// use cloudmedia::protocol::rtsp::header::map::TypedHeader;
+    /// use cloudmedia::protocol::rtsp::header::types::Date;
+    /// use cloudmedia::protocol::rtsp::header::value::HeaderValue;
     ///
     /// let typed_header = Date::from(Utc.ymd(2014, 7, 10).and_hms(9, 10, 11));
     /// let expected_raw_header = vec![

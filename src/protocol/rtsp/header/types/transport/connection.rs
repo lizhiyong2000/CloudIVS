@@ -45,7 +45,7 @@ impl Connection {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::types::transport::Connection;
+    /// use cloudmedia::protocol::rtsp::header::types::transport::Connection;
     ///
     /// assert_eq!(Connection::Existing.as_str(), "existing");
     /// assert_eq!(Connection::New.as_str(), "new");

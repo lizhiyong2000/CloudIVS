@@ -21,7 +21,7 @@ impl ReasonPhrase {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::reason::ReasonPhrase;
+    /// use cloudmedia::protocol::rtsp::reason::ReasonPhrase;
     ///
     /// assert_eq!(ReasonPhrase::try_from("OK").unwrap().as_str(), "OK");
     /// ```

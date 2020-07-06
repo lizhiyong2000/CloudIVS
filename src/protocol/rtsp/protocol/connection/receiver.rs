@@ -3,7 +3,7 @@ use fnv::FnvBuildHasher;
 use futures::stream::Fuse;
 use futures::channel::mpsc::{Sender, UnboundedReceiver};
 use futures::channel::oneshot;
-use futures::{Future, Sink, Stream};
+use futures::{Future, Sink, Stream, SinkExt, StreamExt};
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::error::Error;
@@ -24,7 +24,7 @@ use crate::protocol::rtsp::response::{
     REQUEST_URI_TOO_LONG_RESPONSE, VERSION_NOT_SUPPORTED_RESPONSE,
 };
 use crate::protocol::rtsp::status::StatusCode;
-use std::task::{Poll, Context};
+use futures::task::{Poll, Context};
 use std::pin::Pin;
 use std::sync::mpsc::TrySendError;
 
@@ -257,7 +257,7 @@ where
             match decoding_timer.poll() {
                 Poll::Ready(_) => return Poll::Ready(()),
                 Poll::Pending => return Poll::Pending,
-                Err(ref error) if error.is_at_capacity() => return Err(()),
+                // Err(ref error) if error.is_at_capacity() => return Err(()),
                 _ => panic!("decoding timer should not be shutdown"),
             }
         }
@@ -350,10 +350,10 @@ where
                         return Poll::Pending;
                     }
                     Ok(Poll::Ready(None)) => return Poll::Ready(()),
-                    Err(error) => {
-                        self.handle_protocol_error(&error);
-                        return Err(error);
-                    }
+                    // Err(error) => {
+                    //     self.handle_protocol_error(&error);
+                    //     return Err(error);
+                    // }
                 }
             },
             None => Poll::Ready(()),
@@ -436,7 +436,7 @@ where
     /// currently.
     ///
     /// If `Err(())` will never be returned.
-    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         match self.poll_receiving() {
             Poll::Ready(_) | Err(_) => {
                 self.shutdown_receiving();
@@ -590,7 +590,7 @@ impl Future for ForwardingReceiver {
     ///
     /// If `Err(())` is returned, then the request handler's receiver has been dropped meaning the
     /// forwarding receiver can be shutdown.
-    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         if let Some(mut incoming_sequence_number) = self.incoming_sequence_number {
             while let Some(request) = self.buffered_requests.remove(&incoming_sequence_number) {
                 match self
@@ -679,7 +679,7 @@ impl ResponseReceiver {
                         self.pending_requests.remove(&cseq);
                     }
                 }
-            } else if let Some(pending_request) = self.pending_requests.remove(&cseq) {
+            } else if let Some(mut pending_request) = self.pending_requests.remove(&cseq) {
                 let _ = pending_request.send(PendingRequestResponse::Response(response));
             }
         }
@@ -700,7 +700,7 @@ impl ResponseReceiver {
     fn remove_pending_requests(&mut self) {
         self.pending_requests
             .drain()
-            .for_each(|(_, tx_pending_request)| {
+            .for_each(|(_, mut tx_pending_request)| {
                 let _ = tx_pending_request.send(PendingRequestResponse::None);
             });
     }
@@ -736,7 +736,7 @@ impl Future for ResponseReceiver {
     /// processed currently.
     ///
     /// The error `Err(())` will never be returned.
-    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         loop {
             match self
                 .rx_pending_request

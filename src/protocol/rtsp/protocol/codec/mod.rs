@@ -274,7 +274,7 @@ pub enum Message {
 
 /// A generic error type for any protocol errors that occur.
 #[derive(Clone, Debug)]
-// #[non_exhaustive]
+#[non_exhaustive]
 pub enum ProtocolError {
     /// An error was encountered while decoding a request or response.
     DecodeError(DecodeError),
@@ -321,7 +321,7 @@ impl From<io::Error> for ProtocolError {
 
 /// An error was encountered while decoding a request or response.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-// #[non_exhaustive]
+#[non_exhaustive]
 pub enum DecodeError {
     /// An error was encountered while decoding a request.
     Request(RequestDecodeError),
@@ -378,6 +378,7 @@ mod test {
     use crate::protocol::rtsp::request::Request;
     use crate::protocol::rtsp::response::Response;
     use crate::protocol::rtsp::uri::request::URI;
+    use futures::StreamExt;
 
     #[test]
     fn test_codec_decoding() {

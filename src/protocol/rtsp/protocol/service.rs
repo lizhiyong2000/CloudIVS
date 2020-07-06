@@ -1,12 +1,12 @@
 use bytes::BytesMut;
-use futures::{future, Future};
 use std::io;
 use tower_service::Service;
 
 use crate::protocol::rtsp::request::Request;
 use crate::protocol::rtsp::response::Response;
-use std::task::Poll;
 use futures::stream::empty;
+use futures::task::Poll;
+use futures::Future;
 
 
 pub struct EmptyService;
@@ -14,7 +14,7 @@ pub struct EmptyService;
 impl Service<Request<BytesMut>> for EmptyService {
     type Response = Response<BytesMut>;
     type Error = io::Error;
-    type Future = Box<dyn Future<Output = Self::Response> + Send + 'static>;
+    type Future = Box<Future<Output = Self::Response> + Send + 'static>;
 
     fn call(&mut self, _: Request<BytesMut>) -> Self::Future {
         Box::new(empty())

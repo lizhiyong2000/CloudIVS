@@ -6,7 +6,7 @@ use bytes::BytesMut;
 use futures::stream::Fuse;
 use futures::channel::mpsc::Receiver;
 use futures::channel::oneshot;
-use futures::{ready, Future, Stream};
+use futures::{Future, Stream, ready, SinkExt};
 use std::time::{Duration, Instant};
 use tokio_timer::Delay;
 use tower_service::Service;
@@ -22,7 +22,7 @@ use crate::protocol::rtsp::response::{
     NOT_IMPLEMENTED_RESPONSE,
 };
 use crate::protocol::rtsp::uri::Scheme;
-use std::task::{Poll, Context};
+use futures::task::{Poll, Context};
 use std::pin::Pin;
 
 /// The type responsible for servicing incoming requests and sending responses back.
@@ -265,7 +265,7 @@ where
     /// there are no requests in the incoming queue.
     ///
     /// The error `Err(())` will never be returned.
-    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         loop {
             ready!(self.poll_serviced_request());
 
@@ -288,9 +288,9 @@ where
 #[cfg(test)]
 mod test {
     use bytes::BytesMut;
-    use futures::future;
+    // use futures::future;
     use futures::channel::{mpsc, oneshot};
-    use futures::{ Future, Poll, Stream};
+    // use futures::{ Future, Poll, Stream};
     use std::convert::TryFrom;
     use std::time::{Duration, Instant};
     use std::{io, mem};
@@ -308,6 +308,8 @@ mod test {
         Response, BAD_REQUEST_RESPONSE, CONTINUE_RESPONSE, NOT_IMPLEMENTED_RESPONSE,
     };
     use crate::protocol::rtsp::uri::request::URI;
+    use futures::{Future, future};
+    use futures::task::Poll;
 
     struct DelayedTestService;
 

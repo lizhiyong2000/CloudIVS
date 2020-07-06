@@ -5,12 +5,12 @@
 //! shutdown of the [`RequestHandler`] task.
 
 use futures::channel::oneshot;
-use futures::{ready, Future};
+use futures::{Future, ready};
 use std::time::{Duration, Instant};
 use tokio_timer::Delay;
 use futures::task::Poll;
 use std::pin::Pin;
-use std::task::Context;
+use futures::task::Context;
 
 /// The type responsible for managing deliberate shutdown of connections.
 #[derive(Debug)]
@@ -184,7 +184,7 @@ impl Future for ShutdownHandler {
     /// The error `Err(())` will never be returned.
     ///
     type Output = ();
-    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>{
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>{
         loop {
             match self.state() {
                 ShutdownState::Running => ready!(self.poll_running()),
@@ -238,13 +238,14 @@ pub enum ShutdownType {
 mod test {
     use futures::future::{self, Either};
     use futures::channel::oneshot;
-    use futures::Future;
+    // use futures::Future;
     use std::mem;
     use std::time::{Duration, Instant};
     use tokio::runtime::current_thread;
     use tokio_timer::Delay;
 
     use crate::protocol::rtsp::protocol::connection::shutdown::{ShutdownHandler, ShutdownState, ShutdownType};
+    use futures::StreamExt;
 
     #[test]
     fn test_shutdown_drop() {

@@ -31,7 +31,7 @@ impl CSeq {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::types::CSeq;
+    /// use cloudmedia::protocol::rtsp::header::types::CSeq;
     ///
     /// let cseq = CSeq::try_from(18).unwrap();
     /// assert_eq!(cseq.wrapping_increment(), CSeq::try_from(19).unwrap());
@@ -110,9 +110,9 @@ impl TypedHeader for CSeq {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::map::TypedHeader;
-    /// use rtsp::header::types::CSeq;
-    /// use rtsp::header::value::HeaderValue;
+    /// use cloudmedia::protocol::rtsp::header::map::TypedHeader;
+    /// use cloudmedia::protocol::rtsp::header::types::CSeq;
+    /// use cloudmedia::protocol::rtsp::header::value::HeaderValue;
     ///
     /// let raw_header: Vec<HeaderValue> = vec![];
     /// assert_eq!(CSeq::decode(&mut raw_header.iter()).unwrap(), None);
@@ -151,9 +151,9 @@ impl TypedHeader for CSeq {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::map::TypedHeader;
-    /// use rtsp::header::types::CSeq;
-    /// use rtsp::header::value::HeaderValue;
+    /// use cloudmedia::protocol::rtsp::header::map::TypedHeader;
+    /// use cloudmedia::protocol::rtsp::header::types::CSeq;
+    /// use cloudmedia::protocol::rtsp::header::value::HeaderValue;
     ///
     /// let typed_header = CSeq::try_from(0).unwrap();
     /// let expected_raw_header = vec![HeaderValue::try_from("0").unwrap()];

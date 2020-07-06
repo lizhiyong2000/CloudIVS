@@ -29,7 +29,7 @@ impl DeliveryType {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::types::transport::DeliveryType;
+    /// use cloudmedia::protocol::rtsp::header::types::transport::DeliveryType;
     ///
     /// assert_eq!(DeliveryType::Multicast.as_str(), "multicast");
     /// assert_eq!(DeliveryType::Unicast.as_str(), "unicast");

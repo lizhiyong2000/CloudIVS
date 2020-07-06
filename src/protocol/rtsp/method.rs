@@ -8,7 +8,7 @@
 //! ```
 //! use std::convert::TryFrom;
 //!
-//! use rtsp::method::Method;
+//! use cloudmedia::protocol::rtsp::method::Method;
 //!
 //! assert_eq!(Method::Play, Method::try_from("PLAY").unwrap());
 //! assert_eq!(Method::Describe.as_str(), "DESCRIBE");
@@ -32,7 +32,7 @@ use crate::protocol::rtsp::syntax;
 /// ```
 /// use std::convert::TryFrom;
 ///
-/// use rtsp::method::Method;
+/// use cloudmedia::protocol::rtsp::method::Method;
 ///
 /// assert_eq!(Method::Play, Method::try_from("PLAY").unwrap());
 /// assert_eq!(Method::Describe.as_str(), "DESCRIBE");
@@ -96,7 +96,7 @@ impl Method {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::method::Method;
     ///
     /// assert_eq!(Method::Play.as_str(), "PLAY");
     /// assert_eq!(Method::try_from("extension").unwrap().as_str(), "EXTENSION");
@@ -403,7 +403,7 @@ impl ExtensionMethod {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::method::Method;
     ///
     /// match Method::try_from("extension").unwrap() {
     ///     Method::Extension(extension) => assert_eq!(extension.as_str(), "EXTENSION"),

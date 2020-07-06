@@ -35,7 +35,7 @@ impl Mode {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::types::transport::Mode;
+    /// use cloudmedia::protocol::rtsp::header::types::transport::Mode;
     ///
     /// assert_eq!(Mode::Play.as_str(), "PLAY");
     /// ```
@@ -194,7 +194,7 @@ impl ExtensionMode {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::types::transport::Mode;
+    /// use cloudmedia::protocol::rtsp::header::types::transport::Mode;
     ///
     /// match Mode::try_from("extension").unwrap() {
     ///     Mode::Extension(extension) => assert_eq!(extension.as_str(), "EXTENSION"),

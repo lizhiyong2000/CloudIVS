@@ -39,7 +39,7 @@ macro_rules! standard_headers {
             /// ```
             /// use std::convert::TryFrom;
             ///
-            /// use rtsp::header::name::HeaderName;
+            /// use cloudmedia::protocol::rtsp::header::name::HeaderName;
             ///
             /// assert_eq!(HeaderName::ContentLength.as_str(), "content-length");
             /// ```
@@ -60,7 +60,7 @@ macro_rules! standard_headers {
             /// ```
             /// use std::convert::TryFrom;
             ///
-            /// use rtsp::header::name::HeaderName;
+            /// use cloudmedia::protocol::rtsp::header::name::HeaderName;
             ///
             /// assert_eq!(HeaderName::ContentLength.canonical_name(), "Content-Length");
             /// ```
@@ -376,7 +376,7 @@ impl ExtensionHeaderName {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::name::HeaderName;
+    /// use cloudmedia::protocol::rtsp::header::name::HeaderName;
     ///
     /// match HeaderName::try_from("ExTeNsIoN").unwrap() {
     ///     HeaderName::Extension(extension) => assert_eq!(extension.as_str(), "extension"),
@@ -395,7 +395,7 @@ impl ExtensionHeaderName {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::name::HeaderName;
+    /// use cloudmedia::protocol::rtsp::header::name::HeaderName;
     ///
     /// match HeaderName::try_from("ExTeNsIoN").unwrap() {
     ///     HeaderName::Extension(extension) => assert_eq!(extension.canonical_name(), "ExTeNsIoN"),

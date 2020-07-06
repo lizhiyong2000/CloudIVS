@@ -108,7 +108,7 @@ impl<TBody> Response<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::response::Response;
+    /// use cloudmedia::protocol::rtsp::response::Response;
     ///
     /// let response = Response::<()>::builder()
     ///     .with_body("body")
@@ -127,7 +127,7 @@ impl<TBody> Response<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::response::Response;
+    /// use cloudmedia::protocol::rtsp::response::Response;
     ///
     /// let mut response = Response::<()>::builder()
     ///     .with_body("body")
@@ -144,7 +144,7 @@ impl<TBody> Response<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::response::Response;
+    /// use cloudmedia::protocol::rtsp::response::Response;
     ///
     /// let response = Response::<()>::builder()
     ///     .with_body("body")
@@ -168,12 +168,12 @@ impl<TBody> Response<TBody> {
     /// use std::convert::TryFrom;
     /// use std::iter::FromIterator;
     ///
-    /// use rtsp::header::map::HeaderMap;
-    /// use rtsp::header::name::HeaderName;
-    /// use rtsp::header::value::HeaderValue;
-    /// use rtsp::response::Response;
-    /// use rtsp::status::StatusCode;
-    /// use rtsp::Version;
+    /// use cloudmedia::protocol::rtsp::header::map::HeaderMap;
+    /// use cloudmedia::protocol::rtsp::header::name::HeaderName;
+    /// use cloudmedia::protocol::rtsp::header::value::HeaderValue;
+    /// use cloudmedia::protocol::rtsp::response::Response;
+    /// use cloudmedia::protocol::rtsp::status::StatusCode;
+    /// use cloudmedia::protocol::rtsp::Version;
     ///
     /// let response = Response::from_parts(
     ///     Version::Rtsp2_0,
@@ -214,9 +214,9 @@ impl<TBody> Response<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::header::map::HeaderMapExtension;
-    /// use rtsp::header::types::ContentLength;
-    /// use rtsp::response::Response;
+    /// use cloudmedia::protocol::rtsp::header::map::HeaderMapExtension;
+    /// use cloudmedia::protocol::rtsp::header::types::ContentLength;
+    /// use cloudmedia::protocol::rtsp::response::Response;
     ///
     /// let response = Response::<()>::builder()
     ///     .with_typed_header::<ContentLength>(ContentLength::default())
@@ -237,9 +237,9 @@ impl<TBody> Response<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::header::map::HeaderMapExtension;
-    /// use rtsp::header::types::ContentLength;
-    /// use rtsp::response::Response;
+    /// use cloudmedia::protocol::rtsp::header::map::HeaderMapExtension;
+    /// use cloudmedia::protocol::rtsp::header::types::ContentLength;
+    /// use cloudmedia::protocol::rtsp::response::Response;
     ///
     /// let mut response = Response::<()>::builder()
     ///     .with_typed_header::<ContentLength>(ContentLength::default())
@@ -262,7 +262,7 @@ impl<TBody> Response<TBody> {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::response::Response;
+    /// use cloudmedia::protocol::rtsp::response::Response;
     ///
     /// let response = Response::<()>::builder()
     ///     .with_body("")
@@ -289,7 +289,7 @@ impl<TBody> Response<TBody> {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::response::Response;
+    /// use cloudmedia::protocol::rtsp::response::Response;
     ///
     /// let response = Response::<()>::builder()
     ///     .with_body("")
@@ -320,7 +320,7 @@ impl<TBody> Response<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::response::Response;
+    /// use cloudmedia::protocol::rtsp::response::Response;
     ///
     /// let mut response = Response::<()>::builder()
     ///     .with_body("")
@@ -347,8 +347,8 @@ impl<TBody> Response<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::response::Response;
-    /// use rtsp::status::StatusCode;
+    /// use cloudmedia::protocol::rtsp::response::Response;
+    /// use cloudmedia::protocol::rtsp::status::StatusCode;
     ///
     /// let response = Response::<()>::builder()
     ///     .with_body("body")
@@ -365,8 +365,8 @@ impl<TBody> Response<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::response::Response;
-    /// use rtsp::status::StatusCode;
+    /// use cloudmedia::protocol::rtsp::response::Response;
+    /// use cloudmedia::protocol::rtsp::status::StatusCode;
     ///
     /// let mut response = Response::<()>::builder()
     ///     .with_body("body")
@@ -383,8 +383,8 @@ impl<TBody> Response<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::response::Response;
-    /// use rtsp::status::StatusCode;
+    /// use cloudmedia::protocol::rtsp::response::Response;
+    /// use cloudmedia::protocol::rtsp::status::StatusCode;
     ///
     /// let response = Response::<()>::builder()
     ///     .with_status_code(StatusCode::OK)
@@ -402,8 +402,8 @@ impl<TBody> Response<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::response::Response;
-    /// use rtsp::status::StatusCode;
+    /// use cloudmedia::protocol::rtsp::response::Response;
+    /// use cloudmedia::protocol::rtsp::status::StatusCode;
     ///
     /// let mut response = Response::<()>::builder()
     ///     .with_status_code(StatusCode::OK)
@@ -421,8 +421,8 @@ impl<TBody> Response<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::response::Response;
-    /// use rtsp::Version;
+    /// use cloudmedia::protocol::rtsp::response::Response;
+    /// use cloudmedia::protocol::rtsp::Version;
     ///
     /// let response = Response::<()>::builder()
     ///     .with_body("body")
@@ -470,7 +470,7 @@ impl<TBody> Builder<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::response::Response;
+    /// use cloudmedia::protocol::rtsp::response::Response;
     ///
     /// let mut builder = Response::builder();
     /// builder.body(());
@@ -490,7 +490,7 @@ impl<TBody> Builder<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::response::Response;
+    /// use cloudmedia::protocol::rtsp::response::Response;
     ///
     /// let mut builder = Response::builder();
     /// builder.body(());
@@ -536,9 +536,9 @@ impl<TBody> Builder<TBody> {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::name::HeaderName;
-    /// use rtsp::header::value::HeaderValue;
-    /// use rtsp::response::Response;
+    /// use cloudmedia::protocol::rtsp::header::name::HeaderName;
+    /// use cloudmedia::protocol::rtsp::header::value::HeaderValue;
+    /// use cloudmedia::protocol::rtsp::response::Response;
     ///
     /// let mut builder = Response::builder();
     /// builder
@@ -574,8 +574,8 @@ impl<TBody> Builder<TBody> {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::reason::ReasonPhrase;
-    /// use rtsp::response::Response;
+    /// use cloudmedia::protocol::rtsp::reason::ReasonPhrase;
+    /// use cloudmedia::protocol::rtsp::response::Response;
     ///
     /// let mut builder = Response::builder();
     /// builder
@@ -597,10 +597,10 @@ impl<TBody> Builder<TBody> {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::name::HeaderName;
-    /// use rtsp::header::value::HeaderValue;
-    /// use rtsp::response::Response;
-    /// use rtsp::status::StatusCode;
+    /// use cloudmedia::protocol::rtsp::header::name::HeaderName;
+    /// use cloudmedia::protocol::rtsp::header::value::HeaderValue;
+    /// use cloudmedia::protocol::rtsp::response::Response;
+    /// use cloudmedia::protocol::rtsp::status::StatusCode;
     ///
     /// let mut builder = Response::builder();
     /// builder
@@ -626,8 +626,8 @@ impl<TBody> Builder<TBody> {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::types::ContentLength;
-    /// use rtsp::response::Response;
+    /// use cloudmedia::protocol::rtsp::header::types::ContentLength;
+    /// use cloudmedia::protocol::rtsp::response::Response;
     ///
     /// let mut builder = Response::builder();
     /// builder
@@ -653,8 +653,8 @@ impl<TBody> Builder<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::response::Response;
-    /// use rtsp::Version;
+    /// use cloudmedia::protocol::rtsp::response::Response;
+    /// use cloudmedia::protocol::rtsp::Version;
     ///
     /// let mut builder = Response::builder();
     /// builder
@@ -677,7 +677,7 @@ impl<TBody> Builder<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::response::Response;
+    /// use cloudmedia::protocol::rtsp::response::Response;
     ///
     /// let response = Response::<()>::builder()
     ///     .with_body("")
@@ -707,9 +707,9 @@ impl<TBody> Builder<TBody> {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::name::HeaderName;
-    /// use rtsp::header::value::HeaderValue;
-    /// use rtsp::response::Response;
+    /// use cloudmedia::protocol::rtsp::header::name::HeaderName;
+    /// use cloudmedia::protocol::rtsp::header::value::HeaderValue;
+    /// use cloudmedia::protocol::rtsp::response::Response;
     ///
     /// let response = Response::<()>::builder()
     ///     .with_header(HeaderName::ContentLength, HeaderValue::try_from("0").unwrap())
@@ -734,8 +734,8 @@ impl<TBody> Builder<TBody> {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::reason::ReasonPhrase;
-    /// use rtsp::response::Response;
+    /// use cloudmedia::protocol::rtsp::reason::ReasonPhrase;
+    /// use cloudmedia::protocol::rtsp::response::Response;
     ///
     /// let response = Response::<()>::builder()
     ///     .with_reason_phrase(Some(ReasonPhrase::try_from("Good Response").unwrap()))
@@ -755,8 +755,8 @@ impl<TBody> Builder<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::response::Response;
-    /// use rtsp::status::StatusCode;
+    /// use cloudmedia::protocol::rtsp::response::Response;
+    /// use cloudmedia::protocol::rtsp::status::StatusCode;
     ///
     /// let response = Response::<()>::builder()
     ///     .with_status_code(StatusCode::OK)
@@ -776,8 +776,8 @@ impl<TBody> Builder<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::header::types::ContentLength;
-    /// use rtsp::response::Response;
+    /// use cloudmedia::protocol::rtsp::header::types::ContentLength;
+    /// use cloudmedia::protocol::rtsp::response::Response;
     ///
     /// let response = Response::<()>::builder()
     ///     .with_typed_header::<ContentLength>(ContentLength::default())
@@ -802,8 +802,8 @@ impl<TBody> Builder<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::response::Response;
-    /// use rtsp::Version;
+    /// use cloudmedia::protocol::rtsp::response::Response;
+    /// use cloudmedia::protocol::rtsp::Version;
     ///
     /// let response = Response::<()>::builder()
     ///     .with_version(Version::Rtsp2_0)

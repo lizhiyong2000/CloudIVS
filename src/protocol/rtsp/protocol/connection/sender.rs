@@ -4,12 +4,12 @@
 
 use futures::stream::Fuse;
 use futures::channel::mpsc::{unbounded, UnboundedReceiver, UnboundedSender};
-use futures::{ready, Future, Sink, Stream};
+use futures::{Future, Sink, Stream, ready};
 
 use crate::protocol::rtsp::header::map::HeaderMapExtension;
 use crate::protocol::rtsp::header::types::Date;
 use crate::protocol::rtsp::protocol::codec::{Message, ProtocolError};
-use std::task::{Poll, Context};
+use futures::task::{Poll, Context};
 use std::pin::Pin;
 
 /// The type responsible for sending all outgoing messages through the connection sink.
@@ -134,7 +134,7 @@ where
     ///
     /// If `Err(`[`ProtocolError`]`)` is returned, there was either an error trying to send a
     /// message through the sink or there was an error trying to flush the sink.
-    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         if let Some(buffered_message) = self.buffered_message.take() {
             ready!(self.try_send_message(buffered_message));
         }
@@ -159,7 +159,7 @@ impl SenderHandle {
 mod test {
     use bytes::BytesMut;
     use futures::channel::mpsc;
-    use futures::{Sink, Stream};
+    // use futures::{Sink, Stream};
     use std::mem;
     use tokio::runtime::current_thread;
 

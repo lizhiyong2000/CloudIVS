@@ -94,11 +94,11 @@ impl TypedHeader for Accept {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::map::TypedHeader;
-    /// use rtsp::header::types::accept_ranges::RangeFormat;
-    /// use rtsp::header::types::Accept;
-    /// use rtsp::header::types::accept::*;
-    /// use rtsp::header::value::HeaderValue;
+    /// use cloudmedia::protocol::rtsp::header::map::TypedHeader;
+    /// use cloudmedia::protocol::rtsp::header::types::accept_ranges::RangeFormat;
+    /// use cloudmedia::protocol::rtsp::header::types::Accept;
+    /// use cloudmedia::protocol::rtsp::header::types::accept::*;
+    /// use cloudmedia::protocol::rtsp::header::value::HeaderValue;
     /// use mime::*;
     /// use std::str::FromStr;
     /// let raw_header: Vec<HeaderValue> = vec![];
@@ -143,11 +143,11 @@ impl TypedHeader for Accept {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::map::TypedHeader;
-    /// use rtsp::header::types::accept::MediaType;
-    /// use rtsp::header::types::Accept;
-    /// use rtsp::header::value::HeaderValue;
-    /// use rtsp::header::types::accept::QualityParam;
+    /// use cloudmedia::protocol::rtsp::header::map::TypedHeader;
+    /// use cloudmedia::protocol::rtsp::header::types::accept::MediaType;
+    /// use cloudmedia::protocol::rtsp::header::types::Accept;
+    /// use cloudmedia::protocol::rtsp::header::value::HeaderValue;
+    /// use cloudmedia::protocol::rtsp::header::types::accept::QualityParam;
     /// use mime::*;
     /// use std::str::FromStr;
     ///

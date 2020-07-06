@@ -9,7 +9,7 @@
 //! ```
 //! use std::convert::TryFrom;
 //!
-//! use rtsp::status::{StatusCode, StatusCodeClass};
+//! use cloudmedia::protocol::rtsp::status::{StatusCode, StatusCodeClass};
 //!
 //! assert_eq!(StatusCode::try_from(200), Ok(StatusCode::OK));
 //! assert_eq!(StatusCode::try_from("404").unwrap(), StatusCode::NotFound);
@@ -44,7 +44,7 @@ macro_rules! status_codes {
         /// ```
         /// use std::convert::TryFrom;
         ///
-        /// use rtsp::status::{StatusCode, StatusCodeClass};
+        /// use cloudmedia::protocol::rtsp::status::{StatusCode, StatusCodeClass};
         ///
         /// assert_eq!(StatusCode::try_from(200).unwrap(), StatusCode::OK);
         /// assert_eq!(StatusCode::try_from("404").unwrap(), StatusCode::NotFound);
@@ -75,7 +75,7 @@ macro_rules! status_codes {
             /// # Examples
             ///
             /// ```
-            /// use rtsp::status::StatusCode;
+            /// use cloudmedia::protocol::rtsp::status::StatusCode;
             ///
             /// assert_eq!(StatusCode::OK.canonical_reason().unwrap().as_str(), "OK");
             /// ```
@@ -167,7 +167,7 @@ impl StatusCode {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::status::{StatusCode, StatusCodeClass};
+    /// use cloudmedia::protocol::rtsp::status::{StatusCode, StatusCodeClass};
     ///
     /// assert_eq!(StatusCode::BadRequest.class(), StatusCodeClass::ClientError);
     /// ```
@@ -189,7 +189,7 @@ impl StatusCode {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::status::StatusCode;
+    /// use cloudmedia::protocol::rtsp::status::StatusCode;
     ///
     /// assert!(StatusCode::NotFound.is_client_error());
     /// assert!(!StatusCode::InternalServerError.is_client_error());
@@ -203,7 +203,7 @@ impl StatusCode {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::status::StatusCode;
+    /// use cloudmedia::protocol::rtsp::status::StatusCode;
     ///
     /// assert!(StatusCode::Continue.is_informational());
     /// assert!(!StatusCode::OK.is_informational());
@@ -217,7 +217,7 @@ impl StatusCode {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::status::StatusCode;
+    /// use cloudmedia::protocol::rtsp::status::StatusCode;
     ///
     /// assert!(StatusCode::Found.is_redirection());
     /// assert!(!StatusCode::BadRequest.is_redirection());
@@ -231,7 +231,7 @@ impl StatusCode {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::status::StatusCode;
+    /// use cloudmedia::protocol::rtsp::status::StatusCode;
     ///
     /// assert!(StatusCode::InternalServerError.is_server_error());
     /// assert!(!StatusCode::OK.is_server_error());
@@ -245,7 +245,7 @@ impl StatusCode {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::status::StatusCode;
+    /// use cloudmedia::protocol::rtsp::status::StatusCode;
     ///
     /// assert!(StatusCode::OK.is_success());
     /// assert!(!StatusCode::NotFound.is_success());

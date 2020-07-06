@@ -79,10 +79,10 @@ impl TypedHeader for AcceptRanges {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::map::TypedHeader;
-    /// use rtsp::header::types::accept_ranges::RangeFormat;
-    /// use rtsp::header::types::AcceptRanges;
-    /// use rtsp::header::value::HeaderValue;
+    /// use cloudmedia::protocol::rtsp::header::map::TypedHeader;
+    /// use cloudmedia::protocol::rtsp::header::types::accept_ranges::RangeFormat;
+    /// use cloudmedia::protocol::rtsp::header::types::AcceptRanges;
+    /// use cloudmedia::protocol::rtsp::header::value::HeaderValue;
     ///
     /// let raw_header: Vec<HeaderValue> = vec![];
     /// assert_eq!(AcceptRanges::decode(&mut raw_header.iter()).unwrap(), None);
@@ -127,10 +127,10 @@ impl TypedHeader for AcceptRanges {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::map::TypedHeader;
-    /// use rtsp::header::types::accept_ranges::RangeFormat;
-    /// use rtsp::header::types::AcceptRanges;
-    /// use rtsp::header::value::HeaderValue;
+    /// use cloudmedia::protocol::rtsp::header::map::TypedHeader;
+    /// use cloudmedia::protocol::rtsp::header::types::accept_ranges::RangeFormat;
+    /// use cloudmedia::protocol::rtsp::header::types::AcceptRanges;
+    /// use cloudmedia::protocol::rtsp::header::value::HeaderValue;
     ///
     /// let typed_header = vec![RangeFormat::Clock, RangeFormat::NPT]
     ///     .into_iter()
@@ -216,7 +216,7 @@ impl RangeFormat {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::types::accept_ranges::RangeFormat;
+    /// use cloudmedia::protocol::rtsp::header::types::accept_ranges::RangeFormat;
     ///
     /// assert_eq!(RangeFormat::Clock.as_str(), "clock");
     /// assert_eq!(RangeFormat::try_from("EXTENSION").unwrap().as_str(), "extension");
@@ -485,7 +485,7 @@ impl ExtensionRangeFormat {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::types::accept_ranges::RangeFormat;
+    /// use cloudmedia::protocol::rtsp::header::types::accept_ranges::RangeFormat;
     ///
     /// match RangeFormat::try_from("EXTENSION").unwrap() {
     ///     RangeFormat::Extension(extension) => assert_eq!(extension.as_str(), "extension"),

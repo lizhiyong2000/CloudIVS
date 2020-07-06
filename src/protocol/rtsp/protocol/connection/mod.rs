@@ -17,7 +17,7 @@ use futures::future::{Either, Shared};
 use futures::stream::{SplitSink, SplitStream};
 use futures::channel::mpsc::{self, UnboundedSender};
 use futures::channel::oneshot;
-use futures::{future, Future, Stream};
+// use futures::{future, Future, Stream, Sink};
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::mem;
@@ -30,7 +30,7 @@ use tower_service::Service;
 
 use crate::protocol::rtsp::header::map::HeaderMapExtension;
 use crate::protocol::rtsp::header::types::CSeq;
-use crate::protocol::rtsp::protocol::codec::{Codec, Message};
+use crate::protocol::rtsp::protocol::codec::{Codec, Message, ProtocolError};
 use crate::protocol::rtsp::protocol::connection::pending::PendingRequestUpdate;
 use crate::protocol::rtsp::protocol::connection::receiver::Receiver;
 use crate::protocol::rtsp::protocol::connection::sender::Sender;
@@ -38,7 +38,8 @@ use crate::protocol::rtsp::protocol::connection::shutdown::{ShutdownHandler, Shu
 use crate::protocol::rtsp::request::Request;
 use crate::protocol::rtsp::response::Response;
 use std::pin::Pin;
-use std::task::{Context, Poll};
+use futures::task::{Context, Poll};
+use futures::{Future, future};
 
 pub const DEFAULT_CONTINUE_WAIT_DURATION: Duration = Duration::from_secs(5);
 pub const DEFAULT_DECODE_TIMEOUT_DURATION: Duration = Duration::from_secs(10);
@@ -65,7 +66,7 @@ where
     rx_handler_shutdown_event: Option<Shared<oneshot::Receiver<()>>>,
 
     /// The internal sender responsible for sending all outgoing messages through the connection.
-    sender: Option<Sender<SplitSink<Framed<TTransport, Codec>>>>,
+    sender: Option<Sender<SplitSink<Framed<TTransport, Codec>, Message>>>,
 
     /// The shutdown handler that keeps watch for a shutdown signal.
     shutdown: ShutdownHandler,
@@ -282,7 +283,7 @@ where
     /// connection at the moment.
     ///
     /// The error `Err(())` will never be returned.
-    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         self.poll_receiver();
         self.poll_sender();
 
@@ -542,7 +543,7 @@ impl Future for ConnectionShutdownReceiver {
     /// If `Poll::Pending` is returned, then both are not shutdown.
     ///
     /// The error `Err(())` will never be returned.
-    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         if let Some(mut receiver) = self.rx_connection_shutdown_event.take() {
             if receiver
                 .poll()
@@ -855,7 +856,7 @@ pub enum RequestTimeoutType {
 mod test {
     use futures::stream::{SplitSink, SplitStream};
     use tokio_codec::Framed;
-    use tokio_tcp::TcpStream;
+    use tokio::net::TcpStream;
 
     use crate::protocol::rtsp::protocol::codec::Codec;
     use crate::protocol::rtsp::protocol::connection::handler::RequestHandler;

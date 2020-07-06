@@ -3,7 +3,7 @@ use futures::future::Future;
 use std::io;
 use std::net::SocketAddr;
 use tokio_executor::{DefaultExecutor, Executor};
-use tokio_tcp::TcpStream;
+use tokio::net::TcpStream;
 
 use crate::protocol::rtsp::protocol::connection::{Connection, ConnectionHandle, OperationError};
 use crate::protocol::rtsp::protocol::service::EmptyService;

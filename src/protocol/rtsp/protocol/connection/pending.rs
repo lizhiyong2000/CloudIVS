@@ -9,7 +9,7 @@ use crate::protocol::rtsp::header::types::CSeq;
 use crate::protocol::rtsp::protocol::connection::{OperationError, RequestTimeoutType};
 use crate::protocol::rtsp::response::Response;
 use std::pin::Pin;
-use std::task::{Context, Poll};
+use futures::task::{Context, Poll};
 
 /// The default timeout for the maximum amount of time that we will wait for a request.
 pub const REQUEST_MAX_TIMEOUT_DEFAULT_DURATION: Duration = Duration::from_secs(20);
@@ -187,7 +187,7 @@ impl Future for SendRequest {
     ///
     /// If `Err(`[`OperationError`]`)` is returned, then either the request has timed out or has
     /// been cancelled.
-    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         match self.poll_request() {
             Poll::Ready(response) => return Poll::Ready(response),
             // Err(error) => return Err(error),

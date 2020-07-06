@@ -1,15 +1,15 @@
 extern crate bytes;
 extern crate futures;
-extern crate rtsp;
+extern crate cloudmedia;
 extern crate tokio;
 
 use bytes::BytesMut;
-use futures::Future;
-use rtsp::client::Client;
-use rtsp::method::Method;
-use rtsp::request::Request;
-use rtsp::uri::request::URI;
-use rtsp::uri::{Host, RTSP_DEFAULT_PORT};
+// use futures::Future;
+use cloudmedia::protocol::rtsp::client::Client;
+use cloudmedia::protocol::rtsp::method::Method;
+use cloudmedia::protocol::rtsp::request::Request;
+use cloudmedia::protocol::rtsp::uri::request::URI;
+use cloudmedia::protocol::rtsp::uri::{Host, RTSP_DEFAULT_PORT};
 use std::convert::TryFrom;
 use std::net::IpAddr;
 use std::net::SocketAddr;

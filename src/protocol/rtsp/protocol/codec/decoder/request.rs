@@ -8,17 +8,17 @@
 //!
 //! ```
 //! # extern crate bytes;
-//! # extern crate rtsp;
+//! # extern crate cloudmedia;
 //! #
 //! use bytes::BytesMut;
 //! use std::convert::TryFrom;
 //!
-//! use rtsp::header::name::HeaderName;
-//! use rtsp::header::value::HeaderValue;
-//! use rtsp::method::Method;
-//! use rtsp::protocol::codec::decoder::request::Decoder;
-//! use rtsp::request::Request;
-//! use rtsp::uri::request::URI;
+//! use cloudmedia::protocol::rtsp::header::name::HeaderName;
+//! use cloudmedia::protocol::rtsp::header::value::HeaderValue;
+//! use cloudmedia::protocol::rtsp::method::Method;
+//! use cloudmedia::protocol::rtsp::protocol::codec::decoder::request::Decoder;
+//! use cloudmedia::protocol::rtsp::request::Request;
+//! use cloudmedia::protocol::rtsp::uri::request::URI;
 //!
 //! # fn main() {
 //! let buffer =
@@ -294,17 +294,17 @@ pub type DecodeResult<TResult> = GenericDecodeResult<TResult, DecodeError>;
 ///
 /// ```
 /// # extern crate bytes;
-/// # extern crate rtsp;
+/// # extern crate cloudmedia;
 /// #
 /// use bytes::BytesMut;
 /// use std::convert::TryFrom;
 ///
-/// use rtsp::header::name::HeaderName;
-/// use rtsp::header::value::HeaderValue;
-/// use rtsp::method::Method;
-/// use rtsp::protocol::codec::decoder::request::Decoder;
-/// use rtsp::request::Request;
-/// use rtsp::uri::request::URI;
+/// use cloudmedia::protocol::rtsp::header::name::HeaderName;
+/// use cloudmedia::protocol::rtsp::header::value::HeaderValue;
+/// use cloudmedia::protocol::rtsp::method::Method;
+/// use cloudmedia::protocol::rtsp::protocol::codec::decoder::request::Decoder;
+/// use cloudmedia::protocol::rtsp::request::Request;
+/// use cloudmedia::protocol::rtsp::uri::request::URI;
 ///
 /// # fn main() {
 /// let buffer =
@@ -372,17 +372,17 @@ impl Decoder {
     ///
     /// ```
     /// # extern crate bytes;
-    /// # extern crate rtsp;
+    /// # extern crate cloudmedia;
     /// #
     /// use bytes::BytesMut;
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::name::HeaderName;
-    /// use rtsp::header::value::HeaderValue;
-    /// use rtsp::method::Method;
-    /// use rtsp::protocol::codec::decoder::request::Decoder;
-    /// use rtsp::request::Request;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::header::name::HeaderName;
+    /// use cloudmedia::protocol::rtsp::header::value::HeaderValue;
+    /// use cloudmedia::protocol::rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::protocol::codec::decoder::request::Decoder;
+    /// use cloudmedia::protocol::rtsp::request::Request;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// # fn main() {
     /// let buffer =
@@ -414,17 +414,17 @@ impl Decoder {
     ///
     /// ```
     /// # extern crate bytes;
-    /// # extern crate rtsp;
+    /// # extern crate cloudmedia;
     /// #
     /// use bytes::BytesMut;
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::name::HeaderName;
-    /// use rtsp::header::value::HeaderValue;
-    /// use rtsp::method::Method;
-    /// use rtsp::protocol::codec::decoder::request::Decoder;
-    /// use rtsp::request::Request;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::header::name::HeaderName;
+    /// use cloudmedia::protocol::rtsp::header::value::HeaderValue;
+    /// use cloudmedia::protocol::rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::protocol::codec::decoder::request::Decoder;
+    /// use cloudmedia::protocol::rtsp::request::Request;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// # fn main() {
     /// let buffer = "SETUP * RTSP/2.0\r\n";
@@ -532,8 +532,7 @@ impl Decoder {
                         Ok(header_value) => {
                             self.builder.header(header_name, header_value);
                             *buffer = &rest[header_end_index..];
-                            Complete(())
-                        }
+                            Complete(()) }
                         Err(error) => Error(error.into()),
                     },
                     Err(error) => Error(error.into()),
@@ -687,19 +686,19 @@ impl Decoder {
     ///
     /// ```
     /// # extern crate bytes;
-    /// # extern crate rtsp;
+    /// # extern crate cloudmedia;
     /// #
     /// use bytes::BytesMut;
     ///
-    /// use rtsp::header::name::HeaderName;
-    /// use rtsp::header::value::HeaderValue;
-    /// use rtsp::method::Method;
-    /// use rtsp::protocol::codec::decoder::request::{
+    /// use cloudmedia::protocol::rtsp::header::name::HeaderName;
+    /// use cloudmedia::protocol::rtsp::header::value::HeaderValue;
+    /// use cloudmedia::protocol::rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::protocol::codec::decoder::request::{
     ///     DecodeError, DecodeState, Decoder,
     /// };
-    /// use rtsp::request::Request;
-    /// use rtsp::uri::PathError;
-    /// use rtsp::uri::request::{URI, URIError};
+    /// use cloudmedia::protocol::rtsp::request::Request;
+    /// use cloudmedia::protocol::rtsp::uri::PathError;
+    /// use cloudmedia::protocol::rtsp::uri::request::{URI, URIError};
     ///
     /// # fn main() {
     /// let buffer = "Bad Request!\r\nExtra garbage data";
@@ -730,17 +729,17 @@ impl Decoder {
     ///
     /// ```
     /// # extern crate bytes;
-    /// # extern crate rtsp;
+    /// # extern crate cloudmedia;
     /// #
     /// use bytes::BytesMut;
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::name::HeaderName;
-    /// use rtsp::header::value::HeaderValue;
-    /// use rtsp::method::Method;
-    /// use rtsp::protocol::codec::decoder::request::{DecodeState, Decoder};
-    /// use rtsp::request::Request;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::header::name::HeaderName;
+    /// use cloudmedia::protocol::rtsp::header::value::HeaderValue;
+    /// use cloudmedia::protocol::rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::protocol::codec::decoder::request::{DecodeState, Decoder};
+    /// use cloudmedia::protocol::rtsp::request::Request;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// # fn main() {
     /// let buffer =

@@ -178,7 +178,7 @@ impl ExtensionAddress {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::types::transport::Address;
+    /// use cloudmedia::protocol::rtsp::header::types::transport::Address;
     ///
     /// match Address::try_from(r#"\"EXTENSION\""#).unwrap() {
     ///     Address::Extension(extension) => assert_eq!(extension.as_str(), r#"\"extension\""#),

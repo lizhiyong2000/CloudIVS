@@ -17,7 +17,7 @@ impl HeaderValue {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::value::HeaderValue;
+    /// use cloudmedia::protocol::rtsp::header::value::HeaderValue;
     ///
     /// let header_value = HeaderValue::try_from("value").unwrap();
     /// assert_eq!(header_value.as_str(), "value")
@@ -47,7 +47,7 @@ impl HeaderValue {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::value::HeaderValue;
+    /// use cloudmedia::protocol::rtsp::header::value::HeaderValue;
     ///
     /// let header_value = HeaderValue::try_from("value").unwrap();
     /// assert_eq!(header_value.is_empty(), false);
@@ -65,7 +65,7 @@ impl HeaderValue {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::value::HeaderValue;
+    /// use cloudmedia::protocol::rtsp::header::value::HeaderValue;
     ///
     /// let header_value = HeaderValue::try_from("value").unwrap();
     /// assert_eq!(header_value.len(), 5);

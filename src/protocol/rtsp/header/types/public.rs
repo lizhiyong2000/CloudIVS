@@ -86,10 +86,10 @@ impl TypedHeader for Public {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::map::TypedHeader;
-    /// use rtsp::header::types::Public;
-    /// use rtsp::header::value::HeaderValue;
-    /// use rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::header::map::TypedHeader;
+    /// use cloudmedia::protocol::rtsp::header::types::Public;
+    /// use cloudmedia::protocol::rtsp::header::value::HeaderValue;
+    /// use cloudmedia::protocol::rtsp::method::Method;
     ///
     /// let raw_header: Vec<HeaderValue> = vec![];
     /// assert_eq!(Public::decode(&mut raw_header.iter()).unwrap(), None);
@@ -132,10 +132,10 @@ impl TypedHeader for Public {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::map::TypedHeader;
-    /// use rtsp::header::types::Public;
-    /// use rtsp::header::value::HeaderValue;
-    /// use rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::header::map::TypedHeader;
+    /// use cloudmedia::protocol::rtsp::header::types::Public;
+    /// use cloudmedia::protocol::rtsp::header::value::HeaderValue;
+    /// use cloudmedia::protocol::rtsp::method::Method;
     ///
     /// let typed_header = vec![Method::Play, Method::Setup].into_iter().collect::<Public>();
     /// let expected_raw_headers = vec![

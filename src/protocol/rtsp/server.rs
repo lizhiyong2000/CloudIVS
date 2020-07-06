@@ -5,10 +5,10 @@ use futures::{future, Future};
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::error::Error;
-use std::net::SocketAddr;
+use std::net::{SocketAddr};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
-use tokio_tcp::TcpListener;
+use tokio::net::TcpListener;
 use tower_service::Service;
 
 use crate::protocol::rtsp::header::map::HeaderMapExtension;
@@ -20,7 +20,8 @@ use crate::protocol::rtsp::request::Request;
 use crate::protocol::rtsp::response::{Response, BAD_REQUEST_RESPONSE, NOT_IMPLEMENTED_RESPONSE};
 use crate::protocol::rtsp::session::{Session, SessionID, SessionIDError, DEFAULT_SESSION_TIMEOUT};
 use crate::protocol::rtsp::status::StatusCode;
-use std::task::Poll;
+use futures::task::Poll;
+// use tokio::prelude::{Stream, Future};
 
 pub const SUPPORTED_METHODS: [Method; 2] = [Method::Options, Method::Setup];
 
@@ -59,6 +60,7 @@ impl Server {
         });
 
         tokio::run(serve.map_err(|_| ()));
+        // tokio::start(serve.map_err(|_| ()))
     }
 }
 
@@ -127,8 +129,8 @@ impl ConnectionService {
 
 impl Service<Request<BytesMut>> for ConnectionService {
     type Response = Response<BytesMut>;
-    type Error = Box<dyn Error + Send + 'static>;
-    type Future = Box<dyn Future<Output = Self::Response> + Send + 'static>;
+    type Error = Box<Error + Send + 'static>;
+    type Future = Box<Future<Output = Self::Response> + Send + 'static>;
 
     fn call(&mut self, mut request: Request<BytesMut>) -> Self::Future {
         request.uri_mut().normalize();

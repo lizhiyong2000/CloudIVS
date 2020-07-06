@@ -55,7 +55,7 @@ impl Setup {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::types::transport::Setup;
+    /// use cloudmedia::protocol::rtsp::header::types::transport::Setup;
     ///
     /// assert_eq!(Setup::Active.as_str(), "active");
     /// assert_eq!(Setup::ActPass.as_str(), "actpass");

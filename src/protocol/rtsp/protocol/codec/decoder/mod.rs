@@ -72,7 +72,7 @@ impl<TResult, TError> DecodeResult<TResult, TError> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::protocol::codec::decoder::DecodeResult;
+    /// use cloudmedia::protocol::rtsp::protocol::codec::decoder::DecodeResult;
     ///
     /// let result: DecodeResult<(), ()> = DecodeResult::Complete(());
     /// assert_eq!(result.is_complete(), true);
@@ -92,7 +92,7 @@ impl<TResult, TError> DecodeResult<TResult, TError> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::protocol::codec::decoder::DecodeResult;
+    /// use cloudmedia::protocol::rtsp::protocol::codec::decoder::DecodeResult;
     ///
     /// let result: DecodeResult<(), ()> = DecodeResult::Error(());
     /// assert_eq!(result.is_error(), true);
@@ -112,7 +112,7 @@ impl<TResult, TError> DecodeResult<TResult, TError> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::protocol::codec::decoder::DecodeResult;
+    /// use cloudmedia::protocol::rtsp::protocol::codec::decoder::DecodeResult;
     ///
     /// let result: DecodeResult<(), ()> = DecodeResult::Incomplete;
     /// assert_eq!(result.is_incomplete(), true);
@@ -133,7 +133,7 @@ impl<TResult, TError> DecodeResult<TResult, TError> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::protocol::codec::decoder::DecodeResult;
+    /// use cloudmedia::protocol::rtsp::protocol::codec::decoder::DecodeResult;
     ///
     /// let result: DecodeResult<(), ()> = DecodeResult::Complete(());
     /// assert_eq!(result.map(|_| 5).unwrap(), 5);
@@ -155,7 +155,7 @@ impl<TResult, TError> DecodeResult<TResult, TError> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::protocol::codec::decoder::DecodeResult;
+    /// use cloudmedia::protocol::rtsp::protocol::codec::decoder::DecodeResult;
     ///
     /// let result: DecodeResult<(), ()> = DecodeResult::Error(());
     /// assert_eq!(result.map_error(|_| 5).unwrap_error(), 5);
@@ -180,14 +180,14 @@ impl<TResult, TError> DecodeResult<TResult, TError> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::protocol::codec::decoder::DecodeResult;
+    /// use cloudmedia::protocol::rtsp::protocol::codec::decoder::DecodeResult;
     ///
     /// let result: DecodeResult<(), ()> = DecodeResult::Complete(());
     /// assert_eq!(result.unwrap(), ());
     /// ```
     ///
     /// ```{.should_panic}
-    /// use rtsp::protocol::codec::decoder::DecodeResult;
+    /// use cloudmedia::protocol::rtsp::protocol::codec::decoder::DecodeResult;
     ///
     /// let result: DecodeResult<(), ()> = DecodeResult::Incomplete;
     /// result.unwrap();
@@ -208,14 +208,14 @@ impl<TResult, TError> DecodeResult<TResult, TError> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::protocol::codec::decoder::DecodeResult;
+    /// use cloudmedia::protocol::rtsp::protocol::codec::decoder::DecodeResult;
     ///
     /// let result: DecodeResult<(), ()> = DecodeResult::Error(());
     /// assert_eq!(result.unwrap_error(), ());
     /// ```
     ///
     /// ```should_panic
-    /// use rtsp::protocol::codec::decoder::DecodeResult;
+    /// use cloudmedia::protocol::rtsp::protocol::codec::decoder::DecodeResult;
     ///
     /// let result: DecodeResult<(), ()> = DecodeResult::Incomplete;
     /// result.unwrap_error();

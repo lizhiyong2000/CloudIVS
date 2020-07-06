@@ -25,7 +25,7 @@
 //! ```
 //! use std::convert::TryFrom;
 //!
-//! use rtsp::uri::request::URI;
+//! use cloudmedia::protocol::rtsp::uri::request::URI;
 //!
 //! let uri = URI::try_from("rtsp://127.0.0.1").unwrap();
 //! assert_eq!(uri.to_string(), "rtsp://127.0.0.1/");
@@ -87,7 +87,7 @@ impl URI {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let uri = URI::try_from("rtsp://example.com/my/path").unwrap();
     /// assert_eq!(uri.authority().unwrap().to_string(), "example.com");
@@ -113,8 +113,8 @@ impl URI {
     /// #
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::request::URI;
-    /// use rtsp::uri::{Authority, Path, Scheme};
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::{Authority, Path, Scheme};
     ///
     /// let uri = URI::builder()
     ///     .with_scheme(Scheme::RTSP)
@@ -141,8 +141,8 @@ impl URI {
     /// #
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::request::URI;
-    /// use rtsp::uri::{Authority, Path, Scheme};
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::{Authority, Path, Scheme};
     ///
     /// let uri = URI::builder()
     ///     .with_scheme(Scheme::RTSP)
@@ -174,8 +174,8 @@ impl URI {
     /// #
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::request::URI;
-    /// use rtsp::uri::{Authority, Path, Query, Scheme};
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::{Authority, Path, Query, Scheme};
     ///
     /// let uri = URI::from_parts(
     ///     Scheme::RTSP,
@@ -208,7 +208,7 @@ impl URI {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let uri = URI::try_from("rtsp://example.com").unwrap();
     /// assert!(uri.has_authority());
@@ -229,7 +229,7 @@ impl URI {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let uri = URI::try_from("rtsp://example.com").unwrap();
     /// assert!(uri.has_host());
@@ -248,7 +248,7 @@ impl URI {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let uri = URI::try_from("rtsp://user:pass@127.0.0.1").unwrap();
     /// assert!(uri.has_password());
@@ -270,7 +270,7 @@ impl URI {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let uri = URI::try_from("rtsp://127.0.0.1:554").unwrap();
     /// assert!(uri.has_port());
@@ -292,7 +292,7 @@ impl URI {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let uri = URI::try_from("rtsp://example.com/my/path?my=query").unwrap();
     /// assert!(uri.has_query());
@@ -314,7 +314,7 @@ impl URI {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let uri = URI::try_from("rtsp://username@example.com").unwrap();
     /// assert!(uri.has_username());
@@ -338,7 +338,7 @@ impl URI {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let uri = URI::try_from("rtsp://username@example.com").unwrap();
     /// assert_eq!(uri.host().unwrap().to_string(), "example.com");
@@ -358,8 +358,8 @@ impl URI {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::Query;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::Query;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let uri = URI::try_from("rtsp://example.com/path?query").unwrap();
     /// let uri = uri.into_builder()
@@ -394,7 +394,7 @@ impl URI {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let uri = URI::try_from(
     ///     "rtsp://username:password@example.com:554/my/path?my=query",
@@ -432,7 +432,7 @@ impl URI {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let uri = URI::try_from("*").unwrap();
     /// assert!(uri.is_asterisk());
@@ -453,7 +453,7 @@ impl URI {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let uri = URI::try_from("rtsp://example.com/?a=b").unwrap();
     /// assert!(uri.is_normalized());
@@ -493,8 +493,8 @@ impl URI {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::Authority;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::Authority;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let mut uri = URI::try_from("rtsp://example.com").unwrap();
     /// uri.map_authority(|_| Authority::try_from("127.0.0.1").unwrap());
@@ -526,7 +526,7 @@ impl URI {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let mut uri = URI::try_from("rtsp://example.com").unwrap();
     /// uri.map_path(|mut path| {
@@ -558,8 +558,8 @@ impl URI {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::Query;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::Query;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let mut uri = URI::try_from("rtsp://example.com").unwrap();
     /// uri.map_query(|_| Some(Query::try_from("query").unwrap()));
@@ -589,8 +589,8 @@ impl URI {
     /// #
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::Scheme;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::Scheme;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let mut uri = URI::try_from("rtsp://example.com").unwrap();
     /// uri.map_scheme(|_| Scheme::RTSPS);
@@ -619,7 +619,7 @@ impl URI {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let mut uri = URI::try_from("rtsp://example.com/?a=b").unwrap();
     /// uri.normalize();
@@ -658,7 +658,7 @@ impl URI {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let uri = URI::try_from("rtsp://127.0.0.1/my/path").unwrap();
     /// assert_eq!(uri.path(), "/my/path");
@@ -681,7 +681,7 @@ impl URI {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let uri = URI::try_from("rtsp://user:pass@example.com").unwrap();
     /// assert_eq!(uri.password().unwrap(), "pass");
@@ -701,7 +701,7 @@ impl URI {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let uri = URI::try_from("rtsp://example.com:8080/").unwrap();
     /// assert_eq!(uri.port().unwrap(), 8080);
@@ -721,7 +721,7 @@ impl URI {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let uri = URI::try_from("rtsp://127.0.0.1?my=query").unwrap();
     /// assert_eq!(uri.query().unwrap(), "my=query");
@@ -741,7 +741,7 @@ impl URI {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let uri = URI::try_from("rtsp://127.0.0.1/").unwrap();
     /// assert_eq!(uri.scheme().unwrap(), "rtsp");
@@ -763,8 +763,8 @@ impl URI {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::Authority;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::Authority;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let mut uri = URI::try_from("rtsp://example.com").unwrap();
     /// uri.set_authority(Authority::try_from("user@example.com:80").unwrap());
@@ -799,8 +799,8 @@ impl URI {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::Path;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::Path;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let mut uri = URI::try_from("rtsp://example.com").unwrap();
     /// uri.set_path(Path::try_from("my/path").unwrap());
@@ -826,8 +826,8 @@ impl URI {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::Query;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::Query;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let mut uri = URI::try_from("rtsp://example.com").unwrap();
     /// uri.set_query(Some(Query::try_from("myquery").unwrap()));
@@ -857,8 +857,8 @@ impl URI {
     /// #
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::Scheme;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::Scheme;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let mut uri = URI::try_from("rtsp://example.com").unwrap();
     /// uri.set_scheme(Scheme::RTSPS);
@@ -885,7 +885,7 @@ impl URI {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let uri = URI::try_from("rtsp://username@example.com").unwrap();
     /// assert_eq!(uri.username().unwrap(), "username");
@@ -1082,8 +1082,8 @@ impl Builder {
     /// #
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::request::URI;
-    /// use rtsp::uri::{Authority, Path, Scheme};
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::{Authority, Path, Scheme};
     ///
     /// let mut builder = URI::builder();
     /// builder
@@ -1109,8 +1109,8 @@ impl Builder {
     /// #
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::request::URI;
-    /// use rtsp::uri::{Authority, Path, Scheme};
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::{Authority, Path, Scheme};
     ///
     /// let uri = URI::builder()
     ///     .with_scheme(Scheme::RTSP)
@@ -1165,8 +1165,8 @@ impl Builder {
     /// #
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::request::URI;
-    /// use rtsp::uri::{Authority, Path, Scheme};
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::{Authority, Path, Scheme};
     ///
     /// let mut builder = URI::builder();
     /// builder
@@ -1192,8 +1192,8 @@ impl Builder {
     /// #
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::request::URI;
-    /// use rtsp::uri::{Authority, Path, Query, Scheme};
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::{Authority, Path, Query, Scheme};
     ///
     /// let mut builder = URI::builder();
     /// builder
@@ -1223,8 +1223,8 @@ impl Builder {
     /// #
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::request::URI;
-    /// use rtsp::uri::{Authority, Path, Scheme};
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::{Authority, Path, Scheme};
     ///
     /// let mut builder = URI::builder();
     /// builder
@@ -1253,8 +1253,8 @@ impl Builder {
     /// #
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::request::URI;
-    /// use rtsp::uri::{Authority, Path, Scheme};
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::{Authority, Path, Scheme};
     ///
     /// let uri = URI::builder()
     ///     .with_scheme(Scheme::RTSP)
@@ -1283,8 +1283,8 @@ impl Builder {
     /// #
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::request::URI;
-    /// use rtsp::uri::{Authority, Path, Scheme};
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::{Authority, Path, Scheme};
     ///
     /// let uri = URI::builder()
     ///     .with_scheme(Scheme::RTSP)
@@ -1310,8 +1310,8 @@ impl Builder {
     /// #
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::request::URI;
-    /// use rtsp::uri::{Authority, Path, Query, Scheme};
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::{Authority, Path, Query, Scheme};
     ///
     /// let uri = URI::builder()
     ///     .with_scheme(Scheme::RTSP)
@@ -1341,8 +1341,8 @@ impl Builder {
     /// #
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::uri::request::URI;
-    /// use rtsp::uri::{Authority, Path, Scheme};
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::uri::{Authority, Path, Scheme};
     ///
     /// let uri = URI::builder()
     ///     .with_scheme(Scheme::RTSP)

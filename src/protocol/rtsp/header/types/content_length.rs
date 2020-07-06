@@ -74,9 +74,9 @@ impl TypedHeader for ContentLength {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::map::TypedHeader;
-    /// use rtsp::header::types::ContentLength;
-    /// use rtsp::header::value::HeaderValue;
+    /// use cloudmedia::protocol::rtsp::header::map::TypedHeader;
+    /// use cloudmedia::protocol::rtsp::header::types::ContentLength;
+    /// use cloudmedia::protocol::rtsp::header::value::HeaderValue;
     ///
     /// let raw_header: Vec<HeaderValue> = vec![];
     /// assert_eq!(ContentLength::decode(&mut raw_header.iter()).unwrap(), None);
@@ -115,9 +115,9 @@ impl TypedHeader for ContentLength {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::map::TypedHeader;
-    /// use rtsp::header::types::ContentLength;
-    /// use rtsp::header::value::HeaderValue;
+    /// use cloudmedia::protocol::rtsp::header::map::TypedHeader;
+    /// use cloudmedia::protocol::rtsp::header::types::ContentLength;
+    /// use cloudmedia::protocol::rtsp::header::value::HeaderValue;
     ///
     /// let typed_header = ContentLength::try_from(10).unwrap();
     /// let expected_raw_header = vec![HeaderValue::try_from("10").unwrap()];

@@ -20,7 +20,7 @@ use std::error::Error;
 use std::fmt::{Display, Formatter, Result as FormatterResult};
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-// #[non_exhaustive]
+#[non_exhaustive]
 pub enum Version {
     Rtsp1_0,
     Rtsp2_0,
@@ -96,7 +96,7 @@ impl<'version> TryFrom<&'version [u8]> for Version {
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-// #[non_exhaustive]
+#[non_exhaustive]
 pub enum DecodeError {
     Invalid,
     Unknown(u8, u8),

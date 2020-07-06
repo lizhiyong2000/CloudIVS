@@ -55,9 +55,9 @@ impl<TBody> Request<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::method::Method;
-    /// use rtsp::request::Request;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::request::Request;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let request = Request::<()>::builder()
     ///     .with_method(Method::Setup)
@@ -78,9 +78,9 @@ impl<TBody> Request<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::method::Method;
-    /// use rtsp::request::Request;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::request::Request;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let mut request = Request::<()>::builder()
     ///     .with_method(Method::Setup)
@@ -99,9 +99,9 @@ impl<TBody> Request<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::method::Method;
-    /// use rtsp::request::Request;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::request::Request;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let request = Request::<()>::builder()
     ///     .with_method(Method::Setup)
@@ -127,13 +127,13 @@ impl<TBody> Request<TBody> {
     /// use std::convert::TryFrom;
     /// use std::iter::FromIterator;
     ///
-    /// use rtsp::header::map::HeaderMap;
-    /// use rtsp::header::name::HeaderName;
-    /// use rtsp::header::value::HeaderValue;
-    /// use rtsp::method::Method;
-    /// use rtsp::request::Request;
-    /// use rtsp::uri::request::URI;
-    /// use rtsp::Version;
+    /// use cloudmedia::protocol::rtsp::header::map::HeaderMap;
+    /// use cloudmedia::protocol::rtsp::header::name::HeaderName;
+    /// use cloudmedia::protocol::rtsp::header::value::HeaderValue;
+    /// use cloudmedia::protocol::rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::request::Request;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::Version;
     ///
     /// let request = Request::from_parts(
     ///     Method::Setup,
@@ -174,11 +174,11 @@ impl<TBody> Request<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::header::map::HeaderMapExtension;
-    /// use rtsp::header::types::ContentLength;
-    /// use rtsp::method::Method;
-    /// use rtsp::request::Request;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::header::map::HeaderMapExtension;
+    /// use cloudmedia::protocol::rtsp::header::types::ContentLength;
+    /// use cloudmedia::protocol::rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::request::Request;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let request = Request::<()>::builder()
     ///     .with_method(Method::Setup)
@@ -201,11 +201,11 @@ impl<TBody> Request<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::header::map::HeaderMapExtension;
-    /// use rtsp::header::types::ContentLength;
-    /// use rtsp::method::Method;
-    /// use rtsp::request::Request;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::header::map::HeaderMapExtension;
+    /// use cloudmedia::protocol::rtsp::header::types::ContentLength;
+    /// use cloudmedia::protocol::rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::request::Request;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let mut request = Request::<()>::builder()
     ///     .with_method(Method::Setup)
@@ -230,9 +230,9 @@ impl<TBody> Request<TBody> {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::method::Method;
-    /// use rtsp::request::Request;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::request::Request;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let request = Request::<()>::builder()
     ///     .with_method(Method::Setup)
@@ -261,9 +261,9 @@ impl<TBody> Request<TBody> {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::method::Method;
-    /// use rtsp::request::Request;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::request::Request;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let request = Request::<()>::builder()
     ///     .with_method(Method::Setup)
@@ -284,9 +284,9 @@ impl<TBody> Request<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::method::Method;
-    /// use rtsp::request::Request;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::request::Request;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let mut request = Request::<()>::builder()
     ///     .with_method(Method::Setup)
@@ -315,9 +315,9 @@ impl<TBody> Request<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::method::Method;
-    /// use rtsp::request::Request;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::request::Request;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let request = Request::<()>::builder()
     ///     .with_method(Method::Setup)
@@ -336,9 +336,9 @@ impl<TBody> Request<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::method::Method;
-    /// use rtsp::request::Request;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::request::Request;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let mut request = Request::<()>::builder()
     ///     .with_method(Method::Setup)
@@ -357,9 +357,9 @@ impl<TBody> Request<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::method::Method;
-    /// use rtsp::request::Request;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::request::Request;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let request = Request::<()>::builder()
     ///     .with_method(Method::Setup)
@@ -378,9 +378,9 @@ impl<TBody> Request<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::method::Method;
-    /// use rtsp::request::Request;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::request::Request;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let mut request = Request::<()>::builder()
     ///     .with_method(Method::Setup)
@@ -399,10 +399,10 @@ impl<TBody> Request<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::method::Method;
-    /// use rtsp::request::Request;
-    /// use rtsp::uri::request::URI;
-    /// use rtsp::Version;
+    /// use cloudmedia::protocol::rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::request::Request;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::Version;
     ///
     /// let request = Request::<()>::builder()
     ///     .with_method(Method::Setup)
@@ -457,9 +457,9 @@ impl<TBody> Builder<TBody> {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::method::Method;
-    /// use rtsp::request::Request;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::request::Request;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let mut builder = Request::builder();
     /// builder
@@ -484,9 +484,9 @@ impl<TBody> Builder<TBody> {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::method::Method;
-    /// use rtsp::request::Request;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::request::Request;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let mut builder = Request::builder();
     /// builder
@@ -526,11 +526,11 @@ impl<TBody> Builder<TBody> {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::name::HeaderName;
-    /// use rtsp::header::value::HeaderValue;
-    /// use rtsp::method::Method;
-    /// use rtsp::request::Request;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::header::name::HeaderName;
+    /// use cloudmedia::protocol::rtsp::header::value::HeaderValue;
+    /// use cloudmedia::protocol::rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::request::Request;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let mut builder = Request::builder();
     /// builder
@@ -558,9 +558,9 @@ impl<TBody> Builder<TBody> {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::method::Method;
-    /// use rtsp::request::Request;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::request::Request;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let mut builder = Request::builder();
     /// builder
@@ -594,10 +594,10 @@ impl<TBody> Builder<TBody> {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::types::ContentLength;
-    /// use rtsp::method::Method;
-    /// use rtsp::request::Request;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::header::types::ContentLength;
+    /// use cloudmedia::protocol::rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::request::Request;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let mut builder = Request::builder();
     /// builder
@@ -627,9 +627,9 @@ impl<TBody> Builder<TBody> {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::method::Method;
-    /// use rtsp::request::Request;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::request::Request;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let mut builder = Request::builder();
     /// builder
@@ -654,10 +654,10 @@ impl<TBody> Builder<TBody> {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::method::Method;
-    /// use rtsp::request::Request;
-    /// use rtsp::uri::request::URI;
-    /// use rtsp::Version;
+    /// use cloudmedia::protocol::rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::request::Request;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::Version;
     ///
     /// let mut builder = Request::builder();
     /// builder
@@ -682,9 +682,9 @@ impl<TBody> Builder<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::method::Method;
-    /// use rtsp::request::Request;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::request::Request;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let request = Request::<()>::builder()
     ///     .with_method(Method::Setup)
@@ -716,11 +716,11 @@ impl<TBody> Builder<TBody> {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::name::HeaderName;
-    /// use rtsp::header::value::HeaderValue;
-    /// use rtsp::method::Method;
-    /// use rtsp::request::Request;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::header::name::HeaderName;
+    /// use cloudmedia::protocol::rtsp::header::value::HeaderValue;
+    /// use cloudmedia::protocol::rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::request::Request;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let request = Request::<()>::builder()
     ///     .with_method(Method::Setup)
@@ -745,9 +745,9 @@ impl<TBody> Builder<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::method::Method;
-    /// use rtsp::request::Request;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::request::Request;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let request = Request::<()>::builder()
     ///     .with_method(Method::Setup)
@@ -770,10 +770,10 @@ impl<TBody> Builder<TBody> {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::header::types::ContentLength;
-    /// use rtsp::method::Method;
-    /// use rtsp::request::Request;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::header::types::ContentLength;
+    /// use cloudmedia::protocol::rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::request::Request;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let request = Request::<()>::builder()
     ///     .with_method(Method::Setup)
@@ -801,9 +801,9 @@ impl<TBody> Builder<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::method::Method;
-    /// use rtsp::request::Request;
-    /// use rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::request::Request;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
     ///
     /// let request = Request::<()>::builder()
     ///     .with_method(Method::Setup)
@@ -826,10 +826,10 @@ impl<TBody> Builder<TBody> {
     /// # Examples
     ///
     /// ```
-    /// use rtsp::method::Method;
-    /// use rtsp::request::Request;
-    /// use rtsp::uri::request::URI;
-    /// use rtsp::Version;
+    /// use cloudmedia::protocol::rtsp::method::Method;
+    /// use cloudmedia::protocol::rtsp::request::Request;
+    /// use cloudmedia::protocol::rtsp::uri::request::URI;
+    /// use cloudmedia::protocol::rtsp::Version;
     ///
     /// let request = Request::<()>::builder()
     ///     .with_method(Method::Setup)

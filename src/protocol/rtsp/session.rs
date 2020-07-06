@@ -44,7 +44,7 @@ impl SessionID {
     /// ```
     /// use std::convert::TryFrom;
     ///
-    /// use rtsp::session::SessionID;
+    /// use cloudmedia::protocol::rtsp::session::SessionID;
     ///
     /// assert_eq!(
     ///     SessionID::try_from("QKyjN8nt2WqbWw4tIYof52").unwrap().as_str(),
@@ -81,7 +81,7 @@ impl fmt::Display for SessionID {
 /// ```
 /// use std::convert::TryFrom;
 ///
-/// use rtsp::session::SessionID;
+/// use cloudmedia::protocol::rtsp::session::SessionID;
 ///
 /// assert_eq!(SessionID::try_from("QKyjN8nt2WqbWw4tIYof52").unwrap(), "QKyjN8nt2WqbWw4tIYof52");
 /// ```
@@ -98,7 +98,7 @@ impl PartialEq<str> for SessionID {
 /// ```
 /// use std::convert::TryFrom;
 ///
-/// use rtsp::session::SessionID;
+/// use cloudmedia::protocol::rtsp::session::SessionID;
 ///
 /// assert_eq!(SessionID::try_from("QKyjN8nt2WqbWw4tIYof52").unwrap(), "QKyjN8nt2WqbWw4tIYof52");
 /// ```

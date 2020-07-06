@@ -54,8 +54,8 @@ impl Session {
     /// use std::convert::TryFrom;
     /// use std::time::Duration;
     ///
-    /// use rtsp::header::types::Session;
-    /// use rtsp::session::SessionID;
+    /// use cloudmedia::protocol::rtsp::header::types::Session;
+    /// use cloudmedia::protocol::rtsp::session::SessionID;
     ///
     /// let session = Session::without_timeout("QKyjN8nt2WqbWw4tIYof52").unwrap();
     /// assert_eq!(session.id(), &SessionID::try_from("QKyjN8nt2WqbWw4tIYof52").unwrap());
@@ -79,8 +79,8 @@ impl Session {
     /// use std::convert::TryFrom;
     /// use std::time::Duration;
     ///
-    /// use rtsp::header::types::Session;
-    /// use rtsp::session::SessionID;
+    /// use cloudmedia::protocol::rtsp::header::types::Session;
+    /// use cloudmedia::protocol::rtsp::session::SessionID;
     ///
     /// let session =
     ///     Session::with_timeout("QKyjN8nt2WqbWw4tIYof52", Duration::from_secs(180)).unwrap();
@@ -152,9 +152,9 @@ impl TypedHeader for Session {
     /// use std::convert::TryFrom;
     /// use std::time::Duration;
     ///
-    /// use rtsp::header::map::TypedHeader;
-    /// use rtsp::header::types::Session;
-    /// use rtsp::header::value::HeaderValue;
+    /// use cloudmedia::protocol::rtsp::header::map::TypedHeader;
+    /// use cloudmedia::protocol::rtsp::header::types::Session;
+    /// use cloudmedia::protocol::rtsp::header::value::HeaderValue;
     ///
     /// let raw_header: Vec<HeaderValue> = vec![];
     /// assert_eq!(Session::decode(&mut raw_header.iter()).unwrap(), None);
@@ -224,10 +224,10 @@ impl TypedHeader for Session {
     /// use std::convert::TryFrom;
     /// use std::time::Duration;
     ///
-    /// use rtsp::header::map::TypedHeader;
-    /// use rtsp::header::types::Session;
-    /// use rtsp::header::value::HeaderValue;
-    /// use rtsp::session::DEFAULT_SESSION_TIMEOUT;
+    /// use cloudmedia::protocol::rtsp::header::map::TypedHeader;
+    /// use cloudmedia::protocol::rtsp::header::types::Session;
+    /// use cloudmedia::protocol::rtsp::header::value::HeaderValue;
+    /// use cloudmedia::protocol::rtsp::session::DEFAULT_SESSION_TIMEOUT;
     ///
     /// let typed_header = Session::without_timeout("QKyjN8nt2WqbWw4tIYof52").unwrap();
     /// let expected_raw_header = vec![HeaderValue::try_from("QKyjN8nt2WqbWw4tIYof52").unwrap()];
