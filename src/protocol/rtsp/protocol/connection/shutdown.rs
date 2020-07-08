@@ -90,14 +90,15 @@ impl ShutdownHandler {
     /// poll needs to occur.
     ///
     /// The error `Err(())` will never be returned.
-    fn poll_running(&mut self) -> Poll<()> {
+
+    fn poll_running(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<()> {
         match self
             .rx_initiate_shutdown
             .as_mut()
             .expect(
                 "`ShutdownHandler::poll_running` should not be called if `ShutdownHandler.rx_initiate_shutdown` is `None`",
             )
-            .poll()
+            .poll(cx)
         {
             Ok(Poll::Ready(shutdown_type)) => {
                 // A shutdown event has been sent by the sender, initiate a shutdown.
@@ -127,14 +128,14 @@ impl ShutdownHandler {
     /// poll needs to occur.
     ///
     /// The error `Err(())` will never be returned.
-    fn poll_shutting_down(&mut self) -> Poll<()> {
+    fn poll_shutting_down(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<()> {
         match self
             .timer
             .as_mut()
             .expect(
                 "`ShutdownHandler::poll_shutting_down` should not be called if `ShutdownHandler.timer` is `None`",
             )
-            .poll()
+            .poll(cx)
         {
             Poll::Ready(_) => {
                 self.handle_shutdown(ShutdownType::Immediate);
@@ -187,8 +188,8 @@ impl Future for ShutdownHandler {
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>{
         loop {
             match self.state() {
-                ShutdownState::Running => ready!(self.poll_running()),
-                ShutdownState::ShuttingDown => ready!(self.poll_shutting_down()),
+                ShutdownState::Running => ready!(self.poll_running(cx)),
+                ShutdownState::ShuttingDown => ready!(self.poll_shutting_down(cx)),
                 ShutdownState::Shutdown => return Poll::Ready(()),
             }
         }

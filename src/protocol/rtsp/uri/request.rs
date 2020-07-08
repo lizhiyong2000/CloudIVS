@@ -1398,6 +1398,8 @@ pub enum URIError {
 }
 
 impl Display for URIError {
+
+    type Error = ();
     fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
         use self::URIError::*;
 
@@ -1427,7 +1429,7 @@ impl From<Infallible> for URIError {
 
 impl TryFrom<URIReferenceError> for URIError {
 
-
+    type Error = ();
     fn try_from(value: URIReferenceError) -> Result<Self, Self::Error> {
         use self::URIError::*;
 

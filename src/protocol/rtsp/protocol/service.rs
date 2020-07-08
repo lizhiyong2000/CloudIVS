@@ -4,11 +4,12 @@ use tower_service::Service;
 
 use crate::protocol::rtsp::request::Request;
 use crate::protocol::rtsp::response::Response;
-use futures::stream::empty;
+// use futures::stream::empty;
 use futures::task::{Poll, Context};
 use futures::Future;
 use tokio::macros::support::Pin;
 use futures::future::BoxFuture;
+use std::io::empty;
 
 
 pub struct EmptyService;
@@ -48,7 +49,7 @@ impl Service<Request<BytesMut>> for EmptyService {
     }
 
     fn call(&mut self, req: Request<BytesMut>) -> Self::Future {
-        Pin::new(Box::new(empty()))
+        Box::pin(empty())
     }
 
     // fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<()> {

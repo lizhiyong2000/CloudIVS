@@ -377,7 +377,7 @@ impl From<Infallible> for TimeoutError {
 
 impl TryFrom<IntErrorKind> for TimeoutError {
 
-
+    type Error = ();
     fn try_from(value: IntErrorKind) -> Result<Self, Self::Error> {
         use self::TimeoutError::*;
 

@@ -188,6 +188,7 @@ impl From<Infallible> for ContentLengthError {
 }
 
 impl TryFrom<IntErrorKind> for ContentLengthError {
+    type Error = ();
 
 
     fn try_from(value: IntErrorKind) -> Result<Self, Self::Error> {

@@ -25,6 +25,8 @@ use futures::future::BoxFuture;
 use std::pin::Pin;
 // use tokio::prelude::{Stream, Future};
 
+use futures::stream::StreamExt;
+
 pub const SUPPORTED_METHODS: [Method; 2] = [Method::Options, Method::Setup];
 
 /// Experimental high-level server implementation
@@ -41,25 +43,54 @@ impl Server {
         }
     }
 
-    pub fn run(address: SocketAddr) {
+    pub async fn run(address: SocketAddr) {
         let server = Arc::new(Mutex::new(Server::new()));
-        let listener = TcpListener::bind(&address).unwrap();
+        let listener = TcpListener::bind(&address).await.unwrap();;
 
-        let serve = listener.incoming().for_each(move |socket| {
-            let server = server.clone();
-            let service = ConnectionService {
-                session: None,
-                server: server.clone(),
-            };
-            let (connection, handler, handle) = Connection::new(socket, Some(service));
+        let serve = async move {
+            let mut incoming = listener.incoming();
+            while let Some(socket_res) = incoming.next().await {
+                match socket_res {
+                    Ok(socket) => {
+                        println!("Accepted connection from {:?}", socket.peer_addr());
+                        // TODO: Process socket
+                        let service = ConnectionService {
+                            session: None,
+                            server: server.clone(),
+                        };
+                        let (connection, handler, handle) = Connection::new(socket, Some(service));
 
-            server.lock().unwrap().connections.push(handle);
+                        server.lock().unwrap().connections.push(handle);
 
-            tokio::spawn(connection);
-            tokio::spawn(handler.unwrap());
+                        tokio::spawn(connection);
+                        tokio::spawn(handler.unwrap());
+                    }
+                    Err(err) => {
+                        // Handle error by printing to STDOUT.
+                        println!("accept error = {:?}", err);
+                    }
+                }
+            }
 
-            Ok(())
-        });
+        };
+
+        serve.await;
+
+        // let serve = listener.incoming().for_each(move |socket| {
+        //     let server = server.clone();
+        //     let service = ConnectionService {
+        //         session: None,
+        //         server: server.clone(),
+        //     };
+        //     let (connection, handler, handle) = Connection::new(socket, Some(service));
+        //
+        //     server.lock().unwrap().connections.push(handle);
+        //
+        //     tokio::spawn(connection);
+        //     tokio::spawn(handler.unwrap());
+        //
+        //     Ok(())
+        // });
 
         // tokio::main(serve.map_err(|_| ()));
         // tokio::start(serve.map_err(|_| ()))
@@ -99,7 +130,7 @@ impl ConnectionService {
         };
 
         // Box::new(future::ok(response))
-        Pin::new(Box::new(future::ok(response)))
+        Box::pin(future::ok(response))
     }
 
     fn handle_method_setup(
@@ -124,11 +155,11 @@ impl ConnectionService {
                     .build()
                     .unwrap();
                 // return Box::new(future::ok(response));
-                return Pin::new(Box::new(future::ok(response)));
+                return Box::pin(future::ok(response));
             }
 
             // Err(_) => return Box::new(future::ok(BAD_REQUEST_RESPONSE.clone())),
-            Err(_) => return Pin::new(Box::new(future::ok(BAD_REQUEST_RESPONSE.clone()))),
+            Err(_) => return Box::pin(future::ok(BAD_REQUEST_RESPONSE.clone())),
         }
     }
 }
@@ -157,7 +188,7 @@ impl Service<Request<BytesMut>> for ConnectionService {
 
             // PLAY_NOTIFY and REDIRECT are handled here as servers do not respond to such requests.
             // _ => Box::new(future::ok(NOT_IMPLEMENTED_RESPONSE.clone())),
-            _ => Pin::new(Box::new(future::ok(NOT_IMPLEMENTED_RESPONSE.clone()))),
+            _ => Box::pin(future::ok(NOT_IMPLEMENTED_RESPONSE.clone())),
         }
     }
 }

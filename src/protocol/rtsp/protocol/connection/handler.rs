@@ -132,12 +132,12 @@ where
     /// If `Poll::Pending` is returned, then the request is still being serviced.
     ///
     /// The error `Err(())` will never be returned.
-    fn poll_serviced_request(&mut self) -> Poll<()> {
+    fn poll_serviced_request(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<()> {
         match self.serviced_request.as_mut() {
             Some((cseq, serviced_request)) => {
                 let cseq = *cseq;
 
-                match serviced_request.poll() {
+                match serviced_request.poll(cx) {
                     Ok(Poll::Ready(response)) => {
                         self.send_response(cseq, response.into());
                         self.continue_timer = None;
@@ -267,11 +267,11 @@ where
     /// The error `Err(())` will never be returned.
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         loop {
-            ready!(self.poll_serviced_request());
+            ready!(self.poll_serviced_request(cx));
 
             match self
                 .rx_incoming_request
-                .poll()
+                .poll(cx)
                 .expect("`RequestHandler.rx_incoming_request` should not error")
             {
                 Poll::Ready(Some((cseq, request))) => self.process_request(cseq, request),

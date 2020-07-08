@@ -223,7 +223,7 @@ impl From<Infallible> for CSeqError {
 }
 
 impl TryFrom<IntErrorKind> for CSeqError {
-
+    type Error = ();
 
     fn try_from(value: IntErrorKind) -> Result<Self, Self::Error> {
         use self::CSeqError::*;

@@ -35,6 +35,9 @@ use crate::protocol::rtsp::protocol::connection::pending::PendingRequestUpdate;
 use crate::protocol::rtsp::protocol::connection::receiver::Receiver;
 use crate::protocol::rtsp::protocol::connection::sender::Sender;
 use crate::protocol::rtsp::protocol::connection::shutdown::{ShutdownHandler, ShutdownState};
+
+// use crate::protocol::rtsp::protocol::connection::OperationError;
+
 use crate::protocol::rtsp::request::Request;
 use crate::protocol::rtsp::response::Response;
 use std::pin::Pin;
@@ -45,11 +48,29 @@ pub const DEFAULT_DECODE_TIMEOUT_DURATION: Duration = Duration::from_secs(10);
 pub const DEFAULT_GRACEFUL_SHUTDOWN_TIMEOUT_DURATION: Duration = Duration::from_secs(10);
 pub const DEFAULT_REQUEST_BUFFER_SIZE: usize = 10;
 
-// impl<T, I, U> Sink<I> for Framed<T, U>
-//     where
-//         T: AsyncWrite + Unpin,
-//         U: Encoder<Item = I> + Unpin,
-//         U::Error: From<io::Error>,
+impl <TTransport> Sink<Message> for Framed<TTransport, Codec>
+where
+    TTransport: AsyncRead + AsyncWrite + Send + Unpin + 'static,
+{
+    type Error = ProtocolError;
+
+    fn poll_ready(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+        unimplemented!()
+    }
+
+    fn start_send(self: Pin<&mut Self>, item: Message) -> Result<(), Self::Error> {
+        unimplemented!()
+    }
+
+    fn poll_flush(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+        unimplemented!()
+    }
+
+    fn poll_close(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+        unimplemented!()
+    }
+}
+
 
 /// Represents an RTSP connection between two RTSP agents.
 ///
@@ -66,13 +87,16 @@ where
     allow_requests: Arc<AtomicBool>,
 
     /// The internal receiver responsible for processing all incoming messages.
-    receiver: Option<Receiver<SplitStream<Framed<TTransport, Codec>>>>,
+    // receiver: Option<Receiver<SplitStream<Framed<TTransport, Codec>>>>,
+
+    receiver: Option<Receiver<Framed<TTransport, Codec>>>,
 
     /// A shutdown event receiver for when the request handler has finished processing all requests.
     rx_handler_shutdown_event: Option<Shared<oneshot::Receiver<()>>>,
 
     /// The internal sender responsible for sending all outgoing messages through the connection.
-    sender: Option<Sender<SplitSink<Framed<TTransport, Codec>, Message>>>,
+    // sender: Option<Sender<SplitSink<Framed<TTransport, Codec>, Message>>>,
+    sender: Option<Sender<Framed<TTransport, Codec>>>,
 
     /// The shutdown handler that keeps watch for a shutdown signal.
     shutdown: ShutdownHandler,
@@ -113,10 +137,10 @@ where
     }
 
     /// Polls the receiver if it is still running.
-    fn poll_receiver(&mut self) {
+    fn poll_receiver(mut self: Pin<&mut Self>, cx: &mut Context<'_>) {
         if let Some(receiver) = self.receiver.as_mut() {
             match receiver.poll() {
-                Poll::Ready(_) | Err(_) => {
+                Poll::Ready(_) => {
                     self.shutdown_receiver();
                 }
                 _ => (),
@@ -129,11 +153,11 @@ where
     /// This is a no-op if the receiver is not shutdown. Otherwise, if the request handler is also
     /// shutdown, this means the sender needs to be shutdown as well, so the connection can be
     /// closed.
-    fn poll_request_handler_shutdown(&mut self) {
+    fn poll_request_handler_shutdown(mut self: Pin<&mut Self>, cx: &mut Context<'_>) {
         if self.is_receiver_shutdown() {
             if let Some(rx_handler_shutdown_event) = self.rx_handler_shutdown_event.as_mut() {
-                match rx_handler_shutdown_event.poll() {
-                    Poll::Ready(_) | Err(_) => {
+                match rx_handler_shutdown_event.poll(cx){
+                    Poll::Ready(_) => {
                         self.shutdown_sender();
                     }
                     Poll::Pending => (),
@@ -146,10 +170,10 @@ where
     ///
     /// If the sender finishes, then no more messages can be sent. Since no more messages can be
     /// sent, we shutdown request receiving since we would not be able to send responses.
-    fn poll_sender(&mut self) {
+    fn poll_sender(mut self: Pin<&mut Self>, cx: &mut Context<'_>) {
         if let Some(sender) = self.sender.as_mut() {
-            match sender.poll() {
-                Poll::Ready(_) | Err(_) => {
+            match sender.poll(cx) {
+                Poll::Ready(_) => {
                     self.shutdown_request_receiver();
                     self.shutdown_sender();
                 }
@@ -290,11 +314,11 @@ where
     ///
     /// The error `Err(())` will never be returned.
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        self.poll_receiver();
-        self.poll_sender();
+        self.poll_receiver(cx);
+        self.poll_sender(cx);
 
         // This cannot error, so ignore it.
-        let _ = self.shutdown.poll();
+        let _ = self.shutdown.poll(cx);
 
         match self.shutdown.state() {
             ShutdownState::Running => {
@@ -312,7 +336,7 @@ where
                 // Handle the case where the receiver is shutdown, but the request handler may still
                 // be processing requests (which keeps the sender open). Once the request handler is
                 // done, there is no longer any reason to keep the sender or the connection alive.
-                self.poll_request_handler_shutdown();
+                self.poll_request_handler_shutdown(cx);
             }
             ShutdownState::ShuttingDown => {
                 // We are entering a graceful shutdown. Do not allow request to be sent or read. We
@@ -419,7 +443,7 @@ impl ConnectionHandle {
     pub fn send_request<TRequest, TBody>(
         &mut self,
         request: TRequest,
-    ) -> impl Future<Item = Response<BytesMut>, Error = OperationError>
+    ) -> impl Future<Output = Result<Response<BytesMut>, OperationError>>
     where
         TRequest: Into<Request<TBody>>,
         TBody: AsRef<[u8]>,
@@ -441,13 +465,13 @@ impl ConnectionHandle {
         &mut self,
         request: TRequest,
         options: RequestOptions,
-    ) -> impl Future<Item = Response<BytesMut>, Error = OperationError>
+    ) -> impl Future<Output = Response<BytesMut>>
     where
         TRequest: Into<Request<TBody>>,
         TBody: AsRef<[u8]>,
     {
         if !self.allow_requests.load(Ordering::SeqCst) {
-            return Either::A(future::err(OperationError::Closed));
+            return Either::Left(future::err(OperationError::Closed));
         }
 
         let mut lock = self
@@ -466,7 +490,7 @@ impl ConnectionHandle {
         let update = PendingRequestUpdate::AddPendingRequest((sequence_number, tx_response));
 
         if self.tx_pending_request.unbounded_send(update).is_err() {
-            return Either::A(future::err(OperationError::Closed));
+            return Either::Left(future::err(OperationError::Closed));
         }
 
         if self
@@ -480,13 +504,13 @@ impl ConnectionHandle {
             let _ = self
                 .tx_pending_request
                 .unbounded_send(PendingRequestUpdate::RemovePendingRequest(sequence_number));
-            return Either::A(future::err(OperationError::Closed));
+            return Either::Left(future::err(OperationError::Closed));
         }
 
         *lock = sequence_number.wrapping_increment();
         mem::drop(lock);
 
-        Either::B(SendRequest::new(
+        Either::Right(SendRequest::new(
             rx_response,
             self.tx_pending_request.clone(),
             sequence_number,
@@ -552,7 +576,7 @@ impl Future for ConnectionShutdownReceiver {
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         if let Some(mut receiver) = self.rx_connection_shutdown_event.take() {
             if receiver
-                .poll()
+                .poll(cx)
                 .expect(
                     "`ConnectionShutdownReceiver.rx_connection_shutdown_event` should not error",
                 )
@@ -564,7 +588,7 @@ impl Future for ConnectionShutdownReceiver {
 
         if let Some(mut receiver) = self.rx_handler_shutdown_event.take() {
             if receiver
-                .poll()
+                .poll(cx)
                 .expect("`ConnectionShutdownReceiver.rx_handler_shutdown_event` should not error")
                 .is_not_ready()
             {

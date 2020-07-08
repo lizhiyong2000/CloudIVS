@@ -2,15 +2,16 @@
 //!
 //! This module contains the logic for sending all outgoing messagse through the connection sink.
 
-use futures::stream::Fuse;
+// use futures::stream::Fuse;
 use futures::channel::mpsc::{unbounded, UnboundedReceiver, UnboundedSender};
-use futures::{Future, Sink, Stream, ready};
+use futures::{Future, Sink, Stream, ready, SinkExt, FutureExt};
 
 use crate::protocol::rtsp::header::map::HeaderMapExtension;
 use crate::protocol::rtsp::header::types::Date;
 use crate::protocol::rtsp::protocol::codec::{Message, ProtocolError};
 use futures::task::{Poll, Context};
 use std::pin::Pin;
+use futures::future::Fuse;
 
 /// The type responsible for sending all outgoing messages through the connection sink.
 ///
@@ -66,11 +67,11 @@ where
     ///
     /// If `Err(`[`ProtocolError`]`)` is returned, there was either an error trying to send a
     /// message through the sink or there was an error trying to flush the sink.
-    fn poll_write(&mut self) -> Poll<()> {
+    fn poll_write(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<()> {
         loop {
             match self
                 .rx_outgoing_message
-                .poll()
+                .poll(cx)
                 .expect("`Sender.rx_outgoing_message` should not error")
             {
                 Poll::Ready(Some(mut message)) => {
@@ -83,10 +84,11 @@ where
                         }
                     }
 
-                    ready!(self.try_send_message(message));
+                    // ready!(self.try_send_message(message));
+                    self.try_send_message(message)
                 }
                 Poll::Pending => {
-                    ready!(self.sink.poll_complete());
+                    // ready!(self.sink.poll_complete(cx));
                     return Poll::Pending;
                 }
                 Poll::Ready(None) => return Poll::Ready(()),
@@ -108,7 +110,7 @@ where
     fn try_send_message(&mut self, message: Message) -> Poll<()> {
         debug_assert!(self.buffered_message.is_none());
 
-        if let Ok(()) = self.sink.start_send(message)? {
+        if let Ok(()) = self.sink.start_send(message.clone())? {
             self.buffered_message = Some(message);
             return Poll::Pending;
         }
@@ -136,13 +138,15 @@ where
     /// message through the sink or there was an error trying to flush the sink.
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         if let Some(buffered_message) = self.buffered_message.take() {
-            ready!(self.try_send_message(buffered_message));
+            // ready!(self.try_send_message(buffered_message));
+            self.try_send_message(buffered_message)
         }
 
-        ready!(self.poll_write());
+        // ready!(self.poll_write(cx));
+        self.poll_write(cx)
 
-        debug_assert!(self.buffered_message.is_none());
-        self.sink.close()
+        // debug_assert!(self.buffered_message.is_none());
+        // self.sink.close()
     }
 }
 
