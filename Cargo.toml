@@ -19,7 +19,8 @@ futures = "0.3.5"
 parallel-event-emitter = { version = "0.2.4", features = ["default"] }
 pnet_macros_support = "0.26"
 trackable = "0.1"
-handy_async = "0.2.3"
+#handy_async = "0.2.3"
+bytecodec="0.4.13"
 
 serde = { version = "1.0.107", features = ["derive"] }
 nom = "6.0.0-alpha1"
@@ -38,6 +39,7 @@ splay_tree = "0.2"
 
 
 bytes = "0.4.12"
+byteorder = "1.0"
 chrono = "0.4.6"
 #futures = "0.1.25"
 itertools = "0.8.0"
@@ -48,10 +50,10 @@ ordered-multimap = "0.2.2"
 #tokio = "0.2.21"
 tokio = { version = "0.2.21", features = ["full"] }
 
-tokio-codec= "0.2.0-alpha.6"
-tokio-io = "0.2.0-alpha.6"
-tokio-timer = "0.2.0-alpha.6"
-tokio-executor = "0.2.0-alpha.6"
+#tokio-codec= "0.2.0-alpha.6"
+#tokio-io = "0.2.0-alpha.6"
+#tokio-timer = "0.2.0-alpha.6"
+#tokio-executor = "0.2.0-alpha.6"
 #tokio-codec = "0.1.2"
 #tokio-executor = "0.1.6"
 #tokio-io = "0.1.13"
@@ -70,7 +72,7 @@ mime = "0.3.13"
 
 #base64 = "0.11.0"
 #bytes = "0.5.3"
-#byteorder = "1.0"
+
 #cstr = "0.1.7"
 #cursive = "0.14.0"
 ##db = { package = "moonfire-db", path = "db" }

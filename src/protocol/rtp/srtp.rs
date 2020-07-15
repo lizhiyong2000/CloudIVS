@@ -1,7 +1,7 @@
 use std::io::Read;
 
 use crypto;
-use handy_async::sync_io::{ReadExt, WriteExt};
+use bytecodec::{EncodeExt, DecodeExt};
 use num::BigUint;
 use splay_tree::SplaySet;
 

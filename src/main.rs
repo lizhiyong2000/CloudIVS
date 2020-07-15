@@ -16,8 +16,8 @@ extern crate trackable;
 // Instead of #[macro_use], newer versions of rust should prefer
 use strum_macros::{Display, EnumIter}; // etc.
 //
-
-extern crate handy_async;
+extern crate byteorder;
+extern crate bytecodec;
 
 
 #[macro_use]

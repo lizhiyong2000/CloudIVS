@@ -1,6 +1,7 @@
 use std::io::{Read, Write};
 
-use handy_async::sync_io::{ReadExt, WriteExt};
+use bytecodec::{EncodeExt, DecodeExt};
+use byteorder::{ReadBytesExt, WriteBytesExt};
 
 use crate::protocol::error::ErrorKind;
 use crate::protocol::rtp::rtcp::payload_specific_feedback::GenericNack;

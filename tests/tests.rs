@@ -17,7 +17,7 @@ extern crate trackable;
 use strum_macros::{Display, EnumIter}; // etc.
 //
 
-extern crate handy_async;
+extern crate bytecodec;
 
 
 #[macro_use]
