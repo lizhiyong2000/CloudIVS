@@ -1,7 +1,7 @@
 use std::io::{Read, Write};
 
-use bytecodec::{EncodeExt, DecodeExt};
-use byteorder::{ReadBytesExt, WriteBytesExt};
+
+use crate::common::sync_io::{ReadExt, WriteExt};
 
 use crate::protocol::error::ErrorKind;
 use crate::protocol::rtp::traits::RtpPacketTrait;

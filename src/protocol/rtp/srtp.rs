@@ -1,9 +1,11 @@
 use std::io::Read;
 
 use crypto;
-use bytecodec::{EncodeExt, DecodeExt};
+
 use num::BigUint;
 use splay_tree::SplaySet;
+
+use crate::common::sync_io::{ReadExt, WriteExt};
 
 use crate::protocol::error::ErrorKind;
 use crate::protocol::rtp::rtp::{*};

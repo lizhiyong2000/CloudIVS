@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::str::FromStr;
 
-use bytecodec::{EncodeExt, DecodeExt};
+
 use pnet_macros_support::packet::PrimitiveValues;
 use strum;
 use strum_macros::EnumString;
@@ -25,7 +25,7 @@ use super::source_description_packet::*;
 use super::transport_layer_feedback;
 
 
-use byteorder::{ReadBytesExt, WriteBytesExt};
+use crate::common::sync_io::{ReadExt, WriteExt};
 
 /// RTCP message types.
 ///
@@ -445,7 +445,7 @@ impl From<PayloadSpecificFeedbackPacket> for RtcpPacket {
 }
 
 
-pub fn read_sctp<R: ReadBytesExt>(reader: &mut R, expected_type: u8) -> Result<(U5, Vec<u8>)> {
+pub fn read_sctp<R: Read>(reader: &mut R, expected_type: u8) -> Result<(U5, Vec<u8>)> {
     let b = track_try!(reader.read_u8());
     track_assert_eq!(
         b >> 6,
