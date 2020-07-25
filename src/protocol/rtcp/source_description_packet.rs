@@ -4,7 +4,7 @@ use std::io::{Read, Write};
 use crate::common::sync_io::{ReadExt, WriteExt};
 
 use crate::protocol::error::ErrorKind;
-use crate::protocol::rtp::rtcp::constants::{*};
+use crate::protocol::rtcp::constants::{*};
 use crate::protocol::rtp::traits::RtcpPacketTrait;
 use crate::protocol::traits::*;
 use crate::protocol::traits::{PacketTrait, ReadFrom, ReadPacket, Result, WritePacket, WriteTo};
@@ -213,11 +213,11 @@ impl SdesItem {
 
 #[cfg(test)]
 mod tests {
-    use crate::protocol::rtp::rtcp::constants::SDES_ITEM_TYPE_CNAME;
+    use crate::protocol::rtcp::constants::SDES_ITEM_TYPE_CNAME;
     // use super::SenderReportPacket;
     // use super::ReceiverReportPacket;
-    use crate::protocol::rtp::rtcp::report_packet::ReceptionReport;
-    use crate::protocol::rtp::rtcp::source_description_packet::{SdesChunk, SdesItem};
+    use crate::protocol::rtcp::report_packet::ReceptionReport;
+    use crate::protocol::rtcp::source_description_packet::{SdesChunk, SdesItem};
     use crate::protocol::traits::{ReadFrom, WriteTo};
 
     use super::SourceDescriptionPacket;

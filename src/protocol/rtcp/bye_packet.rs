@@ -74,8 +74,8 @@ impl WriteTo for GoodbyePacket {
 
 #[cfg(test)]
 mod tests {
-    use crate::protocol::rtp::rtcp::constants::SDES_ITEM_TYPE_CNAME;
-    use crate::protocol::rtp::rtcp::report_packet::ReceptionReport;
+    use crate::protocol::rtcp::constants::SDES_ITEM_TYPE_CNAME;
+    use crate::protocol::rtcp::report_packet::ReceptionReport;
     use crate::protocol::traits::{ReadFrom, WriteTo};
 
     use super::GoodbyePacket;

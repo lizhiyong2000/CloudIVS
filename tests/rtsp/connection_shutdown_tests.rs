@@ -46,7 +46,7 @@ impl Service<Request<BytesMut>> for DummyService {
     }
 
     fn poll_ready(&mut self) -> Poll<(), Self::Error> {
-        Ok(Async::Ready(()))
+        Poll::Ready(Ok(()))
     }
 }
 

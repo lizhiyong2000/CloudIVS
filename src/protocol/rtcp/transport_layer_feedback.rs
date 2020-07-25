@@ -4,7 +4,7 @@ use std::io::{Read, Write};
 use crate::common::sync_io::{ReadExt, WriteExt};
 
 use crate::protocol::error::ErrorKind;
-use crate::protocol::rtp::rtcp::payload_specific_feedback::GenericNack;
+use crate::protocol::rtcp::payload_specific_feedback::GenericNack;
 use crate::protocol::rtp::traits::RtcpPacketTrait;
 use crate::protocol::traits::{PacketTrait, ReadFrom, ReadPacket, Result, WritePacket, WriteTo};
 

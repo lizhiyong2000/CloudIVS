@@ -325,7 +325,7 @@ fn prf_n(master_key: &[u8], x: BigUint, n: usize) -> Vec<u8> {
 
 #[cfg(test)]
 mod test {
-    use crate::protocol::rtp::rtcp::rtcp_packet::RtcpPacketReader;
+    use crate::protocol::rtcp::rtcp_packet::RtcpPacketReader;
 
     use super::*;
 

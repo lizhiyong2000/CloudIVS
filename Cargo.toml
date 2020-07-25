@@ -10,7 +10,10 @@ edition = "2018"
 #members = ["ffmpeg"]
 
 [dependencies]
-ffmpeg = { package = "cloudmedia-ffmpeg", path = "deps/ffmpeg" }
+#ffmpeg = { package = "cloudmedia-ffmpeg", path = "deps/ffmpeg" }
+
+
+#ordered-multimap = "0.2.2"
 
 strum = "0.18.0"
 strum_macros = "0.18.0"
@@ -50,15 +53,8 @@ ordered-multimap = "0.2.2"
 #tokio = "0.2.21"
 tokio = { version = "0.2.21", features = ["full"] }
 
-#tokio-codec= "0.2.0-alpha.6"
-#tokio-io = "0.2.0-alpha.6"
-#tokio-timer = "0.2.0-alpha.6"
-#tokio-executor = "0.2.0-alpha.6"
-#tokio-codec = "0.1.2"
-#tokio-executor = "0.1.6"
-#tokio-io = "0.1.13"
-#tokio-tcp = "0.1.4"
-#tokio-timer = "0.2.13"
+tokio-util = { version = "0.3.1", features = ["full"] }
+
 #uriparse = "0.6.1"
 uriparse = {git ="https://github.com/sgodwincs/uriparse-rs.git"}
 fnv = "1.0.6"

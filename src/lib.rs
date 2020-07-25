@@ -5,23 +5,24 @@
 #![recursion_limit="256"]
 #![feature(int_error_matching)]
 
-extern crate strum;
 #[macro_use]
 extern crate strum_macros;
+
+
+extern crate strum;
 
 #[macro_use]
 extern crate trackable;
 // Instead of #[macro_use], newer versions of rust should prefer
 use strum_macros::{Display, EnumIter}; // etc.
 //
-
+extern crate byteorder;
 extern crate bytecodec;
 
 
 #[macro_use]
 extern crate nom;
-extern crate serde;
-
+// extern crate serde;
 
 #[macro_use]
 extern crate log;
@@ -33,12 +34,15 @@ extern crate serde_derive;
 extern crate serde;
 extern crate url;
 
+#[macro_use]
+extern crate futures;
+
+
+
 #[cfg(test)]
 #[macro_use]
 extern crate assert_matches;
 
 
 mod common;
-
-#[macro_use]
-pub mod protocol;
+mod protocol;

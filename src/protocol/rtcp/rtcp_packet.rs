@@ -9,9 +9,9 @@ use strum_macros::EnumString;
 
 use crate::protocol::error::ErrorKind;
 use crate::protocol::rtp::constants::RTP_VERSION;
-use crate::protocol::rtp::rtcp::constants::*;
-use crate::protocol::rtp::rtcp::payload_specific_feedback::PayloadSpecificFeedbackPacket;
-use crate::protocol::rtp::rtcp::transport_layer_feedback::TransportLayerFeedbackPacket;
+use crate::protocol::rtcp::constants::*;
+use crate::protocol::rtcp::payload_specific_feedback::PayloadSpecificFeedbackPacket;
+use crate::protocol::rtcp::transport_layer_feedback::TransportLayerFeedbackPacket;
 use crate::protocol::rtp::traits::RtcpPacketTrait;
 use crate::protocol::traits::{PacketData, PacketTrait, ReadFrom, ReadPacket, Result, WritePacket, WriteTo};
 // use super::traits::*;
@@ -512,7 +512,7 @@ mod tests {
     // use super::CommonHeader;
     use pnet_macros_support::packet::PrimitiveValues;
 
-    use crate::protocol::rtp::rtcp::rtcp_packet::CommonHeader;
+    use crate::protocol::rtcp::rtcp_packet::CommonHeader;
     use crate::protocol::traits::PacketData;
 
     use super::RtcpPacketType;

@@ -302,7 +302,7 @@ impl WriteTo for ReceiverReportPacket {
 
 #[cfg(test)]
 mod tests {
-    use crate::protocol::rtp::rtcp::report_packet::ReceptionReport;
+    use crate::protocol::rtcp::report_packet::ReceptionReport;
     use crate::protocol::traits::{ReadFrom, WriteTo};
 
     use super::ReceiverReportPacket;
