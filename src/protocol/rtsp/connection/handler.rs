@@ -8,9 +8,9 @@ use bytes::BytesMut;
 // use futures::channel::oneshot;
 // use futures::{ready, Async, Future, Poll, Stream};
 
-use futures::{Future, Stream};
+use futures::{Future, Stream, StreamExt};
 use std::time::{Duration, Instant};
-// use tokio_timer::Delay;
+// use tokio::time::Delay;
 use tower_service::Service;
 
 use crate::protocol::rtsp::header::map::HeaderMapExtension;
@@ -24,9 +24,9 @@ use crate::protocol::rtsp::response::{
     NOT_IMPLEMENTED_RESPONSE,
 };
 use crate::protocol::rtsp::uri::Scheme;
-use tokio::time::Delay;
+use tokio::time::{Delay, delay_for};
 // use crate::protocol::rtsp::connection::receiver::Receiver;
-use tokio::stream::StreamExt;
+// use tokio::stream::StreamExt;
 use futures::stream::Fuse;
 use futures::channel::oneshot;
 use std::task::{Poll, Context};
@@ -200,7 +200,8 @@ where
     fn reset_continue_timer(&mut self) {
         if let Some(duration) = self.continue_wait_duration {
             let expire_time = Instant::now() + duration;
-            self.continue_timer = Some(Delay::new(expire_time));
+            self.continue_timer = Some(delay_for(duration));
+            // self.continue_timer = Some(Delay::new(expire_time));
         }
     }
 
@@ -307,7 +308,7 @@ mod test {
     use std::time::{Duration, Instant};
     use std::{io, mem};
     use tokio::runtime::current_thread;
-    use tokio_timer::Delay;
+    use tokio::time::Delay;
     use tower_service::Service;
 
     use crate::protocol::rtsp::header::types::{CSeq, ContentLength};

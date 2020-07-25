@@ -9,7 +9,7 @@ use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::io;
 use std::sync::Arc;
-// use tokio_codec::{Decoder, Encoder};
+// use tokio_util::codec::{Decoder, Encoder};
 
 use tokio_util::codec::{Decoder, Encoder};
 
@@ -375,7 +375,7 @@ mod test {
     // use futures::channel::mpsc::unbounded;
     use std::convert::TryFrom;
     use tokio::runtime::current_thread::Runtime;
-    use tokio_codec::{Decoder, Encoder};
+    use tokio_util::codec::{Decoder, Encoder};
 
     use crate::protocol::rtsp::header::name::HeaderName;
     use crate::protocol::rtsp::header::types::ContentLength;
@@ -388,7 +388,6 @@ mod test {
     use futures::channel::mpsc::unbounded;
     use tokio::runtime::Runtime;
     use tokio::stream::StreamExt;
-    use tokio_util::codec::{Decoder, Encoder};
 
     #[test]
     fn test_codec_decoding() {

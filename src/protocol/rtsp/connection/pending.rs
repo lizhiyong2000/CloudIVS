@@ -3,16 +3,17 @@ use futures::channel::mpsc::UnboundedSender;
 // use futures::channel::oneshot::{self, Canceled};
 use futures::Future;
 use std::time::{Duration, Instant};
-// use tokio_timer::Delay;
+// use tokio::time::Delay;
 
 use crate::protocol::rtsp::header::types::CSeq;
 use crate::protocol::rtsp::connection::{OperationError, RequestTimeoutType};
 use crate::protocol::rtsp::response::Response;
-use tokio::sync::oneshot;
+// use tokio::sync::oneshot;
 // use tokio::sync::mpsc::UnboundedSender;
-use tokio::time::Delay;
+use tokio::time::{Delay, delay_for};
 use std::task::{Poll, Context};
 use std::pin::Pin;
+use futures::channel::oneshot;
 
 /// The default timeout for the maximum amount of time that we will wait for a request.
 pub const REQUEST_MAX_TIMEOUT_DEFAULT_DURATION: Duration = Duration::from_secs(20);
@@ -115,7 +116,8 @@ impl SendRequest {
                     self.rx_response = rx_response;
                     self.timer = self
                         .timeout_duration
-                        .map(|duration| Delay::new(Instant::now() + duration));
+                        .map(|duration| delay_for(duration));
+                        // .map(|duration| Delay::new(Instant::now() + duration));
                 }
                 PendingRequestResponse::None => return Poll::Ready(Err(OperationError::RequestCancelled)),
                 PendingRequestResponse::Response(response) => return Poll::Ready(Ok(response)),

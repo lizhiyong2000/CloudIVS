@@ -1,6 +1,6 @@
 use bytes::BytesMut;
 use fnv::FnvBuildHasher;
-use futures::stream::Fuse;
+// use futures::stream::Fuse;
 use futures::channel::mpsc::{Sender, UnboundedReceiver};
 // use futures::channel::oneshot;
 // use futures::{Async, AsyncSink, Future, Poll, Sink, Stream, FutureExt};
@@ -25,7 +25,7 @@ use crate::protocol::rtsp::response::{
     REQUEST_URI_TOO_LONG_RESPONSE, VERSION_NOT_SUPPORTED_RESPONSE,
 };
 use crate::protocol::rtsp::status::StatusCode;
-use tokio::time::Delay;
+use tokio::time::{Delay, delay_for};
 // use tokio::sync::mpsc::{UnboundedReceiver, Sender};
 use std::task::{Poll, Context};
 use std::pin::Pin;
@@ -80,7 +80,8 @@ where
         match event {
             DecodingStarted => {
                 let expire_time = Instant::now() + self.decode_timeout_duration;
-                self.decoding_timer = Some(Delay::new(expire_time));
+                self.decoding_timer = Some(delay_for(self.decode_timeout_duration));
+                // self.decoding_timer = Some(Delay::new(expire_time));
             }
             DecodingEnded => {
                 self.decoding_timer = None;
@@ -261,7 +262,7 @@ where
             match decoding_timer.poll(cx) {
                 Poll::Ready(Ok(_)) => return Poll::Ready(Ok(())),
                 Poll::Pending => return Poll::Pending,
-                Err(ref error) if error.is_at_capacity() => return Err(()),
+                Err(ref error) if error.is_at_capacity() => return Poll::Ready(Err(())),
                 _ => panic!("decoding timer should not be shutdown"),
             }
         }
@@ -282,7 +283,7 @@ where
     fn poll_receiving(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), ()>> {
         if let Some(response_receiver) = self.response_receiver.as_mut() {
             match response_receiver.poll(cx) {
-                Poll::Ready(Ok(_)) | Err(_) => {
+                Poll::Ready(Ok(_)) | Poll::Ready(Err(_)) => {
                     // From our side of the connection, this implies that we are no longer sending
                     // anymore requests and so we do not care to process responses any longer.
                     self.shutdown_response_receiver();
@@ -292,7 +293,7 @@ where
         }
 
         match self.poll_stream(cx) {
-            Poll::Ready(Ok(_)) | Err(_) => {
+            Poll::Ready(Ok(_)) | Poll::Ready(Err(_)) => {
                 // There are no more messages to be received.
                 return Poll::Ready(Ok(()));
             }
@@ -303,7 +304,7 @@ where
         let _ = self.poll_codec_events(cx);
 
         match self.poll_decoding_timer(cx) {
-            Poll::Ready(Ok(_)) | Err(_) => {
+            Poll::Ready(Ok(_)) | Poll::Ready(Err(_)) => {
                 // Either the decoding timer expired or there were too many timers.
                 //
                 // In the former, the other agent took too long to send anymore data, so we close
@@ -344,7 +345,7 @@ where
                 }
 
                 match stream.poll(cx) {
-                    Ok(Poll::Ready(Some(message))) => {
+                    Poll::Ready(Ok(Some(message))) => {
                         if let Err(error) = self.handle_message(message) {
                             self.handle_request_receiver_error(error);
                         }
@@ -353,10 +354,10 @@ where
                         self.stream = Some(stream);
                         return Poll::Pending;
                     }
-                    Ok(Poll::Ready(None)) => return Poll::Ready(Ok(())),
-                    Err(error) => {
+                    Poll::Ready(Ok(None)) => return Poll::Ready(Ok(())),
+                    Poll::Ready(Err(error)) => {
                         self.handle_protocol_error(&error);
-                        return Err(error);
+                        return Poll::Ready(Err(error));
                     }
                 }
             },
@@ -441,7 +442,7 @@ where
     /// If `Err(())` will never be returned.
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>{
         match self.poll_receiving(cx) {
-            Poll::Ready(Ok(_)) | Err(_) => {
+            Poll::Ready(Ok(_)) | Poll::Ready(Err(_)) => {
                 self.shutdown_receiving();
             }
             _ => (),
@@ -603,7 +604,7 @@ impl Future for ForwardingReceiver {
                     .try_send((incoming_sequence_number, request.clone()))
                     .map_err(|_| ())?
                 {
-                    Ok(_) => {
+                    Ok(()) => {
                         incoming_sequence_number = incoming_sequence_number.wrapping_increment()
                     }
                     Err(_) => {

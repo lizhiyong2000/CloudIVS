@@ -17,7 +17,7 @@ use futures::future::{Either, Shared};
 use futures::stream::{SplitSink, SplitStream};
 use futures::channel::mpsc::{self, UnboundedSender};
 use futures::channel::oneshot;
-use futures::{future, Future, Stream, StreamExt};
+use futures::{future, Future, Stream, StreamExt, FutureExt};
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::mem;
@@ -118,7 +118,7 @@ where
     fn poll_receiver(self: Pin<&mut Self>, cx: &mut Context<'_>) {
         if let Some(receiver) = self.receiver.as_mut() {
             match receiver.poll(cx) {
-                Poll::Ready(Ok(_)) | Err(_) => {
+                Poll::Ready(Ok(_)) | Poll::Ready(Err(_)) => {
                     self.shutdown_receiver();
                 }
                 _ => (),
@@ -135,7 +135,7 @@ where
         if self.is_receiver_shutdown() {
             if let Some(rx_handler_shutdown_event) = self.rx_handler_shutdown_event.as_mut() {
                 match rx_handler_shutdown_event.poll(cx) {
-                    Poll::Ready(Ok(_)) | Err(_) => {
+                    Poll::Ready(Ok(_)) | Poll::Ready(Err(_)) => {
                         self.shutdown_sender();
                     }
                     Poll::Pending => (),
@@ -151,7 +151,7 @@ where
     fn poll_sender(self: Pin<&mut Self>, cx: &mut Context<'_>) {
         if let Some(sender) = self.sender.as_mut() {
             match sender.poll(cx) {
-                Poll::Ready(Ok(_)) | Err(_) => {
+                Poll::Ready(Ok(_)) | Poll::Ready(Err(_)) => {
                     self.shutdown_request_receiver();
                     self.shutdown_sender();
                 }
@@ -450,7 +450,7 @@ impl ConnectionHandle {
         TBody: AsRef<[u8]>,
     {
         if !self.allow_requests.load(Ordering::SeqCst) {
-            return Either::A(future::err(OperationError::Closed));
+            return future::err(OperationError::Closed);
         }
 
         let mut lock = self
@@ -469,7 +469,7 @@ impl ConnectionHandle {
         let update = PendingRequestUpdate::AddPendingRequest((sequence_number, tx_response));
 
         if self.tx_pending_request.unbounded_send(update).is_err() {
-            return Either::A(future::err(OperationError::Closed));
+            return future::err(OperationError::Closed);
         }
 
         if self
@@ -483,19 +483,19 @@ impl ConnectionHandle {
             let _ = self
                 .tx_pending_request
                 .unbounded_send(PendingRequestUpdate::RemovePendingRequest(sequence_number));
-            return Either::A(future::err(OperationError::Closed));
+            return future::err(OperationError::Closed);
         }
 
         *lock = sequence_number.wrapping_increment();
         mem::drop(lock);
 
-        Either::B(SendRequest::new(
+        SendRequest::new(
             rx_response,
             self.tx_pending_request.clone(),
             sequence_number,
             options.timeout_duration(),
             options.max_timeout_duration(),
-        ))
+        )
     }
 
     /// Shuts down the connection if it is not already shutdown.
@@ -866,7 +866,7 @@ pub enum RequestTimeoutType {
 #[cfg(test)]
 mod test {
     use futures::stream::{SplitSink, SplitStream};
-    use tokio_codec::Framed;
+    use tokio_util::codec::Framed;
     use tokio_tcp::TcpStream;
 
     use crate::protocol::rtsp::codec::{Codec, Message};

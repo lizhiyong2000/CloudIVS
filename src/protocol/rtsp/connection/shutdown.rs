@@ -7,12 +7,14 @@
 // use futures::channel::oneshot;
 use futures::{Future};
 use std::time::{Duration, Instant};
-// use tokio_timer::Delay;
+// use tokio::time::Delay;
 // use tokio::sync::oneshot;
-use tokio::time::Delay;
+use tokio::time::{Delay, delay_for};
 use futures::channel::oneshot;
 use std::task::{Poll, Context};
 use std::pin::Pin;
+
+// tokio::time::delay::Delay
 
 /// The type responsible for managing deliberate shutdown of connections.
 #[derive(Debug)]
@@ -66,7 +68,8 @@ impl ShutdownHandler {
 
                 let expire_time = Instant::now() + duration;
                 self.rx_initiate_shutdown = None;
-                self.timer = Some(Delay::new(expire_time));
+                // self.timer = Some(Delay::new(expire_time));
+                self.timer = Some(delay_for(duration));
             }
             ShutdownType::Immediate => {
                 self.rx_initiate_shutdown = None;
@@ -241,11 +244,11 @@ pub enum ShutdownType {
 mod test {
     use futures::future::{self, Either};
     use futures::channel::oneshot;
-    use futures::Future;
+    use futures::{Future, TryFutureExt};
     use std::mem;
     use std::time::{Duration, Instant};
     use tokio::runtime::current_thread;
-    use tokio_timer::Delay;
+    use tokio::time::Delay;
 
     use crate::protocol::rtsp::connection::shutdown::{ShutdownHandler, ShutdownState, ShutdownType};
     // use tokio::sync::oneshot;
@@ -290,7 +293,7 @@ mod test {
                     .map_err(|_| panic!())
                     .select2(rx_shutdown_event.map_err(|_| panic!()))
                     .then(|result| match result {
-                        Ok(Either::A((_, rx_shutdown_event))) => rx_shutdown_event,
+                        Ok((_, rx_shutdown_event)) => rx_shutdown_event,
                         _ => panic!(),
                     }),
             );

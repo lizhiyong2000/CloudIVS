@@ -22,7 +22,7 @@ use std::time::{Duration, Instant};
 use std::{mem, thread};
 use tokio::runtime::Runtime;
 use tokio::net::TcpStream;
-use tokio_timer::Delay;
+use tokio::time::Delay;
 use tower_service::Service;
 
 struct DummyService;
