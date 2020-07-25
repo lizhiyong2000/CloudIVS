@@ -31,8 +31,8 @@ use futures::stream::Fuse;
 use futures::channel::oneshot;
 use std::task::{Poll, Context};
 use std::pin::Pin;
-use tokio::sync::mpsc::Receiver;
-// use futures::channel::mpsc::Receiver;
+// use tokio::sync::mpsc::Receiver;
+use futures::channel::mpsc::Receiver;
 
 
 /// The type responsible for servicing incoming requests and sending responses back.
@@ -148,7 +148,7 @@ where
                 let cseq = *cseq;
 
                 match serviced_request.poll(cx) {
-                    Ok(Poll::Ready(response)) => {
+                    Poll::Ready(Ok(response)) => {
                         self.send_response(cseq, response.into());
                         self.continue_timer = None;
                         self.serviced_request = None;

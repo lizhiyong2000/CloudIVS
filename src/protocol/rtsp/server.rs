@@ -25,6 +25,7 @@ use tower_service::Service;
 use std::task::Context;
 use futures::task::Poll;
 use crate::protocol::rtsp::status::StatusCode::OK;
+use std::pin::Pin;
 
 pub const SUPPORTED_METHODS: [Method; 2] = [Method::Options, Method::Setup];
 
@@ -111,7 +112,7 @@ impl ConnectionService {
                 .unwrap()
         };
 
-        Box::new(future::ok(response))
+        Box::pin(future::ok(response))
     }
 
     fn handle_method_setup(
@@ -135,9 +136,9 @@ impl ConnectionService {
                     .with_body(BytesMut::new())
                     .build()
                     .unwrap();
-                return Box::new(future::ok(response));
+                return Box::pin(future::ok(response));
             }
-            Err(_) => return Box::new(future::ok(BAD_REQUEST_RESPONSE.clone())),
+            Err(_) => return Box::pin(future::ok(BAD_REQUEST_RESPONSE.clone())),
         }
     }
 }
@@ -145,7 +146,7 @@ impl ConnectionService {
 impl Service<Request<BytesMut>> for ConnectionService {
     type Response = Response<BytesMut>;
     type Error = Box<dyn Error + Send + 'static>;
-    type Future = Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send + 'static>;
+    type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send + 'static>>;
 
     fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>>{
         // Poll::Ready(Ok(()))
@@ -164,7 +165,7 @@ impl Service<Request<BytesMut>> for ConnectionService {
             Method::Setup => self.handle_method_setup(request),
 
             // PLAY_NOTIFY and REDIRECT are handled here as servers do not respond to such requests.
-            _ => Box::new(future::ok(NOT_IMPLEMENTED_RESPONSE.clone())),
+            _ => Box::pin(future::ok(NOT_IMPLEMENTED_RESPONSE.clone())),
         }
     }
 }

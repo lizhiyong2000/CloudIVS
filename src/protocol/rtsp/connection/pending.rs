@@ -1,5 +1,5 @@
 use bytes::BytesMut;
-// use futures::channel::mpsc::UnboundedSender;
+use futures::channel::mpsc::UnboundedSender;
 // use futures::channel::oneshot::{self, Canceled};
 use futures::Future;
 use std::time::{Duration, Instant};
@@ -9,7 +9,7 @@ use crate::protocol::rtsp::header::types::CSeq;
 use crate::protocol::rtsp::connection::{OperationError, RequestTimeoutType};
 use crate::protocol::rtsp::response::Response;
 use tokio::sync::oneshot;
-use tokio::sync::mpsc::UnboundedSender;
+// use tokio::sync::mpsc::UnboundedSender;
 use tokio::time::Delay;
 use std::task::{Poll, Context};
 use std::pin::Pin;
@@ -193,16 +193,16 @@ impl Future for SendRequest {
     /// been cancelled.
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>{
         match self.poll_request(cx) {
-            Ok(Poll::Ready(response)) => return Poll::Ready(Ok(response)),
-            Err(error) => return Poll::Ready(Err(error)),
+            Poll::Ready(Ok(response)) => return Poll::Ready(Ok(response)),
+            Poll::Ready(Err(error)) => return Poll::Ready(Err(error)),
             _ => (),
         }
 
-        if let Err(error) = self.poll_max_timer() {
+        if let Poll::Ready(Err(error)) = self.poll_max_timer(cx) {
             return Poll::Ready(Err(error))
         }
 
-        if let Err(error) = self.poll_timer() {
+        if let Poll::Ready(Err(error)) = self.poll_timer(cx) {
             return Poll::Ready(Err(error))
         }
 

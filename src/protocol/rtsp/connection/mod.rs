@@ -422,7 +422,7 @@ impl ConnectionHandle {
     pub fn send_request<TRequest, TBody>(
         &mut self,
         request: TRequest,
-    ) -> impl Future<Item = Response<BytesMut>, Error = OperationError>
+    ) -> impl Future<Output = Result<Response<BytesMut>, OperationError>>
     where
         TRequest: Into<Request<TBody>>,
         TBody: AsRef<[u8]>,
@@ -444,7 +444,7 @@ impl ConnectionHandle {
         &mut self,
         request: TRequest,
         options: RequestOptions,
-    ) -> impl Future<Item = Response<BytesMut>, Error = OperationError>
+    ) -> impl Future<Output = Result<Response<BytesMut>, OperationError>>
     where
         TRequest: Into<Request<TBody>>,
         TBody: AsRef<[u8]>,

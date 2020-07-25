@@ -8,13 +8,24 @@ use tower_service::Service;
 use crate::protocol::rtsp::request::Request;
 use crate::protocol::rtsp::response::Response;
 use std::task::{Context, Poll};
+use std::pin::Pin;
 
 pub struct EmptyService;
 
 impl Service<Request<BytesMut>> for EmptyService {
+
+    // type Response;
+    //
+    // /// Errors produced by the service.
+    // type Error;
+    //
+    // /// The future response value.
+    // type Future: Future<Output = Result<Self::Response, Self::Error>>;
+
+
     type Response = Response<BytesMut>;
     type Error = io::Error;
-    type Future = Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send + 'static>;
+    type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send + 'static>>;
 
     fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>>{
         Poll::Ready(Ok(()))
@@ -22,7 +33,7 @@ impl Service<Request<BytesMut>> for EmptyService {
 
 
     fn call(&mut self, _: Request<BytesMut>) -> Self::Future {
-        Box::new(futures::io::empty())
+        Box::pin(futures::io::empty())
     }
 
     // fn poll_ready(&mut self) -> Poll<(), Self::Error> {
