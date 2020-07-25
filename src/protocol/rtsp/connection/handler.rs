@@ -8,7 +8,7 @@ use bytes::BytesMut;
 // use futures::channel::oneshot;
 // use futures::{ready, Async, Future, Poll, Stream};
 
-use futures::{Future, Stream, StreamExt};
+use futures::{Future, Stream, StreamExt, FutureExt};
 use std::time::{Duration, Instant};
 // use tokio::time::Delay;
 use tower_service::Service;
@@ -111,19 +111,19 @@ where
     /// The error `Err(())` will never be returned.
     fn poll_continue_timer(self: Pin<&mut Self>, cx: &mut Context<'_>, cseq: CSeq) -> Poll<Result<(), ()>> {
         while let Some(continue_timer) = self.continue_timer.as_mut() {
-            match continue_timer.poll(cx) {
-                Poll::Ready(Ok(_)) => {
+            match continue_timer.poll_unpin(cx) {
+                Poll::Ready(_) => {
                     self.send_response(cseq, CONTINUE_RESPONSE.clone());
                     self.reset_continue_timer();
                 }
                 Poll::Pending => return Poll::Pending,
-                Err(ref error) if error.is_at_capacity() => {
-                    // There are too many timers currently. In order to shed load, stop sending
-                    // 100 (Continue) responses for this request. The client may stop waiting for
-                    // the request, but it will still be handled even if the corresponding response
-                    // does not make it to the client before the request expires.
-                    self.continue_timer = None;
-                }
+                // Err(ref error) if error.is_at_capacity() => {
+                //     // There are too many timers currently. In order to shed load, stop sending
+                //     // 100 (Continue) responses for this request. The client may stop waiting for
+                //     // the request, but it will still be handled even if the corresponding response
+                //     // does not make it to the client before the request expires.
+                //     self.continue_timer = None;
+                // }
                 _ => panic!("continue timer should not be shutdown"),
             }
         }
@@ -147,7 +147,7 @@ where
             Some((cseq, serviced_request)) => {
                 let cseq = *cseq;
 
-                match serviced_request.poll(cx) {
+                match serviced_request.poll_unpin(cx) {
                     Poll::Ready(Ok(response)) => {
                         self.send_response(cseq, response.into());
                         self.continue_timer = None;
@@ -158,7 +158,7 @@ where
                         ready!(self.poll_continue_timer(cx, cseq));
                         Poll::Pending
                     }
-                    Err(_) => {
+                    Poll::Ready(Err(_)) => {
                         self.send_response(cseq, INTERNAL_SERVER_ERROR_RESPONSE.clone());
                         self.continue_timer = None;
                         self.serviced_request = None;
@@ -284,8 +284,8 @@ where
 
             match self
                 .rx_incoming_request
-                .poll(cx)
-                .expect("`RequestHandler.rx_incoming_request` should not error")
+                .poll_next_unpin(cx)
+                // .expect("`RequestHandler.rx_incoming_request` should not error")
             {
                 Poll::Ready(Some((cseq, request))) => self.process_request(cseq, request),
                 Poll::Pending => return Poll::Pending,

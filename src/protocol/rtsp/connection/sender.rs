@@ -5,7 +5,7 @@
 use futures::stream::Fuse;
 use futures::channel::mpsc::{unbounded, UnboundedReceiver, UnboundedSender};
 // use futures::{ready, Async, AsyncSink, Future, Poll, Sink, Stream};
-use futures::{Future,Sink, Stream};
+use futures::{Future, Sink, Stream, SinkExt};
 
 use crate::protocol::rtsp::header::map::HeaderMapExtension;
 use crate::protocol::rtsp::header::types::Date;
@@ -14,6 +14,8 @@ use crate::protocol::rtsp::codec::{Message, ProtocolError};
 // use futures::channel::mpsc::{unbounded, UnboundedReceiver};
 use std::task::{Poll, Context};
 use std::pin::Pin;
+
+use futures::stream::StreamExt;
 
 /// The type responsible for sending all outgoing messages through the connection sink.
 ///
@@ -73,10 +75,10 @@ where
         loop {
             match self
                 .rx_outgoing_message
-                .poll(cx)
-                .expect("`Sender.rx_outgoing_message` should not error")
+                .poll_next_unpin(cx)
+                // .expect("`Sender.rx_outgoing_message` should not error")
             {
-                Poll::Ready(Ok(mut message)) => {
+                Poll::Ready(Some(mut message)) => {
                     match message {
                         Message::Request(ref mut request) => {
                             request.headers_mut().typed_insert(Date::new());
@@ -92,7 +94,7 @@ where
                     ready!(self.sink.poll_complete(cx));
                     return Poll::Pending;
                 }
-                Poll::Ready(Ok(())) => return Poll::Ready(Ok(())),
+                // Poll::Ready(Ok(())) => return Poll::Ready(Ok(())),
             }
         }
     }
@@ -151,7 +153,7 @@ where
         ready!(self.poll_write(cx));
 
         debug_assert!(self.buffered_message.is_none());
-        self.sink.close()
+        self.sink.poll_close()
     }
 }
 

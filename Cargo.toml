@@ -41,7 +41,7 @@ splay_tree = "0.2"
 
 
 
-bytes = "0.4.12"
+bytes = "0.5"
 byteorder = "1.0"
 chrono = "0.4.6"
 #futures = "0.1.25"

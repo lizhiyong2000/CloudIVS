@@ -28,11 +28,11 @@ impl Client {
             let (connection, handler
                 , handle) = Connection::new::<EmptyService>(tcp_stream, None);
 
-            runtime.spawn(Box::new(connection)).unwrap();
+            runtime.spawn(Box::new(connection));
             // executor.spawn(Box::new(connection)).unwrap();
 
             if let Some(handler) = handler {
-                runtime.spawn(Box::new(handler)).unwrap();
+                runtime.spawn(Box::new(handler));
             }
             Ok(Client {
                 handle,

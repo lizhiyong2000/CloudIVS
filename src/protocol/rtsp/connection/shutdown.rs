@@ -5,7 +5,7 @@
 //! shutdown of the [`RequestHandler`] task.
 
 // use futures::channel::oneshot;
-use futures::{Future};
+use futures::{Future, FutureExt};
 use std::time::{Duration, Instant};
 // use tokio::time::Delay;
 // use tokio::sync::oneshot;
@@ -102,14 +102,14 @@ impl ShutdownHandler {
             .expect(
                 "`ShutdownHandler::poll_running` should not be called if `ShutdownHandler.rx_initiate_shutdown` is `None`",
             )
-            .poll(cx)
+            .poll_unpin(cx)
         {
-            Ok(Poll::Ready(shutdown_type)) => {
+            Poll::Ready(Ok(shutdown_type)) => {
                 // A shutdown event has been sent by the sender, initiate a shutdown.
                 self.handle_shutdown(shutdown_type);
                 Poll::Ready(Ok(()))
             }
-            Err(_) => {
+            Poll::Ready(Err(_)) => {
                 // The sender has been dropped, initiate an immediate shutdown.
                 self.handle_shutdown(ShutdownType::Immediate);
                 Poll::Ready(Ok(()))
@@ -139,17 +139,17 @@ impl ShutdownHandler {
             .expect(
                 "`ShutdownHandler::poll_shutting_down` should not be called if `ShutdownHandler.timer` is `None`",
             )
-            .poll(cx)
+            .poll_unpin(cx)
         {
-            Poll::Ready(Ok(_)) => {
+            Poll::Ready(_) => {
                 self.handle_shutdown(ShutdownType::Immediate);
                 Poll::Ready(Ok(()))
             }
             Poll::Pending => Poll::Pending,
-            Err(ref error) if error.is_at_capacity() => {
-                self.handle_shutdown(ShutdownType::Immediate);
-                Poll::Ready(Ok(()))
-            }
+            // Poll::Ready(Err(ref error)) if error.is_at_capacity() => {
+            //     self.handle_shutdown(ShutdownType::Immediate);
+            //     Poll::Ready(Ok(()))
+            // }
             _ => panic!("shutdown timer should not be shutdown"),
         }
     }

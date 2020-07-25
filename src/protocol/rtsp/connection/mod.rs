@@ -117,7 +117,7 @@ where
     /// Polls the receiver if it is still running.
     fn poll_receiver(self: Pin<&mut Self>, cx: &mut Context<'_>) {
         if let Some(receiver) = self.receiver.as_mut() {
-            match receiver.poll(cx) {
+            match receiver.poll_unpin(cx) {
                 Poll::Ready(Ok(_)) | Poll::Ready(Err(_)) => {
                     self.shutdown_receiver();
                 }
@@ -134,7 +134,7 @@ where
     fn poll_request_handler_shutdown(self: Pin<&mut Self>, cx: &mut Context<'_>) {
         if self.is_receiver_shutdown() {
             if let Some(rx_handler_shutdown_event) = self.rx_handler_shutdown_event.as_mut() {
-                match rx_handler_shutdown_event.poll(cx) {
+                match rx_handler_shutdown_event.poll_unpin(cx) {
                     Poll::Ready(Ok(_)) | Poll::Ready(Err(_)) => {
                         self.shutdown_sender();
                     }
@@ -150,7 +150,7 @@ where
     /// sent, we shutdown request receiving since we would not be able to send responses.
     fn poll_sender(self: Pin<&mut Self>, cx: &mut Context<'_>) {
         if let Some(sender) = self.sender.as_mut() {
-            match sender.poll(cx) {
+            match sender.poll_unpin(cx) {
                 Poll::Ready(Ok(_)) | Poll::Ready(Err(_)) => {
                     self.shutdown_request_receiver();
                     self.shutdown_sender();
@@ -313,7 +313,7 @@ where
                 // Handle the case where the receiver is shutdown, but the request handler may still
                 // be processing requests (which keeps the sender open). Once the request handler is
                 // done, there is no longer any reason to keep the sender or the connection alive.
-                self.poll_request_handler_shutdown();
+                self.poll_request_handler_shutdown(cx);
             }
             ShutdownState::ShuttingDown => {
                 // We are entering a graceful shutdown. Do not allow request to be sent or read. We
@@ -489,7 +489,8 @@ impl ConnectionHandle {
         *lock = sequence_number.wrapping_increment();
         mem::drop(lock);
 
-        SendRequest::new(
+
+        (SendRequest::new(
             rx_response,
             self.tx_pending_request.clone(),
             sequence_number,
@@ -557,10 +558,10 @@ impl Future for ConnectionShutdownReceiver {
     // fn poll(&mut self) -> Poll<Self::Output> {
         if let Some(mut receiver) = self.rx_connection_shutdown_event.take() {
             if receiver
-                .poll(cx)
-                .expect(
-                    "`ConnectionShutdownReceiver.rx_connection_shutdown_event` should not error",
-                )
+                .poll_unpin(cx)
+                // .expect(
+                //     "`ConnectionShutdownReceiver.rx_connection_shutdown_event` should not error",
+                // )
                 .is_not_ready()
             {
                 self.rx_connection_shutdown_event = Some(receiver);
@@ -569,8 +570,8 @@ impl Future for ConnectionShutdownReceiver {
 
         if let Some(mut receiver) = self.rx_handler_shutdown_event.take() {
             if receiver
-                .poll(cx)
-                .expect("`ConnectionShutdownReceiver.rx_handler_shutdown_event` should not error")
+                .poll_unpin(cx)
+                // .expect("`ConnectionShutdownReceiver.rx_handler_shutdown_event` should not error")
                 .is_not_ready()
             {
                 self.rx_handler_shutdown_event = Some(receiver);

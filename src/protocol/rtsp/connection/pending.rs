@@ -1,7 +1,7 @@
 use bytes::BytesMut;
 use futures::channel::mpsc::UnboundedSender;
 // use futures::channel::oneshot::{self, Canceled};
-use futures::Future;
+use futures::{Future, FutureExt};
 use std::time::{Duration, Instant};
 // use tokio::time::Delay;
 
@@ -72,8 +72,11 @@ impl SendRequest {
         timeout_duration: Option<Duration>,
         max_timeout_duration: Option<Duration>,
     ) -> Self {
-        let max_timer = max_timeout_duration.map(|duration| Delay::new(Instant::now() + duration));
-        let timer = timeout_duration.map(|duration| Delay::new(Instant::now() + duration));
+        // let max_timer = max_timeout_duration.map(|duration| Delay::new(Instant::now() + duration));
+        // let timer = timeout_duration.map(|duration| Delay::new(Instant::now() + duration));
+
+        let max_timer = max_timeout_duration.map(|duration| delay_for(duration));
+        let timer = timeout_duration.map(|duration| delay_for(duration));
 
         SendRequest {
             max_timer,
@@ -87,7 +90,7 @@ impl SendRequest {
 
     /// Returns whether the request has already been cancelled.
     fn poll_is_cancelled(self: Pin<&mut Self>, cx: &mut Context<'_>) -> bool {
-        if let Err(Canceled) = self.rx_response.poll(cx) {
+        if let Poll::Ready(Err(Canceled)) = self.rx_response.poll_unpin(cx) {
             true
         } else {
             false
@@ -108,8 +111,8 @@ impl SendRequest {
 
         if let Poll::Ready(response) = self
             .rx_response
-            .poll(cx)
-            .expect("`SendRequest.rx_response` should not error")
+            .poll_unpin(cx)
+            // .expect("`SendRequest.rx_response` should not error")
         {
             match response {
                 PendingRequestResponse::Continue(rx_response) => {
@@ -131,16 +134,16 @@ impl SendRequest {
     /// returned.
     fn poll_max_timer(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), OperationError>> {
         if let Some(timer) = self.max_timer.as_mut() {
-            match timer.poll(cx) {
-                Poll::Ready(Ok(_)) => {
+            match timer.poll_unpin(cx) {
+                Poll::Ready(_) => {
                     self.cancel_request();
                     return Poll::Ready(Err(OperationError::RequestTimedOut(RequestTimeoutType::Long)));
                 }
                 Poll::Pending => (),
-                Err(ref error) if error.is_at_capacity() => {
-                    self.cancel_request();
-                    return Poll::Ready(Err(OperationError::RequestCancelled));
-                }
+                // Err(ref error) if error.is_at_capacity() => {
+                //     self.cancel_request();
+                //     return Poll::Ready(Err(OperationError::RequestCancelled));
+                // }
                 _ => panic!("max timer should not be shutdown"),
             }
         }
@@ -152,16 +155,16 @@ impl SendRequest {
     /// returned.
     fn poll_timer(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), OperationError>> {
         if let Some(timer) = self.timer.as_mut() {
-            match timer.poll(cx) {
-                Poll::Ready(Ok(_)) => {
+            match timer.poll_unpin(cx) {
+                Poll::Ready(_) => {
                     self.cancel_request();
                     return Poll::Ready(Err(OperationError::RequestTimedOut(RequestTimeoutType::Short)));
                 }
                 Poll::Pending => (),
-                Err(ref error) if error.is_at_capacity() => {
-                    self.cancel_request();
-                    return Poll::Ready(Err(OperationError::RequestCancelled));
-                }
+                // Poll::Ready(Err(ref error)) if error.is_at_capacity() => {
+                //     self.cancel_request();
+                //     return Poll::Ready(Err(OperationError::RequestCancelled));
+                // }
                 _ => panic!("timer should not be shutdown"),
             }
         }

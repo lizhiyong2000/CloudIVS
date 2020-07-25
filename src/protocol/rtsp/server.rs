@@ -1,6 +1,6 @@
 use bytes::BytesMut;
 use chrono::{self, offset, DateTime, Utc};
-use futures::Stream;
+use futures::{Stream, TryFutureExt};
 use futures::{future, Future};
 use std::collections::HashMap;
 use std::convert::TryFrom;
@@ -45,7 +45,7 @@ impl Server {
 
     pub fn run(address: SocketAddr) {
         let server = Arc::new(Mutex::new(Server::new()));
-        let listener = TcpListener::bind(&address).unwrap();
+        let listener = TcpListener::bind(&address);
 
         let serve = listener.incoming().for_each(move |socket| {
             let server = server.clone();

@@ -30,7 +30,10 @@ use tokio::time::{Delay, delay_for};
 use std::task::{Poll, Context};
 use std::pin::Pin;
 use futures::channel::oneshot;
+use futures::stream::Fuse;
 // use futures::channel::mpsc::Sender;
+
+use futures::stream::StreamExt;
 
 /// Receiver responsible for processing incoming messages, including forwarding requests to the
 /// request handler and matching responses to pending requests.
@@ -240,8 +243,8 @@ where
         loop {
             match self
                 .rx_codec_event
-                .poll(cx)
-                .expect("`Receiver.rx_codec_event` should not error")
+                .poll_next_unpin(cx)
+                // .expect("`Receiver.rx_codec_event` should not error")
             {
                 Poll::Ready(Some(event)) => self.handle_codec_event(event),
                 Poll::Pending => return Poll::Pending,
@@ -259,10 +262,12 @@ where
     /// If `Err(())` is returned, then there was a timer error due to there being too many timers.
     fn poll_decoding_timer(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), ()>> {
         if let Some(decoding_timer) = self.decoding_timer.as_mut() {
-            match decoding_timer.poll(cx) {
-                Poll::Ready(Ok(_)) => return Poll::Ready(Ok(())),
+
+            // decoding_timer.await
+            match decoding_timer.poll_unpin(cx) {
+                Poll::Ready(_) => return Poll::Ready(Ok(())),
                 Poll::Pending => return Poll::Pending,
-                Err(ref error) if error.is_at_capacity() => return Poll::Ready(Err(())),
+                // Err(ref error) if error.is_at_capacity() => return Poll::Ready(Err(())),
                 _ => panic!("decoding timer should not be shutdown"),
             }
         }
@@ -282,7 +287,7 @@ where
     /// created.
     fn poll_receiving(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), ()>> {
         if let Some(response_receiver) = self.response_receiver.as_mut() {
-            match response_receiver.poll(cx) {
+            match response_receiver.poll_unpin(cx) {
                 Poll::Ready(Ok(_)) | Poll::Ready(Err(_)) => {
                     // From our side of the connection, this implies that we are no longer sending
                     // anymore requests and so we do not care to process responses any longer.
@@ -344,7 +349,7 @@ where
                     }
                 }
 
-                match stream.poll(cx) {
+                match stream.poll_next(cx) {
                     Poll::Ready(Ok(Some(message))) => {
                         if let Err(error) = self.handle_message(message) {
                             self.handle_request_receiver_error(error);
@@ -449,8 +454,8 @@ where
         }
 
         let is_shutdown = match self.forwarding_receiver.as_mut() {
-            Some(forwarding_receiver) => match forwarding_receiver.poll(cx) {
-                Err(_) => self.shutdown_forwarding_receiver(),
+            Some(forwarding_receiver) => match forwarding_receiver.poll_unpin(cx) {
+                Poll::Ready(Err(_)) => self.shutdown_forwarding_receiver(),
                 Poll::Ready(Ok(_)) if self.is_request_receiver_shutdown() => {
                     self.shutdown_forwarding_receiver()
                 }
@@ -602,9 +607,9 @@ impl Future for ForwardingReceiver {
                 match self
                     .tx_incoming_request
                     .try_send((incoming_sequence_number, request.clone()))
-                    .map_err(|_| ())?
+                    // .map_err(|_| ())?
                 {
-                    Ok(()) => {
+                    Ok(_) => {
                         incoming_sequence_number = incoming_sequence_number.wrapping_increment()
                     }
                     Err(_) => {
@@ -746,8 +751,8 @@ impl Future for ResponseReceiver {
         loop {
             match self
                 .rx_pending_request
-                .poll(cx)
-                .expect("`ResponseReceiver.rx_pending_request` should not error")
+                .poll_next_unpin(cx)
+                // .expect("`ResponseReceiver.rx_pending_request` should not error")
             {
                 Poll::Ready(Some(update)) => self.handle_pending_request_update(update),
                 Poll::Pending => return Poll::Pending,
