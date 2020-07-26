@@ -6,9 +6,11 @@ use tower_service::Service;
 // use futures::io::empty;
 
 use crate::protocol::rtsp::request::Request;
-use crate::protocol::rtsp::response::Response;
+// use crate::protocol::rtsp::response::Response;
 use std::task::{Context, Poll};
 use std::pin::Pin;
+
+use crate::protocol::rtsp::response::{Response, NOT_IMPLEMENTED_RESPONSE};
 
 pub struct EmptyService;
 
@@ -33,7 +35,11 @@ impl Service<Request<BytesMut>> for EmptyService {
 
 
     fn call(&mut self, _: Request<BytesMut>) -> Self::Future {
-        Box::pin(futures::io::empty())
+        // Box::pin(futures::io::empty().into())
+
+        Box::pin(future::ok(NOT_IMPLEMENTED_RESPONSE.clone()))
+        // Box::pin(future::)
+
     }
 
     // fn poll_ready(&mut self) -> Poll<(), Self::Error> {

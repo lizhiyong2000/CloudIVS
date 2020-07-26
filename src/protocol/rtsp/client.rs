@@ -1,5 +1,5 @@
 use bytes::BytesMut;
-use futures::future::Future;
+use futures::future::{self, Future, Ready};
 use std::io;
 use std::net::SocketAddr;
 // use tokio_executor::{DefaultExecutor, Executor};
@@ -14,6 +14,7 @@ use tokio::net::TcpStream;
 use futures::TryStreamExt;
 
 use tokio::runtime::Runtime;
+// use futures::future;
 
 pub struct Client {
     handle: ConnectionHandle,
@@ -21,25 +22,29 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn connect(server_address: SocketAddr) -> impl Future<Output=Result<Client,io::Error>> {
-        TcpStream::connect(&server_address).and_then(move |tcp_stream| {
-            // let mut executor = DefaultExecutor::current();
-            let mut runtime = Runtime::new().unwrap();
-            let (connection, handler
-                , handle) = Connection::new::<EmptyService>(tcp_stream, None);
-
-            runtime.spawn(Box::new(connection));
-            // executor.spawn(Box::new(connection)).unwrap();
-
-            if let Some(handler) = handler {
-                runtime.spawn(Box::new(handler));
-            }
-            Ok(Client {
-                handle,
-                server_address,
-            })
-        })
-    }
+    // pub async fn connect(server_address: SocketAddr) -> impl Future<Output=Result<Client,io::Error>> {
+    //     TcpStream::connect(&server_address).await.and_then(move |tcp_stream| {
+    //         // let mut executor = DefaultExecutor::current();
+    //         let mut runtime = Runtime::new().unwrap();
+    //         let (connection, handler
+    //             , handle) = Connection::new::<EmptyService>(tcp_stream, None);
+    //
+    //         runtime.spawn(Box::new(connection));
+    //         // executor.spawn(Box::new(connection)).unwrap();
+    //
+    //         if let Some(handler) = handler {
+    //             runtime.spawn(Box::new(handler));
+    //         }
+    //         // future::ready(Client {
+    //         //     handle,
+    //         //     server_address,
+    //         // })
+    //     //     // Ok(Client {
+    //     //     //     handle,
+    //     //     //     server_address,
+    //     //     // })
+    //     });
+    // }
 
     pub fn server_address(&self) -> &SocketAddr {
         &self.server_address

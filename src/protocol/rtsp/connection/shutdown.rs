@@ -196,7 +196,7 @@ impl Future for ShutdownHandler {
                 ShutdownState::Running => self.poll_running(cx),
                 ShutdownState::ShuttingDown => self.poll_shutting_down(cx),
                 ShutdownState::Shutdown => return Poll::Ready(Ok(()))
-            }
+            };
         }
     }
 }

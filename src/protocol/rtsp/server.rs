@@ -1,6 +1,6 @@
 use bytes::BytesMut;
 use chrono::{self, offset, DateTime, Utc};
-use futures::{Stream, TryFutureExt};
+use futures::{Stream, TryFutureExt, StreamExt};
 use futures::{future, Future};
 use std::collections::HashMap;
 use std::convert::TryFrom;
@@ -26,6 +26,7 @@ use std::task::Context;
 use futures::task::Poll;
 use crate::protocol::rtsp::status::StatusCode::OK;
 use std::pin::Pin;
+// use tokio::io::Result;
 
 pub const SUPPORTED_METHODS: [Method; 2] = [Method::Options, Method::Setup];
 
@@ -43,36 +44,49 @@ impl Server {
         }
     }
 
-    pub fn run(address: SocketAddr) {
+    pub async fn run(address: SocketAddr) {
+
         let server = Arc::new(Mutex::new(Server::new()));
-        let listener = TcpListener::bind(&address);
+        let mut listener = TcpListener::bind(&address).await.unwrap();
+        let mut incoming = listener.incoming();
 
-        let serve = listener.incoming().for_each(move |socket| {
-            let server = server.clone();
-            let service = ConnectionService {
-                session: None,
-                server: server.clone(),
-            };
-            let (connection, handler, handle) = Connection::new(socket, Some(service));
 
-            server.lock().unwrap().connections.push(handle);
+        let serve = incoming.for_each(move | result | {
 
-            tokio::spawn(connection);
-            tokio::spawn(handler.unwrap());
+            match result {
+                Err(e) => eprintln!("accept failed = {:?}", e),
+                Ok(mut socket) =>{
+                    let server = server.clone();
+                    let service = ConnectionService {
+                        session: None,
+                        server: server.clone(),
+                    };
+                    let (connection, handler, handle) = Connection::new(socket, Some(service));
 
-            Ok(())
+                    server.lock().unwrap().connections.push(handle);
+
+                    tokio::spawn(connection);
+                    tokio::spawn(handler.unwrap());
+
+
+                }
+            }
+
+
+            future::ready(())
         });
 
 
-        use tokio::runtime::Runtime;
+        // use tokio::runtime::Runtime;
+        //
+        // let mut rt = Runtime::new().unwrap();
 
-        let mut rt = Runtime::new().unwrap();
+        // rt.spawn(serve);
 
-        rt.spawn(serve);
-
-        rt.shutdown_on_idle()
-            .wait()
-            .unwrap();
+        // rt.shutdown_on_idle()
+        //     .wait()
+        //     .unwrap();
+        // rt.block_on(serve)
 
 
 
