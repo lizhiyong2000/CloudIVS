@@ -40,7 +40,7 @@ use futures::stream::StreamExt;
 #[must_use = "futures do nothing unless polled"]
 pub struct Receiver<TStream>
 where
-    TStream: Stream<Item = Result<Message, ProtocolError>> + Send + 'static,
+    TStream: Stream<Item = Result<Message, ProtocolError>> + Send + Unpin + 'static,
 {
     /// How long should we wait before decoding is timed out and the connection is dropped.
     decode_timeout_duration: Duration,
@@ -71,7 +71,7 @@ where
 
 impl<TStream> Receiver<TStream>
 where
-    TStream: Stream<Item = Result<Message, ProtocolError>> + Send + 'static,
+    TStream: Stream<Item = Result<Message, ProtocolError>> + Send + Unpin + 'static,
 {
     /// Processes the given codec event.
     ///
@@ -349,21 +349,34 @@ where
                     }
                 }
 
-                match stream.poll_next(cx) {
-                    Poll::Ready(Ok(Some(message))) => {
-                        if let Err(error) = self.handle_message(message) {
-                            self.handle_request_receiver_error(error);
+                // match ready!( Pin::new(&mut self.0).poll_read(cx, &mut buf) )
+
+                // match Pin::new(&mut stream).poll_next(cx){
+
+                match stream.poll_next_unpin(cx) {
+                    Poll::Ready(Some(result)) => {
+                        match result{
+                            Ok(message) => {
+                                if let Err(error) = self.handle_message(message) {
+                                    self.handle_request_receiver_error(error);
+                                }
+                            },
+
+                            Err(p) =>{
+                                return Poll::Ready(Err(p))
+                            }
+
                         }
                     }
                     Poll::Pending => {
                         self.stream = Some(stream);
                         return Poll::Pending;
                     }
-                    Poll::Ready(Ok(None)) => return Poll::Ready(Ok(())),
-                    Poll::Ready(Err(error)) => {
-                        self.handle_protocol_error(&error);
-                        return Poll::Ready(Err(error));
-                    }
+                    Poll::Ready(None) => return Poll::Ready(Ok(())),
+                    // Poll::Ready(Err(error)) => {
+                    //     self.handle_protocol_error(&error);
+                    //     return Poll::Ready(Err(error));
+                    // }
                 }
             },
             None => Poll::Ready(Ok(())),
@@ -432,7 +445,7 @@ where
 
 impl<TStream> Future for Receiver<TStream>
 where
-    TStream: Stream<Item = Result<Message, ProtocolError>> + Send + 'static,
+    TStream: Stream<Item = Result<Message, ProtocolError>> + Send + Unpin + 'static,
 {
     type Output = Result<(), ()>;
 

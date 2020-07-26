@@ -108,7 +108,7 @@ where
     ) -> (Self, Option<RequestHandler<TService>>, ConnectionHandle)
     where
         TService: Service<Request<BytesMut>> + Send + 'static,
-        TService::Future: Send + 'static,
+        TService::Future: Send + Unpin + 'static,
         TService::Response: Into<Response<BytesMut>>,
     {
         Connection::with_config(transport, service, Config::default())
@@ -203,7 +203,7 @@ where
     ) -> (Self, Option<RequestHandler<TService>>, ConnectionHandle)
     where
         TService: Service<Request<BytesMut>> + Send + 'static,
-        TService::Future: Send + 'static,
+        TService::Future: Send + Unpin + 'static,
         TService::Response: Into<Response<BytesMut>>,
     {
         // Create all channels that the connection components will use to communicate with each
@@ -295,7 +295,7 @@ where
         self.poll_sender(cx);
 
         // This cannot error, so ignore it.
-        let _ = self.shutdown.poll(cx);
+        let _ = self.shutdown.poll_unpin(cx);
 
         match self.shutdown.state() {
             ShutdownState::Running => {
@@ -422,7 +422,8 @@ impl ConnectionHandle {
     pub fn send_request<TRequest, TBody>(
         &mut self,
         request: TRequest,
-    ) -> impl Future<Output = Result<Response<BytesMut>, OperationError>>
+    ) -> Box<dyn Future<Output = Result<Response<BytesMut>, OperationError>>>
+    // ) -> impl Future<Output = Result<Response<BytesMut>, OperationError>>
     where
         TRequest: Into<Request<TBody>>,
         TBody: AsRef<[u8]>,
@@ -444,13 +445,17 @@ impl ConnectionHandle {
         &mut self,
         request: TRequest,
         options: RequestOptions,
-    ) -> impl Future<Output = Result<Response<BytesMut>, OperationError>>
+    ) -> Box<dyn Future<Output = Result<Response<BytesMut>, OperationError>>>
+    // ) -> impl Future<Output = Result<Response<BytesMut>, OperationError>>
+
+
+
     where
         TRequest: Into<Request<TBody>>,
         TBody: AsRef<[u8]>,
     {
         if !self.allow_requests.load(Ordering::SeqCst) {
-            return future::err(OperationError::Closed);
+            return Box::new(future::err::<Response<BytesMut>, OperationError>(OperationError::Closed));
         }
 
         let mut lock = self
@@ -469,7 +474,7 @@ impl ConnectionHandle {
         let update = PendingRequestUpdate::AddPendingRequest((sequence_number, tx_response));
 
         if self.tx_pending_request.unbounded_send(update).is_err() {
-            return future::err(OperationError::Closed);
+            return Box::new(future::err::<Response<BytesMut>, OperationError>(OperationError::Closed));
         }
 
         if self
@@ -483,20 +488,20 @@ impl ConnectionHandle {
             let _ = self
                 .tx_pending_request
                 .unbounded_send(PendingRequestUpdate::RemovePendingRequest(sequence_number));
-            return future::err(OperationError::Closed);
+            return Box::new(future::err::<Response<BytesMut>, OperationError>(OperationError::Closed));
         }
 
         *lock = sequence_number.wrapping_increment();
         mem::drop(lock);
 
 
-        (SendRequest::new(
+        Box::new(SendRequest::new(
             rx_response,
             self.tx_pending_request.clone(),
             sequence_number,
             options.timeout_duration(),
             options.max_timeout_duration(),
-        )
+        ))
     }
 
     /// Shuts down the connection if it is not already shutdown.
@@ -557,22 +562,22 @@ impl Future for ConnectionShutdownReceiver {
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>{
     // fn poll(&mut self) -> Poll<Self::Output> {
         if let Some(mut receiver) = self.rx_connection_shutdown_event.take() {
-            if receiver
+            if !receiver
                 .poll_unpin(cx)
                 // .expect(
                 //     "`ConnectionShutdownReceiver.rx_connection_shutdown_event` should not error",
                 // )
-                .is_not_ready()
+                .is_ready()
             {
                 self.rx_connection_shutdown_event = Some(receiver);
             }
         }
 
         if let Some(mut receiver) = self.rx_handler_shutdown_event.take() {
-            if receiver
+            if !receiver
                 .poll_unpin(cx)
                 // .expect("`ConnectionShutdownReceiver.rx_handler_shutdown_event` should not error")
-                .is_not_ready()
+                .is_ready()
             {
                 self.rx_handler_shutdown_event = Some(receiver);
             }

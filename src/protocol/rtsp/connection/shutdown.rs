@@ -193,8 +193,8 @@ impl Future for ShutdownHandler {
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>{
         loop {
             match self.state() {
-                ShutdownState::Running => ready!(self.poll_running(cx)),
-                ShutdownState::ShuttingDown => ready!(self.poll_shutting_down(cx)),
+                ShutdownState::Running => self.poll_running(cx),
+                ShutdownState::ShuttingDown => self.poll_shutting_down(cx),
                 ShutdownState::Shutdown => return Poll::Ready(Ok(()))
             }
         }

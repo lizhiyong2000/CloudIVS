@@ -41,7 +41,7 @@ use futures::channel::mpsc::Receiver;
 pub struct RequestHandler<TService>
 where
     TService: Service<Request<BytesMut>>,
-    TService::Future: Send + 'static,
+    TService::Future: Send + Unpin + 'static,
     TService::Response: Into<Response<BytesMut>>,
 {
     /// A timer indicating when a 100 (Continue) response should be sent. This is only sent if the
@@ -73,7 +73,7 @@ where
 impl<TService> RequestHandler<TService>
 where
     TService: Service<Request<BytesMut>>,
-    TService::Future: Send + 'static,
+    TService::Future: Send + Unpin + 'static,
     TService::Response: Into<Response<BytesMut>>,
 {
     /// Constructs a new request handler.
@@ -245,7 +245,7 @@ where
 impl<TService> Drop for RequestHandler<TService>
 where
     TService: Service<Request<BytesMut>>,
-    TService::Future: Send + 'static,
+    TService::Future: Send + Unpin + 'static,
     TService::Response: Into<Response<BytesMut>>,
 {
     fn drop(&mut self) {
@@ -256,7 +256,7 @@ where
 impl<TService> Future for RequestHandler<TService>
 where
     TService: Service<Request<BytesMut>>,
-    TService::Future: Send + 'static,
+    TService::Future: Send + Unpin + 'static,
     TService::Response: Into<Response<BytesMut>>,
 {
     // type Item = ();
@@ -320,10 +320,12 @@ mod test {
     use crate::protocol::rtsp::response::{
         Response, BAD_REQUEST_RESPONSE, CONTINUE_RESPONSE, NOT_IMPLEMENTED_RESPONSE,
     };
+    // use crate::protocol::rtsp::uri::request::URI;
+    // use tokio::sync::{mpsc, oneshot};
+    // use crate::protocol::rtsp::method::Method;
     use crate::protocol::rtsp::uri::request::URI;
-    use tokio::sync::{mpsc, oneshot};
-    use crate::protocol::rtsp::method::Method;
-    use crate::protocol::rtsp::uri::request::URI;
+    use std::task::Poll;
+    use tokio::stream::StreamExt;
 
     struct DelayedTestService;
 

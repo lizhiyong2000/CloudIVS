@@ -115,15 +115,28 @@ impl SendRequest {
             // .expect("`SendRequest.rx_response` should not error")
         {
             match response {
-                PendingRequestResponse::Continue(rx_response) => {
-                    self.rx_response = rx_response;
-                    self.timer = self
-                        .timeout_duration
-                        .map(|duration| delay_for(duration));
-                        // .map(|duration| Delay::new(Instant::now() + duration));
+
+                Ok(res) =>
+                {
+                    match res {
+                        PendingRequestResponse::Continue(rx_response) => {
+                            self.rx_response = rx_response;
+                            self.timer = self
+                                .timeout_duration
+                                .map(|duration| delay_for(duration));
+                            // .map(|duration| Delay::new(Instant::now() + duration));
+                        }
+                        PendingRequestResponse::None => return Poll::Ready(Err(OperationError::RequestCancelled)),
+                        PendingRequestResponse::Response(response) => return Poll::Ready(Ok(response)),
+                    }
+
+                },
+
+                Err(_) =>{
+                    return Poll::Ready(Err(OperationError::RequestCancelled))
                 }
-                PendingRequestResponse::None => return Poll::Ready(Err(OperationError::RequestCancelled)),
-                PendingRequestResponse::Response(response) => return Poll::Ready(Ok(response)),
+
+
             }
         }
 
@@ -175,9 +188,9 @@ impl SendRequest {
 
 impl Drop for SendRequest {
     fn drop(&mut self) {
-        if !self.poll_is_cancelled() {
+        // if !self.poll_is_cancelled() {
             self.cancel_request();
-        }
+        // }
     }
 }
 

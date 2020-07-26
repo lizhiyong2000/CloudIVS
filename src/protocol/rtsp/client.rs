@@ -48,7 +48,8 @@ impl Client {
     pub fn send_request<R, B>(
         &mut self,
         request: R,
-    ) -> impl Future<Output=Result<Response<BytesMut>, OperationError> >
+    ) -> Box<dyn Future<Output=Result<Response<BytesMut>, OperationError>>>
+    // ) -> impl Future<Output=Result<Response<BytesMut>, OperationError> >
     where
         R: Into<Request<B>>,
         B: AsRef<[u8]>,

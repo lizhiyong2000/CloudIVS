@@ -24,7 +24,7 @@ use futures::stream::StreamExt;
 #[must_use = "futures do nothing unless polled"]
 pub struct Sender<TSink>
 where
-    TSink: Sink<Message, Error = ProtocolError> + Send + 'static,
+    TSink: Sink<Message, Error = ProtocolError> + Send + Unpin + 'static,
 {
     /// The current message that we are trying to send but cannot yet because the sink is not ready.
     buffered_message: Option<Message>,
@@ -38,7 +38,7 @@ where
 
 impl<TSink> Sender<TSink>
 where
-    TSink: Sink<Message, Error = ProtocolError> + Send + 'static,
+    TSink: Sink<Message, Error = ProtocolError> + Send + Unpin + 'static,
 {
     /// Constructs a new sender as a wrapper around the given sink.
     ///
@@ -88,10 +88,10 @@ where
                         }
                     }
 
-                    ready!(self.try_send_message(message));
+                    ready!(self.try_send_message(cx, message));
                 }
                 Poll::Pending => {
-                    ready!(self.sink.poll_complete(cx));
+                    ready!(self.sink.poll_flush_unpin(cx));
                     return Poll::Pending;
                 }
                 // Poll::Ready(Ok(())) => return Poll::Ready(Ok(())),
@@ -113,12 +113,12 @@ where
     fn try_send_message(self: Pin<&mut Self>, cx: &mut Context<'_>, message: Message) -> Poll<Result<(), ProtocolError>> {
         debug_assert!(self.buffered_message.is_none());
 
-        if let Poll::Pending = self.sink.poll_ready(cx){
+        if let Poll::Pending = self.sink.poll_ready_unpin(cx){
             return Poll::Pending;
         }
 
 
-        if let result = self.sink.start_send(message)? {
+        if let result = self.sink.start_send_unpin(message)? {
             self.buffered_message = Some(message);
             // return Poll::Pending;
         }
@@ -129,7 +129,7 @@ where
 
 impl<TSink> Future for Sender<TSink>
 where
-    TSink: Sink<Message, Error = ProtocolError> + Send + 'static,
+    TSink: Sink<Message, Error = ProtocolError> + Send + Unpin + 'static,
 {
     // type Item = ();
     // type Error = ProtocolError;
@@ -147,13 +147,14 @@ where
     /// message through the sink or there was an error trying to flush the sink.
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>{
         if let Some(buffered_message) = self.buffered_message.take() {
-            ready!(self.try_send_message(buffered_message));
+            ready!(self.try_send_message(cx, buffered_message));
         }
 
         ready!(self.poll_write(cx));
 
         debug_assert!(self.buffered_message.is_none());
-        self.sink.poll_close()
+        // self.sink.poll_close()
+        self.sink.poll_close_unpin(cx)
     }
 }
 
