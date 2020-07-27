@@ -71,7 +71,7 @@ where
     ///
     /// If `Err(`[`ProtocolError`]`)` is returned, there was either an error trying to send a
     /// message through the sink or there was an error trying to flush the sink.
-    fn poll_write(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), ProtocolError>> {
+    fn poll_write(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), ProtocolError>> {
         loop {
             match self
                 .rx_outgoing_message
@@ -88,13 +88,13 @@ where
                         }
                     }
 
-                    ready!(self.try_send_message(cx, message));
+                    ready!(self.as_mut().try_send_message(cx, message));
                 }
                 Poll::Pending => {
                     ready!(self.sink.poll_flush_unpin(cx));
                     return Poll::Pending;
                 }
-                // Poll::Ready(Ok(())) => return Poll::Ready(Ok(())),
+                Poll::Ready(None) => return Poll::Ready(Ok(())),
             }
         }
     }
@@ -110,7 +110,7 @@ where
     ///
     /// If `Err(`[`ProtocolError`]`)` is returned, there was an error trying to send the message
     /// through the sink.
-    fn try_send_message(self: Pin<&mut Self>, cx: &mut Context<'_>, message: Message) -> Poll<Result<(), ProtocolError>> {
+    fn try_send_message(mut self: Pin<&mut Self>, cx: &mut Context<'_>, message: Message) -> Poll<Result<(), ProtocolError>> {
         debug_assert!(self.buffered_message.is_none());
 
         if let Poll::Pending = self.sink.poll_ready_unpin(cx){
@@ -118,7 +118,7 @@ where
         }
 
 
-        if let result = self.sink.start_send_unpin(message)? {
+        if let result = self.sink.start_send_unpin(message.clone())? {
             self.buffered_message = Some(message);
             // return Poll::Pending;
         }
@@ -145,12 +145,12 @@ where
     ///
     /// If `Err(`[`ProtocolError`]`)` is returned, there was either an error trying to send a
     /// message through the sink or there was an error trying to flush the sink.
-    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>{
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>{
         if let Some(buffered_message) = self.buffered_message.take() {
-            ready!(self.try_send_message(cx, buffered_message));
+            ready!(self.as_mut().try_send_message(cx, buffered_message));
         }
 
-        ready!(self.poll_write(cx));
+        ready!(self.as_mut().poll_write(cx));
 
         debug_assert!(self.buffered_message.is_none());
         // self.sink.poll_close()

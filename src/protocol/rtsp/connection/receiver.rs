@@ -239,14 +239,14 @@ where
     /// If `Poll::Pending` is returned, then there are no more codec events to be processed.
     ///
     /// If `Err(())` is never returned.
-    pub fn poll_codec_events(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), ()>> {
+    pub fn poll_codec_events(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), ()>> {
         loop {
             match self
                 .rx_codec_event
                 .poll_next_unpin(cx)
                 // .expect("`Receiver.rx_codec_event` should not error")
             {
-                Poll::Ready(Some(event)) => self.handle_codec_event(event),
+                Poll::Ready(Some(event)) => self.as_mut().handle_codec_event(event),
                 Poll::Pending => return Poll::Pending,
                 Poll::Ready(None) => panic!("`Receiver.rx_codec_event` should not end"),
             }
@@ -260,7 +260,7 @@ where
     /// If `Poll::Pending` is returned, then there is either no timer or it has not expired.
     ///
     /// If `Err(())` is returned, then there was a timer error due to there being too many timers.
-    fn poll_decoding_timer(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), ()>> {
+    fn poll_decoding_timer(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), ()>> {
         if let Some(decoding_timer) = self.decoding_timer.as_mut() {
 
             // decoding_timer.await
@@ -285,19 +285,19 @@ where
     /// If `Err(())` is returned, then there was an error driving either the request or response
     /// receivers. This could arise due to some underlying IO error or due to too many timers being
     /// created.
-    fn poll_receiving(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), ()>> {
+    fn poll_receiving(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), ()>> {
         if let Some(response_receiver) = self.response_receiver.as_mut() {
             match response_receiver.poll_unpin(cx) {
                 Poll::Ready(Ok(_)) | Poll::Ready(Err(_)) => {
                     // From our side of the connection, this implies that we are no longer sending
                     // anymore requests and so we do not care to process responses any longer.
-                    self.shutdown_response_receiver();
+                    self.as_mut().shutdown_response_receiver();
                 }
                 _ => (),
             }
         }
 
-        match self.poll_stream(cx) {
+        match self.as_mut().poll_stream(cx) {
             Poll::Ready(Ok(_)) | Poll::Ready(Err(_)) => {
                 // There are no more messages to be received.
                 return Poll::Ready(Ok(()));
@@ -306,9 +306,9 @@ where
         }
 
         // The response here is effectively constant, so ignore it.
-        let _ = self.poll_codec_events(cx);
+        let _ = self.as_mut().poll_codec_events(cx);
 
-        match self.poll_decoding_timer(cx) {
+        match self.as_mut().poll_decoding_timer(cx) {
             Poll::Ready(Ok(_)) | Poll::Ready(Err(_)) => {
                 // Either the decoding timer expired or there were too many timers.
                 //
@@ -336,7 +336,7 @@ where
     ///
     /// If `Err(`[`ProtocolError`]`)` is returned, then there was a protocol error while trying to
     /// poll the stream.
-    pub fn poll_stream(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), ProtocolError>> {
+    pub fn poll_stream(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), ProtocolError>> {
         match self.stream.take() {
             Some(mut stream) => loop {
                 if let Some(forwarding_receiver) = self.forwarding_receiver.as_ref() {
@@ -357,8 +357,8 @@ where
                     Poll::Ready(Some(result)) => {
                         match result{
                             Ok(message) => {
-                                if let Err(error) = self.handle_message(message) {
-                                    self.handle_request_receiver_error(error);
+                                if let Err(error) = self.as_mut().handle_message(message) {
+                                    self.as_mut().handle_request_receiver_error(error);
                                 }
                             },
 
@@ -458,19 +458,19 @@ where
     /// currently.
     ///
     /// If `Err(())` will never be returned.
-    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>{
-        match self.poll_receiving(cx) {
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>{
+        match self.as_mut().poll_receiving(cx) {
             Poll::Ready(Ok(_)) | Poll::Ready(Err(_)) => {
-                self.shutdown_receiving();
+                self.as_mut().shutdown_receiving();
             }
             _ => (),
         }
 
         let is_shutdown = match self.forwarding_receiver.as_mut() {
             Some(forwarding_receiver) => match forwarding_receiver.poll_unpin(cx) {
-                Poll::Ready(Err(_)) => self.shutdown_forwarding_receiver(),
+                Poll::Ready(Err(_)) => self.as_mut().shutdown_forwarding_receiver(),
                 Poll::Ready(Ok(_)) if self.is_request_receiver_shutdown() => {
-                    self.shutdown_forwarding_receiver()
+                    self.as_mut().shutdown_forwarding_receiver()
                 }
                 _ => false,
             },
@@ -611,7 +611,7 @@ impl Future for ForwardingReceiver {
     ///
     /// If `Err(())` is returned, then the request handler's receiver has been dropped meaning the
     /// forwarding receiver can be shutdown.
-    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>{
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>{
         if let Some(mut incoming_sequence_number) = self.incoming_sequence_number {
             // let test = self.tx_incoming_request;
             // test.
@@ -760,14 +760,14 @@ impl Future for ResponseReceiver {
     /// processed currently.
     ///
     /// The error `Err(())` will never be returned.
-    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>{
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>{
         loop {
             match self
                 .rx_pending_request
                 .poll_next_unpin(cx)
                 // .expect("`ResponseReceiver.rx_pending_request` should not error")
             {
-                Poll::Ready(Some(update)) => self.handle_pending_request_update(update),
+                Poll::Ready(Some(update)) => self.as_mut().handle_pending_request_update(update),
                 Poll::Pending => return Poll::Pending,
                 Poll::Ready(None) => {
                     // If the pending request stream has ended, this means there should be no

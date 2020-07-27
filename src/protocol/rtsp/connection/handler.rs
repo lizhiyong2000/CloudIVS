@@ -33,6 +33,7 @@ use std::task::{Poll, Context};
 use std::pin::Pin;
 // use tokio::sync::mpsc::Receiver;
 use futures::channel::mpsc::Receiver;
+use std::ops::{Deref, DerefMut};
 
 
 /// The type responsible for servicing incoming requests and sending responses back.
@@ -109,12 +110,12 @@ where
     /// If `Poll::Pending` is returned, then the timer is not ready yet.
     ///
     /// The error `Err(())` will never be returned.
-    fn poll_continue_timer(self: Pin<&mut Self>, cx: &mut Context<'_>, cseq: CSeq) -> Poll<Result<(), ()>> {
-        while let Some(continue_timer) = self.continue_timer.as_mut() {
+    fn poll_continue_timer(mut self: Pin<&mut Self>, cx: &mut Context<'_>, cseq: CSeq) -> Poll<Result<(), ()>> {
+        while let Some(continue_timer) = self.as_mut().continue_timer.as_mut() {
             match continue_timer.poll_unpin(cx) {
                 Poll::Ready(_) => {
-                    self.send_response(cseq, CONTINUE_RESPONSE.clone());
-                    self.reset_continue_timer();
+                    self.as_mut().send_response(cseq, CONTINUE_RESPONSE.clone());
+                    self.as_mut().reset_continue_timer();
                 }
                 Poll::Pending => return Poll::Pending,
                 // Err(ref error) if error.is_at_capacity() => {
@@ -142,30 +143,34 @@ where
     /// If `Poll::Pending` is returned, then the request is still being serviced.
     ///
     /// The error `Err(())` will never be returned.
-    fn poll_serviced_request(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), ()>> {
+    fn poll_serviced_request(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), ()>> {
         match self.serviced_request.as_mut() {
             Some((cseq, serviced_request)) => {
                 let cseq = *cseq;
 
                 match serviced_request.poll_unpin(cx) {
                     Poll::Ready(Ok(response)) => {
-                        self.send_response(cseq, response.into());
-                        self.continue_timer = None;
-                        self.serviced_request = None;
+                        self.as_mut().send_response(cseq, response.into());
+                        self.as_mut().continue_timer = None;
+                        self.as_mut().serviced_request = None;
                         Poll::Ready(Ok(()))
-                    }
+                    },
                     Poll::Pending => {
-                        ready!(self.poll_continue_timer(cx, cseq));
+                        ready!(self.as_mut().poll_continue_timer(cx, cseq));
                         Poll::Pending
-                    }
+                    },
                     Poll::Ready(Err(_)) => {
-                        self.send_response(cseq, INTERNAL_SERVER_ERROR_RESPONSE.clone());
-                        self.continue_timer = None;
-                        self.serviced_request = None;
+                        self.as_mut().send_response(cseq, INTERNAL_SERVER_ERROR_RESPONSE.clone());
+                        self.as_mut().continue_timer = None;
+                        self.as_mut().serviced_request = None;
                         Poll::Ready(Ok(()))
-                    }
+                    },
+                    // _ => {Poll::Pending}
+                    // Poll::Ready(_) => {}
+                    // Poll::Ready(_) => {}
+                    // _ => {}
                 }
-            }
+            },
             None => Poll::Ready(Ok(())),
         }
     }
@@ -278,25 +283,63 @@ where
     /// there are no requests in the incoming queue.
     ///
     /// The error `Err(())` will never be returned.
-    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>{
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>{
         loop {
-            ready!(self.poll_serviced_request(cx));
+            ready!(self.as_mut().poll_serviced_request(cx));
 
-            match self
+            match self.as_mut()
                 .rx_incoming_request
                 .poll_next_unpin(cx)
                 // .expect("`RequestHandler.rx_incoming_request` should not error")
             {
-                Poll::Ready(Some((cseq, request))) => self.process_request(cseq, request),
+                Poll::Ready(Some((cseq, request))) => self.as_mut().process_request(cseq, request),
                 Poll::Pending => return Poll::Pending,
                 Poll::Ready(None) => {
-                    self.shutdown();
+                    self.as_mut().shutdown();
                     return Poll::Ready(Ok(()));
                 }
             }
         }
     }
 }
+
+
+// impl<TService> DerefMut for &RequestHandler<TService>
+// where
+//     TService: Service<Request<BytesMut>>,
+//     TService::Future: Send + Unpin + 'static,
+//     TService::Response: Into<Response<BytesMut>>,
+//
+// {
+//     fn deref_mut(&mut self) -> &mut Self::Target {
+//         unimplemented!()
+//     }
+// }
+
+
+
+// impl<TService> DerefMut for Pin<&mut RequestHandler<TService>>
+//     where
+//         TService: Service<Request<BytesMut>>,
+//         TService::Future: Send + Unpin + 'static,
+//         TService::Response: Into<Response<BytesMut>>,
+// {
+//     fn deref_mut(&mut self) -> &mut Self::Target {
+//         unimplemented!()
+//     }
+// }
+// //
+
+impl<TService> Unpin for RequestHandler<TService>
+    where
+        TService: Service<Request<BytesMut>>,
+        TService::Future: Send + Unpin + 'static,
+        TService::Response: Into<Response<BytesMut>>,
+{
+
+}
+
+
 
 #[cfg(test)]
 mod test {
@@ -324,15 +367,16 @@ mod test {
     // use tokio::sync::{mpsc, oneshot};
     // use crate::protocol::rtsp::method::Method;
     use crate::protocol::rtsp::uri::request::URI;
-    use std::task::Poll;
+    use std::task::{Poll, Context};
     use tokio::stream::StreamExt;
+    use std::pin::Pin;
 
     struct DelayedTestService;
 
     impl Service<Request<BytesMut>> for DelayedTestService {
         type Response = Response<BytesMut>;
         type Error = io::Error;
-        type Future = Box<Future<Item = Self::Response, Error = Self::Error> + Send + 'static>;
+        type Future = Box<Future<Output = Result<Self::Response, Self::Error>> + Send + 'static>;
 
         fn call(&mut self, _: Request<BytesMut>) -> Self::Future {
             Box::new(
@@ -345,7 +389,8 @@ mod test {
             )
         }
 
-        fn poll_ready(&mut self) -> Poll<(), Self::Error> {
+
+        fn poll_ready(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
             Poll::Ready(Ok(()))
         }
     }
@@ -355,7 +400,7 @@ mod test {
     impl Service<Request<BytesMut>> for TestService {
         type Response = Response<BytesMut>;
         type Error = io::Error;
-        type Future = Box<Future<Item = Self::Response, Error = Self::Error> + Send + 'static>;
+        type Future = Box<Future<Output = Result<Self::Response, Self::Error>> + Send + 'static>;
 
         fn call(&mut self, _: Request<BytesMut>) -> Self::Future {
             Box::new(future::ok(
@@ -366,7 +411,7 @@ mod test {
             ))
         }
 
-        fn poll_ready(&mut self) -> Poll<(), Self::Error> {
+        fn poll_ready(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
             Poll::Ready(Ok(()))
         }
     }

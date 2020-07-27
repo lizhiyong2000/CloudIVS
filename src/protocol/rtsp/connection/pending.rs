@@ -89,7 +89,7 @@ impl SendRequest {
     }
 
     /// Returns whether the request has already been cancelled.
-    fn poll_is_cancelled(self: Pin<&mut Self>, cx: &mut Context<'_>) -> bool {
+    fn poll_is_cancelled(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> bool {
         if let Poll::Ready(Err(Canceled)) = self.rx_response.poll_unpin(cx) {
             true
         } else {
@@ -105,7 +105,7 @@ impl SendRequest {
     /// The other possibility is that the connection state has changed such that we will not be
     /// receiving any more responses. This effectively cancels the request, but does not necessarily
     /// mean it was not processed by the agent. It only means we will not be receiving a response.
-    fn poll_request(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<Response<BytesMut>, OperationError>> {
+    fn poll_request(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<Response<BytesMut>, OperationError>> {
 
         // self.rx_response.poll()
 
@@ -145,11 +145,11 @@ impl SendRequest {
 
     /// Polls the max timer to see if it has expired, and if it has, a long timeout error will be
     /// returned.
-    fn poll_max_timer(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), OperationError>> {
+    fn poll_max_timer(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), OperationError>> {
         if let Some(timer) = self.max_timer.as_mut() {
             match timer.poll_unpin(cx) {
                 Poll::Ready(_) => {
-                    self.cancel_request();
+                    self.as_mut().cancel_request();
                     return Poll::Ready(Err(OperationError::RequestTimedOut(RequestTimeoutType::Long)));
                 }
                 Poll::Pending => (),
@@ -166,11 +166,11 @@ impl SendRequest {
 
     /// Polls the timer to see if it has expired, and if it has, a long timeout error will be
     /// returned.
-    fn poll_timer(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), OperationError>> {
+    fn poll_timer(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), OperationError>> {
         if let Some(timer) = self.timer.as_mut() {
             match timer.poll_unpin(cx) {
                 Poll::Ready(_) => {
-                    self.cancel_request();
+                    self.as_mut().cancel_request();
                     return Poll::Ready(Err(OperationError::RequestTimedOut(RequestTimeoutType::Short)));
                 }
                 Poll::Pending => (),
@@ -209,18 +209,18 @@ impl Future for SendRequest {
     ///
     /// If `Err(`[`OperationError`]`)` is returned, then either the request has timed out or has
     /// been cancelled.
-    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>{
-        match self.poll_request(cx) {
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>{
+        match self.as_mut().poll_request(cx) {
             Poll::Ready(Ok(response)) => return Poll::Ready(Ok(response)),
             Poll::Ready(Err(error)) => return Poll::Ready(Err(error)),
             _ => (),
         }
 
-        if let Poll::Ready(Err(error)) = self.poll_max_timer(cx) {
+        if let Poll::Ready(Err(error)) = self.as_mut().poll_max_timer(cx) {
             return Poll::Ready(Err(error))
         }
 
-        if let Poll::Ready(Err(error)) = self.poll_timer(cx) {
+        if let Poll::Ready(Err(error)) = self.as_mut().poll_timer(cx) {
             return Poll::Ready(Err(error))
         }
 

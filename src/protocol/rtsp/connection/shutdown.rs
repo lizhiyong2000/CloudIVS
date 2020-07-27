@@ -95,7 +95,7 @@ impl ShutdownHandler {
     /// poll needs to occur.
     ///
     /// The error `Err(())` will never be returned.
-    fn poll_running(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), ()>> {
+    fn poll_running(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), ()>> {
         match self
             .rx_initiate_shutdown
             .as_mut()
@@ -106,12 +106,12 @@ impl ShutdownHandler {
         {
             Poll::Ready(Ok(shutdown_type)) => {
                 // A shutdown event has been sent by the sender, initiate a shutdown.
-                self.handle_shutdown(shutdown_type);
+                self.as_mut().handle_shutdown(shutdown_type);
                 Poll::Ready(Ok(()))
             }
             Poll::Ready(Err(_)) => {
                 // The sender has been dropped, initiate an immediate shutdown.
-                self.handle_shutdown(ShutdownType::Immediate);
+                self.as_mut().handle_shutdown(ShutdownType::Immediate);
                 Poll::Ready(Ok(()))
             }
             _ => Poll::Pending,
@@ -132,7 +132,7 @@ impl ShutdownHandler {
     /// poll needs to occur.
     ///
     /// The error `Err(())` will never be returned.
-    fn poll_shutting_down(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), ()>> {
+    fn poll_shutting_down(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), ()>> {
         match self
             .timer
             .as_mut()
@@ -142,7 +142,7 @@ impl ShutdownHandler {
             .poll_unpin(cx)
         {
             Poll::Ready(_) => {
-                self.handle_shutdown(ShutdownType::Immediate);
+                self.as_mut().handle_shutdown(ShutdownType::Immediate);
                 Poll::Ready(Ok(()))
             }
             Poll::Pending => Poll::Pending,
@@ -190,11 +190,11 @@ impl Future for ShutdownHandler {
     /// poll needs to occur.
     ///
     /// The error `Err(())` will never be returned.
-    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>{
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>{
         loop {
             match self.state() {
-                ShutdownState::Running => self.poll_running(cx),
-                ShutdownState::ShuttingDown => self.poll_shutting_down(cx),
+                ShutdownState::Running => self.as_mut().poll_running(cx),
+                ShutdownState::ShuttingDown => self.as_mut().poll_shutting_down(cx),
                 ShutdownState::Shutdown => return Poll::Ready(Ok(()))
             };
         }

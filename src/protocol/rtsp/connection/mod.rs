@@ -115,11 +115,11 @@ where
     }
 
     /// Polls the receiver if it is still running.
-    fn poll_receiver(self: Pin<&mut Self>, cx: &mut Context<'_>) {
+    fn poll_receiver(mut self: Pin<&mut Self>, cx: &mut Context<'_>) {
         if let Some(receiver) = self.receiver.as_mut() {
             match receiver.poll_unpin(cx) {
                 Poll::Ready(Ok(_)) | Poll::Ready(Err(_)) => {
-                    self.shutdown_receiver();
+                    self.as_mut().shutdown_receiver();
                 }
                 _ => (),
             }
@@ -131,12 +131,12 @@ where
     /// This is a no-op if the receiver is not shutdown. Otherwise, if the request handler is also
     /// shutdown, this means the sender needs to be shutdown as well, so the connection can be
     /// closed.
-    fn poll_request_handler_shutdown(self: Pin<&mut Self>, cx: &mut Context<'_>) {
+    fn poll_request_handler_shutdown(mut self: Pin<&mut Self>, cx: &mut Context<'_>) {
         if self.is_receiver_shutdown() {
             if let Some(rx_handler_shutdown_event) = self.rx_handler_shutdown_event.as_mut() {
                 match rx_handler_shutdown_event.poll_unpin(cx) {
                     Poll::Ready(Ok(_)) | Poll::Ready(Err(_)) => {
-                        self.shutdown_sender();
+                        self.as_mut().shutdown_sender();
                     }
                     Poll::Pending => (),
                 }
@@ -148,12 +148,12 @@ where
     ///
     /// If the sender finishes, then no more messages can be sent. Since no more messages can be
     /// sent, we shutdown request receiving since we would not be able to send responses.
-    fn poll_sender(self: Pin<&mut Self>, cx: &mut Context<'_>) {
+    fn poll_sender(mut self: Pin<&mut Self>, cx: &mut Context<'_>) {
         if let Some(sender) = self.sender.as_mut() {
             match sender.poll_unpin(cx) {
                 Poll::Ready(Ok(_)) | Poll::Ready(Err(_)) => {
-                    self.shutdown_request_receiver();
-                    self.shutdown_sender();
+                    self.as_mut().shutdown_request_receiver();
+                    self.as_mut().shutdown_sender();
                 }
                 _ => (),
             }
@@ -290,9 +290,9 @@ where
     /// connection at the moment.
     ///
     /// The error `Err(())` will never be returned.
-    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>{
-        self.poll_receiver(cx);
-        self.poll_sender(cx);
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>{
+        self.as_mut().poll_receiver(cx);
+        self.as_mut().poll_sender(cx);
 
         // This cannot error, so ignore it.
         let _ = self.shutdown.poll_unpin(cx);
@@ -313,14 +313,14 @@ where
                 // Handle the case where the receiver is shutdown, but the request handler may still
                 // be processing requests (which keeps the sender open). Once the request handler is
                 // done, there is no longer any reason to keep the sender or the connection alive.
-                self.poll_request_handler_shutdown(cx);
+                self.as_mut().poll_request_handler_shutdown(cx);
             }
             ShutdownState::ShuttingDown => {
                 // We are entering a graceful shutdown. Do not allow request to be sent or read. We
                 // keep the response receiver open because we may still have pending requests, and
                 // we keep the sender open because the request handler may still be processing
                 // requests.
-                self.shutdown_request_receiver();
+                self.as_mut().shutdown_request_receiver();
                 self.allow_requests.store(false, Ordering::SeqCst);
             }
             ShutdownState::Shutdown => {
@@ -329,8 +329,8 @@ where
                 // as it will process whatever requests it has in its queue even if it cannot send
                 // responses.
 
-                self.shutdown_receiver();
-                self.shutdown_sender();
+                self.as_mut().shutdown_receiver();
+                self.as_mut().shutdown_sender();
                 self.allow_requests.store(false, Ordering::SeqCst);
                 // return Poll::Ready(Ok(()));
 
@@ -559,7 +559,7 @@ impl Future for ConnectionShutdownReceiver {
     /// If `Poll::Pending` is returned, then both are not shutdown.
     ///
     /// The error `Err(())` will never be returned.
-    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>{
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>{
     // fn poll(&mut self) -> Poll<Self::Output> {
         if let Some(mut receiver) = self.rx_connection_shutdown_event.take() {
             if !receiver
