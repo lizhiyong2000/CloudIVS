@@ -1,9 +1,9 @@
-use cloudmedia::protocol::sip::*;
-use cloudmedia::protocol::sip::headers::parse::parse_authorization_header;
+use std::collections::HashMap;
 
 use nom::error::VerboseError;
 
-use std::collections::HashMap;
+use cloudmedia::protocol::sip::*;
+use cloudmedia::protocol::sip::headers::parse::parse_authorization_header;
 
 #[test]
 fn write() {

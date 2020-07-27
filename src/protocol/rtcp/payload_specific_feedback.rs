@@ -1,6 +1,5 @@
 use std::io::{Read, Write};
 
-
 use crate::common::sync_io::{ReadExt, WriteExt};
 use crate::protocol::error::ErrorKind;
 use crate::protocol::rtp::constants::RTP_VERSION;
@@ -10,8 +9,6 @@ use crate::protocol::types::{U13, U5, U6, U7};
 
 use super::constants::*;
 use super::feedback::*;
-
-
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PayloadSpecificFeedbackPacket {

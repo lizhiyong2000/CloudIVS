@@ -1,16 +1,16 @@
-use crate::protocol::sip::parse::slice_to_string;
-use serde::{Deserialize, Serialize};
+use std::fmt;
 
 use nom::{
-    IResult,
-    error::ParseError,
+    bytes::complete::take_while,
     character::complete::char,
     character::is_alphanumeric,
-    bytes::complete::take_while,
-    combinator::{ map_res, opt}
+    combinator::{map_res, opt},
+    error::ParseError,
+    IResult
 };
+use serde::{Deserialize, Serialize};
 
-use std::fmt;
+use crate::protocol::sip::parse::slice_to_string;
 
 /// URI Credentials
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]

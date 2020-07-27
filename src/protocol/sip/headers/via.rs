@@ -1,6 +1,6 @@
-use crate::protocol::sip::*;
-
 use std::fmt;
+
+use crate::protocol::sip::*;
 
 /// Value used in the Via Header.
 #[derive(Debug, PartialEq, Clone)]

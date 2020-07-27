@@ -1,6 +1,6 @@
 extern crate bytes;
-extern crate futures;
 extern crate cloudmedia;
+extern crate futures;
 extern crate tokio;
 
 use bytes::BytesMut;
@@ -8,8 +8,8 @@ use bytes::BytesMut;
 use cloudmedia::protocol::rtsp::client::Client;
 use cloudmedia::protocol::rtsp::method::Method;
 use cloudmedia::protocol::rtsp::request::Request;
-use cloudmedia::protocol::rtsp::uri::request::URI;
 use cloudmedia::protocol::rtsp::uri::{Host, RTSP_DEFAULT_PORT};
+use cloudmedia::protocol::rtsp::uri::request::URI;
 use std::convert::TryFrom;
 use std::net::IpAddr;
 use std::net::SocketAddr;

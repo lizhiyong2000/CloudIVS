@@ -3,10 +3,12 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 extern crate url;
-use super::address::{Address, ExplicitlyTypedAddress};
+
 use std::collections::HashMap;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::num::Wrapping;
+
+use super::address::{Address, ExplicitlyTypedAddress};
 
 pub trait AnonymizingClone {
     fn masked_clone(&self, anon: &mut StatefulSdpAnonymizer) -> Self;

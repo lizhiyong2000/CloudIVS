@@ -1,10 +1,10 @@
-use super::*;
-
 use std::io::{
     Error as IoError,
     ErrorKind as IoErrorKind,
     Result as IoResult
 };
+
+use super::*;
 
 /// Sip Response Generator. When build is called the struct
 /// is consumed and produces a SipMessage::Response variant.

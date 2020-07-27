@@ -1,7 +1,7 @@
 use std::io::{
-    Result as IoResult,
+    Error as IoError,
     ErrorKind as IoErrorKind,
-    Error as IoError
+    Result as IoResult
 };
 
 use crate::protocol::sip::*;

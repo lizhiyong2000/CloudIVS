@@ -4,15 +4,16 @@
 //! module only handles the shutdown of the the [`Connection`] task and is not involved with the
 //! shutdown of the [`RequestHandler`] task.
 
+use std::pin::Pin;
+use std::task::{Context, Poll};
+use std::time::{Duration, Instant};
+
 // use futures::channel::oneshot;
 use futures::{Future, FutureExt};
-use std::time::{Duration, Instant};
+use futures::channel::oneshot;
 // use tokio::time::Delay;
 // use tokio::sync::oneshot;
 use tokio::time::{Delay, delay_for};
-use futures::channel::oneshot;
-use std::task::{Poll, Context};
-use std::pin::Pin;
 
 // tokio::time::delay::Delay
 
@@ -242,16 +243,18 @@ pub enum ShutdownType {
 
 #[cfg(test)]
 mod test {
-    use futures::future::{self, Either};
-    use futures::channel::oneshot;
-    use futures::{Future, TryFutureExt};
     use std::mem;
     use std::time::{Duration, Instant};
+
+    use futures::{Future, TryFutureExt};
+    use futures::channel::oneshot;
+    use futures::future::{self, Either};
     use tokio::runtime::current_thread;
     use tokio::time::Delay;
 
     use crate::protocol::rtsp::connection::shutdown::{ShutdownHandler, ShutdownState, ShutdownType};
-    // use tokio::sync::oneshot;
+
+// use tokio::sync::oneshot;
 
     #[test]
     fn test_shutdown_drop() {

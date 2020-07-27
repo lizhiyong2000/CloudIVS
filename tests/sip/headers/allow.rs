@@ -1,8 +1,7 @@
-use cloudmedia::protocol::sip::*;
-
-use cloudmedia::protocol::sip::headers::parse::parse_allow_header;
-
 use nom::error::VerboseError;
+
+use cloudmedia::protocol::sip::*;
+use cloudmedia::protocol::sip::headers::parse::parse_allow_header;
 
 #[test]
 fn write() {

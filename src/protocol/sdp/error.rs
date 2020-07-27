@@ -2,15 +2,16 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#[cfg(feature = "serialize")]
-use serde::ser::{Serialize, SerializeStruct, Serializer};
 use std::error;
 use std::error::Error;
 use std::fmt;
-
-use super::address::AddressType;
 use std::num::ParseFloatError;
 use std::num::ParseIntError;
+
+#[cfg(feature = "serialize")]
+use serde::ser::{Serialize, Serializer, SerializeStruct};
+
+use super::address::AddressType;
 
 #[derive(Debug, Clone)]
 pub enum SdpParserInternalError {
@@ -208,10 +209,12 @@ impl From<ParseFloatError> for SdpParserInternalError {
 
 #[cfg(test)]
 mod tests {
-    use crate::protocol::sdp::*;
-    use super::*;
     use std::str::FromStr;
+
+    use crate::protocol::sdp::*;
     use crate::protocol::sdp::address::Address;
+
+    use super::*;
 
     #[test]
     fn test_sdp_parser_internal_error_unknown_address_type() {

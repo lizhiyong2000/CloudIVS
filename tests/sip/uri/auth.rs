@@ -1,6 +1,7 @@
+use nom::error::VerboseError;
+
 use cloudmedia::protocol::sip::*;
 use cloudmedia::protocol::sip::uri::parse_uriauth;
-use nom::error::VerboseError;
 
 #[test]
 fn read_auth() {

@@ -2,13 +2,14 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+use std::fmt;
+
+use super::{SdpBandwidth, SdpConnection, SdpLine, SdpType};
 use super::anonymizer::{AnonymizingClone, StatefulSdpAnonymizer};
 use super::attribute_type::{
     maybe_print_param, SdpAttribute, SdpAttributeRtpmap, SdpAttributeSctpmap, SdpAttributeType,
 };
 use super::error::{SdpParserError, SdpParserInternalError};
-use std::fmt;
-use super::{SdpBandwidth, SdpConnection, SdpLine, SdpType};
 
 /*
  * RFC4566
@@ -491,14 +492,16 @@ pub fn create_dummy_media_section() -> SdpMedia {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use std::convert::TryFrom;
+
     use crate::protocol::sdp::address::{AddressType, ExplicitlyTypedAddress};
     use crate::protocol::sdp::attribute_type::{
         SdpAttributeFmtp, SdpAttributeFmtpParameters, SdpAttributePayloadType, SdpAttributeRtcpFb,
         SdpAttributeRtcpFbType,
     };
-    use std::convert::TryFrom;
     use crate::protocol::sdp::SdpTiming;
+
+    use super::*;
 
     // TODO is this useful outside of tests?
     impl SdpFormatList {

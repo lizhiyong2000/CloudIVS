@@ -1,10 +1,10 @@
-use crate::protocol::sip::*;
-
 use std::io::{
-    Result as IoResult,
     Error as IoError,
-    ErrorKind as IoErrorKind
+    ErrorKind as IoErrorKind,
+    Result as IoResult
 };
+
+use crate::protocol::sip::*;
 
 /// Handle's the SIP registration process.
 /// This structure is designed to handle the authentication

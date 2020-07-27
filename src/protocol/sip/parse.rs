@@ -1,27 +1,27 @@
-use nom::{
-    IResult,
-    branch::alt,
-    character::{
-        *,
-        complete::char as parse_char
-    },
-    bytes::{
-        complete::{
-            take_while,
-            take_until
-        }
-    },
-    combinator::map_res,
-    error::ParseError,
-    error::ErrorKind
-};
-
 use std::{
     io::{
         Error as IoError,
         ErrorKind as IoErrorKind
     },
     net::Ipv4Addr,
+};
+
+use nom::{
+    branch::alt,
+    bytes::{
+        complete::{
+            take_while,
+            take_until
+        }
+    },
+    character::{
+        *,
+        complete::char as parse_char
+    },
+    combinator::map_res,
+    error::ErrorKind,
+    error::ParseError,
+    IResult
 };
 
 /// Parse input as a string using `String::from_utf8`.

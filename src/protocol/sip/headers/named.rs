@@ -1,18 +1,18 @@
+use std::{
+    collections::{hash_map::Entry, HashMap},
+    fmt,
+};
+
 use nom::{
     branch::alt,
     bytes::complete::take_while,
-    character::{complete::char, *},
+    character::{*, complete::char},
     combinator::{map_res, opt},
     error::ParseError,
     IResult,
 };
 
-use crate::protocol::sip::{parse::*, uri::parse_uri, Uri};
-
-use std::{
-    collections::{hash_map::Entry, HashMap},
-    fmt,
-};
+use crate::protocol::sip::{parse::*, Uri, uri::parse_uri};
 
 /// Header Value for Named Headers,
 /// e.g. From, To, Contact

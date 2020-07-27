@@ -2,20 +2,20 @@
 //!
 //! This module contains the logic for sending all outgoing messagse through the connection sink.
 
-use futures::stream::Fuse;
-use futures::channel::mpsc::{unbounded, UnboundedReceiver, UnboundedSender};
-// use futures::{ready, Async, AsyncSink, Future, Poll, Sink, Stream};
-use futures::{Future, Sink, Stream, SinkExt};
-
-use crate::protocol::rtsp::header::map::HeaderMapExtension;
-use crate::protocol::rtsp::header::types::Date;
-use crate::protocol::rtsp::codec::{Message, ProtocolError};
+use std::pin::Pin;
 // use tokio::sync::mpsc::{UnboundedSender, UnboundedReceiver};
 // use futures::channel::mpsc::{unbounded, UnboundedReceiver};
-use std::task::{Poll, Context};
-use std::pin::Pin;
+use std::task::{Context, Poll};
 
+// use futures::{ready, Async, AsyncSink, Future, Poll, Sink, Stream};
+use futures::{Future, Sink, SinkExt, Stream};
+use futures::channel::mpsc::{unbounded, UnboundedReceiver, UnboundedSender};
+use futures::stream::Fuse;
 use futures::stream::StreamExt;
+
+use crate::protocol::rtsp::codec::{Message, ProtocolError};
+use crate::protocol::rtsp::header::map::HeaderMapExtension;
+use crate::protocol::rtsp::header::types::Date;
 
 /// The type responsible for sending all outgoing messages through the connection sink.
 ///
@@ -169,19 +169,21 @@ impl SenderHandle {
 
 #[cfg(test)]
 mod test {
-    use bytes::BytesMut;
-    use futures::channel::mpsc;
-    use futures::{Sink, Stream};
     use std::mem;
+
+    use bytes::BytesMut;
+    use futures::{Sink, Stream};
+    use futures::channel::mpsc;
     use tokio::runtime::current_thread;
 
-    use crate::protocol::rtsp::header::name::HeaderName;
-    use crate::protocol::rtsp::method::Method;
     use crate::protocol::rtsp::codec::Message;
     use crate::protocol::rtsp::connection::sender::Sender;
+    use crate::protocol::rtsp::header::name::HeaderName;
+    use crate::protocol::rtsp::method::Method;
     use crate::protocol::rtsp::request::Request;
     use crate::protocol::rtsp::uri::request::URI;
-    // use tokio::sync::mpsc;
+
+// use tokio::sync::mpsc;
     // use crate::protocol::rtsp::method::Method;
     // use crate::protocol::rtsp::uri::request::URI;
 

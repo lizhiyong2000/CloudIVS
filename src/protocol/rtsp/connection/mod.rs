@@ -1,50 +1,51 @@
-mod handler;
-mod pending;
-mod receiver;
-mod sender;
-mod shutdown;
-
-pub use self::handler::RequestHandler;
-pub use self::pending::{
-    RequestOptions, RequestOptionsBuilder, SendRequest, REQUEST_MAX_TIMEOUT_DEFAULT_DURATION,
-    REQUEST_TIMEOUT_DEFAULT_DURATION,
-};
-pub use self::sender::SenderHandle;
-pub use self::shutdown::ShutdownType;
-
-use bytes::BytesMut;
-use futures::future::{Either, Shared};
-use futures::stream::{SplitSink, SplitStream};
-use futures::channel::mpsc::{self, UnboundedSender};
-use futures::channel::oneshot;
-use futures::{future, Future, Stream, StreamExt, FutureExt};
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::mem;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::pin::Pin;
 use std::sync::{Arc, Mutex};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::task::Context;
+use std::task::Poll;
 use std::time::Duration;
+
+use bytes::BytesMut;
+use futures::{future, Future, FutureExt, Stream, StreamExt};
+use futures::channel::mpsc::{self, UnboundedSender};
+use futures::channel::mpsc::unbounded;
+use futures::channel::oneshot;
+use futures::future::{Either, Shared};
+use futures::stream::{SplitSink, SplitStream};
+// use tokio::sync::{oneshot, mpsc};
+// use tokio::sync::mpsc::UnboundedSender;
+use tokio::io::{AsyncRead, AsyncWrite};
 use tokio_util::codec::{Decoder, Framed};
 // use tokio::io::{AsyncRead, AsyncWrite};
 // use tokio::io::{A}
 use tower_service::Service;
 
-use crate::protocol::rtsp::header::map::HeaderMapExtension;
-use crate::protocol::rtsp::header::types::CSeq;
-use crate::protocol::rtsp::codec::{Codec, Message, CodecEvent, ProtocolError};
+use crate::protocol::rtsp::codec::{Codec, CodecEvent, Message, ProtocolError};
 use crate::protocol::rtsp::connection::pending::PendingRequestUpdate;
 use crate::protocol::rtsp::connection::receiver::Receiver;
 use crate::protocol::rtsp::connection::sender::Sender;
 use crate::protocol::rtsp::connection::shutdown::{ShutdownHandler, ShutdownState};
+use crate::protocol::rtsp::header::map::HeaderMapExtension;
+use crate::protocol::rtsp::header::types::CSeq;
 use crate::protocol::rtsp::request::Request;
 use crate::protocol::rtsp::response::Response;
-// use tokio::sync::{oneshot, mpsc};
-// use tokio::sync::mpsc::UnboundedSender;
-use tokio::io::{AsyncRead, AsyncWrite};
-use std::task::Poll;
-use std::pin::Pin;
-use std::task::Context;
-use futures::channel::mpsc::unbounded;
+
+pub use self::handler::RequestHandler;
+pub use self::pending::{
+    REQUEST_MAX_TIMEOUT_DEFAULT_DURATION, REQUEST_TIMEOUT_DEFAULT_DURATION, RequestOptions, RequestOptionsBuilder,
+    SendRequest,
+};
+pub use self::sender::SenderHandle;
+pub use self::shutdown::ShutdownType;
+
+mod handler;
+mod pending;
+mod receiver;
+mod sender;
+mod shutdown;
 
 pub const DEFAULT_CONTINUE_WAIT_DURATION: Duration = Duration::from_secs(5);
 pub const DEFAULT_DECODE_TIMEOUT_DURATION: Duration = Duration::from_secs(10);
@@ -872,18 +873,19 @@ pub enum RequestTimeoutType {
 #[cfg(test)]
 mod test {
     use futures::stream::{SplitSink, SplitStream};
+    use tokio::net::TcpStream;
     use tokio_util::codec::Framed;
+    use tokio_util::codec::Framed;
+
     use tokio_tcp::TcpStream;
 
     use crate::protocol::rtsp::codec::{Codec, Message};
+    use crate::protocol::rtsp::connection::{Connection, ConnectionHandle, ConnectionShutdownReceiver};
     use crate::protocol::rtsp::connection::handler::RequestHandler;
     use crate::protocol::rtsp::connection::pending::SendRequest;
     use crate::protocol::rtsp::connection::receiver::Receiver;
     use crate::protocol::rtsp::connection::sender::{Sender, SenderHandle};
-    use crate::protocol::rtsp::connection::{Connection, ConnectionHandle, ConnectionShutdownReceiver};
     use crate::protocol::rtsp::service::EmptyService;
-    use tokio::net::TcpStream;
-    use tokio_util::codec::Framed;
 
     #[test]
     fn test_bounds() {

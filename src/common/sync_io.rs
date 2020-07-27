@@ -1,6 +1,7 @@
 //! Synchronous I/O functionalities.
 
-use std::io::{Result, Read, Write, Error, ErrorKind};
+use std::io::{Error, ErrorKind, Read, Result, Write};
+
 use byteorder::{BigEndian, LittleEndian, ReadBytesExt, WriteBytesExt};
 
 /// An extention of the standard `Read` trait.

@@ -1,10 +1,11 @@
 use core::num::IntErrorKind;
-use rand::{self, Rng};
 use std::convert::{Infallible, TryFrom};
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::iter::once;
 use std::ops::{Add, Deref, Sub};
+
+use rand::{self, Rng};
 
 use crate::protocol::rtsp::header::map::TypedHeader;
 use crate::protocol::rtsp::header::name::HeaderName;

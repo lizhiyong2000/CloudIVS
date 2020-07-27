@@ -1,10 +1,4 @@
-use serde::{Deserialize, Serialize};
 use std::fmt;
-
-use crate::protocol::sip::{
-    core::{is_token, parse_transport, Transport},
-    uri::{parse_domain, parse_port, Domain},
-};
 
 use nom::{
     branch::alt,
@@ -13,6 +7,12 @@ use nom::{
     combinator::map,
     error::ParseError,
     IResult,
+};
+use serde::{Deserialize, Serialize};
+
+use crate::protocol::sip::{
+    core::{is_token, parse_transport, Transport},
+    uri::{Domain, parse_domain, parse_port},
 };
 
 /// Uri Parameters.

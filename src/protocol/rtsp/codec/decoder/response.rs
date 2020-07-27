@@ -37,12 +37,18 @@
 //! # }
 //! ```
 
-use bytes::BytesMut;
 use std::convert::{Infallible, TryFrom};
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::mem;
 
+use bytes::BytesMut;
+
+use crate::protocol::rtsp::codec::decoder::{
+    self, BODY_DEFAULT_MAX_LENGTH, DecodeResult as GenericDecodeResult, HEADER_DEFAULT_MAX_COUNT,
+    HEADER_NAME_DEFAULT_MAX_LENGTH, HEADER_VALUE_DEFAULT_MAX_LENGTH,
+    REASON_PHRASE_DEFAULT_MAX_LENGTH,
+};
 use crate::protocol::rtsp::header::map::HeaderMapExtension;
 use crate::protocol::rtsp::header::name::{HeaderName, HeaderNameError};
 use crate::protocol::rtsp::header::types::ContentLength;
@@ -51,12 +57,6 @@ use crate::protocol::rtsp::reason::{ReasonPhrase, ReasonPhraseError};
 use crate::protocol::rtsp::response::{Builder as ResponseBuilder, Response};
 use crate::protocol::rtsp::status::{StatusCode, StatusCodeError};
 use crate::protocol::rtsp::version::{DecodeError as VersionDecodeError, Version};
-
-use crate::protocol::rtsp::codec::decoder::{
-    self, DecodeResult as GenericDecodeResult, BODY_DEFAULT_MAX_LENGTH, HEADER_DEFAULT_MAX_COUNT,
-    HEADER_NAME_DEFAULT_MAX_LENGTH, HEADER_VALUE_DEFAULT_MAX_LENGTH,
-    REASON_PHRASE_DEFAULT_MAX_LENGTH,
-};
 
 /// The current state of the response parsing.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -839,10 +839,10 @@ impl From<VersionDecodeError> for DecodeError {
 
 #[cfg(test)]
 mod test {
-    use crate::protocol::rtsp::header::name::HeaderNameError;
     use crate::protocol::rtsp::codec::decoder::response::{
-        ConfigBuilder, DecodeError, DecodeResult, Decoder,
+        ConfigBuilder, DecodeError, Decoder, DecodeResult,
     };
+    use crate::protocol::rtsp::header::name::HeaderNameError;
     use crate::protocol::rtsp::reason::ReasonPhraseError;
     use crate::protocol::rtsp::status::StatusCodeError;
     use crate::protocol::rtsp::version::VersionDecodeError;

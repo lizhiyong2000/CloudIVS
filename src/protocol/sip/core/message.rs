@@ -1,10 +1,16 @@
-use nom::{
-    IResult,
-    branch::alt,
-    character::*
-};
-
 use std::fmt;
+
+use nom::{
+    branch::alt,
+    character::*,
+    IResult
+};
+use nom::{
+    bytes::complete::{tag, take_while},
+    character::complete::char,
+    combinator::{map_res, opt},
+    error::ParseError
+};
 
 use crate::protocol::sip::{
     *,
@@ -148,13 +154,6 @@ pub fn parse_headers<'a, E: ParseError<&'a [u8]>>(input: &'a [u8]) -> IResult<&'
     }
     Ok((input, headers))
 }
-
-use nom::{
-    combinator::{map_res, opt},
-    bytes::complete::{take_while, tag},
-    character::complete::char,
-    error::ParseError
-};
 
 /// Parse a SIP message assuming it is a SIP response.
 pub fn parse_response<'a, E: ParseError<&'a [u8]>>(input: &'a [u8]) -> IResult<&'a [u8], SipMessage, E> {

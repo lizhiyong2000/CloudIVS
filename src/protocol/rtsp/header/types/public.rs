@@ -1,8 +1,9 @@
+use std::convert::TryFrom;
+use std::iter::{FromIterator, once};
+use std::ops::{Deref, DerefMut};
+
 use itertools::Itertools;
 use linked_hash_set::LinkedHashSet;
-use std::convert::TryFrom;
-use std::iter::{once, FromIterator};
-use std::ops::{Deref, DerefMut};
 
 use crate::protocol::rtsp::header::map::TypedHeader;
 use crate::protocol::rtsp::header::name::HeaderName;

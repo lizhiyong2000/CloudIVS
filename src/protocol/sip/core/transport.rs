@@ -1,13 +1,13 @@
-use serde::{Deserialize, Serialize};
-use nom::{
-    IResult,
-    branch::alt,
-    combinator::map,
-    bytes::complete::tag_no_case,
-    error::ParseError
-};
-
 use std::fmt;
+
+use nom::{
+    branch::alt,
+    bytes::complete::tag_no_case,
+    combinator::map,
+    error::ParseError,
+    IResult
+};
+use serde::{Deserialize, Serialize};
 
 /// SIP protocol transport.
 #[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]

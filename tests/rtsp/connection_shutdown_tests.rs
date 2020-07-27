@@ -1,6 +1,6 @@
 extern crate bytes;
-extern crate futures;
 extern crate cloudmedia;
+extern crate futures;
 extern crate tokio;
 extern crate tokio_tcp;
 extern crate tokio_timer;
@@ -16,12 +16,12 @@ use cloudmedia::protocol::rtsp::protocol::connection::{Connection, ConnectionHan
 use cloudmedia::protocol::rtsp::request::Request;
 use cloudmedia::protocol::rtsp::response::Response;
 use cloudmedia::protocol::rtsp::uri::request::URI;
+use std::{mem, thread};
 use std::io::{self, Read, Write};
 use std::net::TcpListener;
 use std::time::{Duration, Instant};
-use std::{mem, thread};
-use tokio::runtime::Runtime;
 use tokio::net::TcpStream;
+use tokio::runtime::Runtime;
 use tokio::time::Delay;
 use tower_service::Service;
 

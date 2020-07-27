@@ -1,10 +1,18 @@
+use std::{fmt, net::Ipv4Addr};
+
+use nom::{
+    branch::alt,
+    bytes::complete::take_while,
+    character::complete::char,
+    combinator::{map_res, opt},
+    error::ParseError,
+    IResult
+};
 use nom::character::{
     is_alphanumeric,
     is_digit
 };
 use serde::{Deserialize, Serialize};
-
-use std::{fmt, net::Ipv4Addr};
 
 use crate::protocol::sip::parse::{parse_ip_address, parse_u16, slice_to_string};
 
@@ -36,15 +44,6 @@ impl fmt::Display for Domain {
         }
     }
 }
-
-use nom::{
-    IResult,
-    branch::alt,
-    character::complete::char,
-    bytes::complete::take_while,
-    combinator::{opt, map_res},
-    error::ParseError
-};
 
 pub fn parse_port<'a, E: ParseError<&'a [u8]>>(input: &'a [u8]) -> IResult<&'a [u8], Option<u16>, E> {
     let (input, port) = opt(map_res::<_, _, _, _, E, _, _>(take_while::<_, _, E>(is_digit), parse_u16::<E>))(input)?;

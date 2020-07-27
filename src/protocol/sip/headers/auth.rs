@@ -1,13 +1,13 @@
+use std::{
+    collections::HashMap,
+    fmt,
+    io::Result as IoResult
+};
+
 use sha::{
     sha256::Sha256,
     sha512::Sha512,
     utils::{Digest, DigestExt},
-};
-
-use std::{
-    fmt,
-    collections::HashMap,
-    io::Result as IoResult
 };
 
 use crate::protocol::sip::Uri;

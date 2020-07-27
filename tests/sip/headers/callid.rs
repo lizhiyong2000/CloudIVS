@@ -1,7 +1,7 @@
+use nom::error::VerboseError;
+
 use cloudmedia::protocol::sip::*;
 use cloudmedia::protocol::sip::headers::parse::parse_callid_header;
-
-use nom::error::VerboseError;
 
 #[test]
 fn write() {

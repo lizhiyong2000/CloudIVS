@@ -1,9 +1,9 @@
-use cloudmedia::protocol::sip::{
-    headers::{parse::parse_content_encoding_header, ContentType},
-    Header,
-};
-
 use nom::error::VerboseError;
+
+use cloudmedia::protocol::sip::{
+    Header,
+    headers::{ContentType, parse::parse_content_encoding_header},
+};
 
 #[test]
 fn write() {

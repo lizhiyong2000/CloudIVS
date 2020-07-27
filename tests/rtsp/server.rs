@@ -1,6 +1,6 @@
 extern crate bytes;
-extern crate futures;
 extern crate cloudmedia;
+extern crate futures;
 extern crate tokio;
 
 use bytes::BytesMut;

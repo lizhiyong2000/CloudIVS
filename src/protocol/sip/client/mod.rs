@@ -2,22 +2,20 @@
 //! processing and generating SIP requests. Encapsulating
 //! all this functionality is the SoftPhone struct.
 
-mod registration;
-pub use self::registration::RegistrationManager;
-
-mod messaging;
-pub use self::messaging::{MessageHelper, MessageWriter};
-
-mod invite;
-pub use self::invite::{InviteHelper, InviteWriter};
+use std::collections::HashMap;
+use std::io::Error as IoError;
+use std::io::ErrorKind as IoErrorKind;
+use std::io::Result as IoResult;
 
 use crate::protocol::sip::{Header, Headers, Method, SipMessage, Uri};
 
+pub use self::invite::{InviteHelper, InviteWriter};
+pub use self::messaging::{MessageHelper, MessageWriter};
+pub use self::registration::RegistrationManager;
 
-use std::io::Result as IoResult;
-use std::io::Error as IoError;
-use std::io::ErrorKind as IoErrorKind;
-use std::collections::HashMap;
+mod registration;
+mod messaging;
+mod invite;
 
 /// This struct is used in the client module when creating sip messages
 /// it is used to specify some common values for the generated sip

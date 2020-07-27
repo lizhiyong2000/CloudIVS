@@ -1,16 +1,16 @@
-use bytes::BytesMut;
-use futures::{future, Future};
 use std::io;
-use tower_service::Service;
-
-// use futures::io::empty;
-
-use crate::protocol::rtsp::request::Request;
+use std::pin::Pin;
 // use crate::protocol::rtsp::response::Response;
 use std::task::{Context, Poll};
-use std::pin::Pin;
 
-use crate::protocol::rtsp::response::{Response, NOT_IMPLEMENTED_RESPONSE};
+use bytes::BytesMut;
+use futures::{future, Future};
+use tower_service::Service;
+
+use crate::protocol::rtsp::request::Request;
+use crate::protocol::rtsp::response::{NOT_IMPLEMENTED_RESPONSE, Response};
+
+// use futures::io::empty;
 
 pub struct EmptyService;
 

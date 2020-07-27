@@ -5,43 +5,37 @@
 #![feature(int_error_matching)]
 
 
-#[macro_use]
-extern crate strum_macros;
-
-
-extern crate strum;
-
-#[macro_use]
-extern crate trackable;
-// Instead of #[macro_use], newer versions of rust should prefer
-use strum_macros::{Display, EnumIter}; // etc.
-//
-extern crate byteorder;
-extern crate bytecodec;
-
-
-#[macro_use]
-extern crate nom;
-// extern crate serde;
-
-#[macro_use]
-extern crate log;
-
-#[cfg(feature = "serialize")]
-#[macro_use]
-extern crate serde_derive;
-#[cfg(feature = "serialize")]
-extern crate serde;
-extern crate url;
-
-#[macro_use]
-extern crate futures;
-
-
-
 #[cfg(test)]
 #[macro_use]
 extern crate assert_matches;
+extern crate bytecodec;
+// etc.
+//
+extern crate byteorder;
+#[macro_use]
+extern crate futures;
+#[macro_use]
+extern crate log;
+#[macro_use]
+extern crate nom;
+#[cfg(feature = "serialize")]
+extern crate serde;
+#[cfg(feature = "serialize")]
+#[macro_use]
+extern crate serde_derive;
+extern crate strum;
+#[macro_use]
+extern crate strum_macros;
+#[macro_use]
+extern crate trackable;
+extern crate url;
+
+
+// Instead of #[macro_use], newer versions of rust should prefer
+use strum_macros::{Display, EnumIter};
+
+
+// extern crate serde;
 
 
 mod common;

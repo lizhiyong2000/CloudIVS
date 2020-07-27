@@ -1,3 +1,13 @@
+use crate::protocol::sip::core::Method;
+
+pub use self::{
+    auth::{AuthContext, AuthHeader, AuthSchema},
+    content::ContentType,
+    language::Language,
+    named::NamedHeader,
+    parse::parse_header
+};
+
 pub mod auth;
 mod content;
 mod language;
@@ -5,15 +15,6 @@ mod named;
 pub mod parse;
 pub mod via;
 mod write;
-pub use self::{
-    auth::{AuthHeader, AuthContext, AuthSchema},
-    content::ContentType,
-    language::Language,
-    named::NamedHeader,
-    parse::parse_header
-};
-
-use crate::protocol::sip::core::Method;
 
 /// Wrapper around a Vec<Header> to simplify creating
 /// and a list of headers

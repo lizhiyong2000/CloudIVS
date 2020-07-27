@@ -1,13 +1,10 @@
 use std::io::{Read, Write};
 
-
 use crate::common::sync_io::{ReadExt, WriteExt};
-
 use crate::protocol::error::ErrorKind;
 use crate::protocol::rtp::traits::RtpPacketTrait;
 use crate::protocol::traits::{PacketTrait, ReadFrom, ReadPacket, Result, WritePacket, WriteTo};
 use crate::protocol::types::U7;
-
 
 use super::constants::RTP_VERSION;
 

@@ -3,12 +3,15 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 extern crate url;
-use self::url::Host;
-use super::error::SdpParserInternalError;
+
 use std::convert::TryFrom;
 use std::fmt;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::str::FromStr;
+
+use super::error::SdpParserInternalError;
+
+use self::url::Host;
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
@@ -196,10 +199,12 @@ impl PartialEq for ExplicitlyTypedAddress {
 
 #[cfg(test)]
 mod tests {
-    use self::url::ParseError;
-    use super::*;
     use std::error::Error;
     use std::net::{AddrParseError, Ipv4Addr, Ipv6Addr};
+
+    use super::*;
+
+    use self::url::ParseError;
 
     #[derive(Debug)]
     enum ParseTestError {

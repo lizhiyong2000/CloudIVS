@@ -1,6 +1,6 @@
-use cloudmedia::protocol::sip::*;
-
 use nom::error::VerboseError;
+
+use cloudmedia::protocol::sip::*;
 
 #[test]
 fn read_uri() {

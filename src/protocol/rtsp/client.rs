@@ -1,19 +1,21 @@
-use bytes::BytesMut;
-use futures::future::{self, Future, Ready};
 use std::io;
 use std::net::SocketAddr;
+
+use bytes::BytesMut;
+use futures::future::{self, Future, Ready};
+use futures::TryStreamExt;
+use tokio::net::TcpStream;
+use tokio::runtime::Runtime;
+
+use crate::protocol::rtsp::connection::{Connection, ConnectionHandle, OperationError};
+use crate::protocol::rtsp::request::Request;
+use crate::protocol::rtsp::response::Response;
+use crate::protocol::rtsp::service::EmptyService;
+
 // use tokio_executor::{DefaultExecutor, Executor};
 
 // use tokio_tcp::TcpStream;
 
-use crate::protocol::rtsp::connection::{Connection, ConnectionHandle, OperationError};
-use crate::protocol::rtsp::service::EmptyService;
-use crate::protocol::rtsp::request::Request;
-use crate::protocol::rtsp::response::Response;
-use tokio::net::TcpStream;
-use futures::TryStreamExt;
-
-use tokio::runtime::Runtime;
 // use futures::future;
 
 pub struct Client {

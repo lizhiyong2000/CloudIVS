@@ -1,8 +1,6 @@
 use std::io::{Read, Write};
 
-
 use crate::common::sync_io::{ReadExt, WriteExt};
-
 use crate::protocol::error::ErrorKind;
 use crate::protocol::rtp::traits::RtcpPacketTrait;
 use crate::protocol::traits::*;

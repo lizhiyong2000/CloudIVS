@@ -2,39 +2,39 @@
 //!
 //! This module contains the logic for servicing incoming requests and mapping them to responses.
 
+use std::ops::{Deref, DerefMut};
+use std::pin::Pin;
+use std::task::{Context, Poll};
+use std::time::{Duration, Instant};
+
 use bytes::BytesMut;
+use futures::{Future, FutureExt, Stream, StreamExt};
+// use tokio::sync::mpsc::Receiver;
+use futures::channel::mpsc::Receiver;
+use futures::channel::oneshot;
+// use crate::protocol::rtsp::connection::receiver::Receiver;
+// use tokio::stream::StreamExt;
+use futures::stream::Fuse;
+use tokio::time::{Delay, delay_for};
+// use tokio::time::Delay;
+use tower_service::Service;
+
+use crate::protocol::rtsp::codec::Message;
+use crate::protocol::rtsp::connection::sender::SenderHandle;
+use crate::protocol::rtsp::header::map::HeaderMapExtension;
+use crate::protocol::rtsp::header::name::HeaderName;
+use crate::protocol::rtsp::header::types::{ContentLength, CSeq};
+use crate::protocol::rtsp::request::Request;
+use crate::protocol::rtsp::response::{
+    BAD_REQUEST_RESPONSE, CONTINUE_RESPONSE, INTERNAL_SERVER_ERROR_RESPONSE, NOT_IMPLEMENTED_RESPONSE,
+    Response,
+};
+use crate::protocol::rtsp::uri::Scheme;
+
 // use futures::stream::Fuse;
 // use futures::channel::mpsc::Receiver;
 // use futures::channel::oneshot;
 // use futures::{ready, Async, Future, Poll, Stream};
-
-use futures::{Future, Stream, StreamExt, FutureExt};
-use std::time::{Duration, Instant};
-// use tokio::time::Delay;
-use tower_service::Service;
-
-use crate::protocol::rtsp::header::map::HeaderMapExtension;
-use crate::protocol::rtsp::header::name::HeaderName;
-use crate::protocol::rtsp::header::types::{CSeq, ContentLength};
-use crate::protocol::rtsp::codec::Message;
-use crate::protocol::rtsp::connection::sender::SenderHandle;
-use crate::protocol::rtsp::request::Request;
-use crate::protocol::rtsp::response::{
-    Response, BAD_REQUEST_RESPONSE, CONTINUE_RESPONSE, INTERNAL_SERVER_ERROR_RESPONSE,
-    NOT_IMPLEMENTED_RESPONSE,
-};
-use crate::protocol::rtsp::uri::Scheme;
-use tokio::time::{Delay, delay_for};
-// use crate::protocol::rtsp::connection::receiver::Receiver;
-// use tokio::stream::StreamExt;
-use futures::stream::Fuse;
-use futures::channel::oneshot;
-use std::task::{Poll, Context};
-use std::pin::Pin;
-// use tokio::sync::mpsc::Receiver;
-use futures::channel::mpsc::Receiver;
-use std::ops::{Deref, DerefMut};
-
 
 /// The type responsible for servicing incoming requests and sending responses back.
 #[derive(Debug)]
@@ -343,33 +343,34 @@ impl<TService> Unpin for RequestHandler<TService>
 
 #[cfg(test)]
 mod test {
-    use bytes::BytesMut;
-    use futures::future;
-    use futures::channel::{mpsc, oneshot};
-    use futures::{Async, Future, Poll, Stream};
-    use std::convert::TryFrom;
-    use std::time::{Duration, Instant};
     use std::{io, mem};
+    use std::convert::TryFrom;
+    use std::pin::Pin;
+    use std::task::{Context, Poll};
+    use std::time::{Duration, Instant};
+
+    use bytes::BytesMut;
+    use futures::{Async, Future, Poll, Stream};
+    use futures::channel::{mpsc, oneshot};
+    use futures::future;
     use tokio::runtime::current_thread;
+    use tokio::stream::StreamExt;
     use tokio::time::Delay;
     use tower_service::Service;
 
-    use crate::protocol::rtsp::header::types::{CSeq, ContentLength};
-    use crate::protocol::rtsp::method::Method;
     use crate::protocol::rtsp::codec::Message;
     use crate::protocol::rtsp::connection::handler::RequestHandler;
     use crate::protocol::rtsp::connection::sender::SenderHandle;
+    use crate::protocol::rtsp::header::types::{ContentLength, CSeq};
+    use crate::protocol::rtsp::method::Method;
     use crate::protocol::rtsp::request::Request;
     use crate::protocol::rtsp::response::{
-        Response, BAD_REQUEST_RESPONSE, CONTINUE_RESPONSE, NOT_IMPLEMENTED_RESPONSE,
+        BAD_REQUEST_RESPONSE, CONTINUE_RESPONSE, NOT_IMPLEMENTED_RESPONSE, Response,
     };
     // use crate::protocol::rtsp::uri::request::URI;
     // use tokio::sync::{mpsc, oneshot};
     // use crate::protocol::rtsp::method::Method;
     use crate::protocol::rtsp::uri::request::URI;
-    use std::task::{Poll, Context};
-    use tokio::stream::StreamExt;
-    use std::pin::Pin;
 
     struct DelayedTestService;
 

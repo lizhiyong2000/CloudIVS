@@ -2,10 +2,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-use super::address::{Address, AddressType};
-use super::error::SdpParserInternalError;
 use std::net::IpAddr;
 use std::str::FromStr;
+
+use super::address::{Address, AddressType};
+use super::error::SdpParserInternalError;
 
 pub fn ip_address_to_string(addr: IpAddr) -> String {
     match addr {

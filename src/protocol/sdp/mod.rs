@@ -9,14 +9,6 @@
 use std::convert::TryFrom;
 use std::fmt;
 
-#[macro_use]
-pub mod attribute_type;
-pub mod address;
-pub mod anonymizer;
-pub mod error;
-pub mod media_type;
-pub mod network;
-
 use address::{AddressTyped, ExplicitlyTypedAddress};
 use anonymizer::{AnonymizingClone, StatefulSdpAnonymizer};
 use attribute_type::{
@@ -29,6 +21,14 @@ use media_type::{
     SdpProtocolValue,
 };
 use network::{parse_address_type, parse_network_type};
+
+#[macro_use]
+pub mod attribute_type;
+pub mod address;
+pub mod anonymizer;
+pub mod error;
+pub mod media_type;
+pub mod network;
 
 /*
  * RFC4566
@@ -912,12 +912,15 @@ pub fn parse_sdp(sdp: &str, fail_on_warning: bool) -> Result<SdpSession, SdpPars
 #[cfg(test)]
 mod tests {
     extern crate url;
-    use super::*;
+
+    use std::net::IpAddr;
+    use std::net::Ipv4Addr;
+
     use address::{Address, AddressType};
     use anonymizer::ToBytesVec;
     use media_type::create_dummy_media_section;
-    use std::net::IpAddr;
-    use std::net::Ipv4Addr;
+
+    use super::*;
 
     fn create_dummy_sdp_session() -> SdpSession {
         let origin = parse_origin("mozilla 506705521068071134 0 IN IP4 0.0.0.0");

@@ -1,19 +1,21 @@
+use std::pin::Pin;
+use std::task::{Context, Poll};
+use std::time::{Duration, Instant};
+
 use bytes::BytesMut;
-use futures::channel::mpsc::UnboundedSender;
 // use futures::channel::oneshot::{self, Canceled};
 use futures::{Future, FutureExt};
-use std::time::{Duration, Instant};
-// use tokio::time::Delay;
-
-use crate::protocol::rtsp::header::types::CSeq;
-use crate::protocol::rtsp::connection::{OperationError, RequestTimeoutType};
-use crate::protocol::rtsp::response::Response;
+use futures::channel::mpsc::UnboundedSender;
+use futures::channel::oneshot;
 // use tokio::sync::oneshot;
 // use tokio::sync::mpsc::UnboundedSender;
 use tokio::time::{Delay, delay_for};
-use std::task::{Poll, Context};
-use std::pin::Pin;
-use futures::channel::oneshot;
+
+use crate::protocol::rtsp::connection::{OperationError, RequestTimeoutType};
+use crate::protocol::rtsp::header::types::CSeq;
+use crate::protocol::rtsp::response::Response;
+
+// use tokio::time::Delay;
 
 /// The default timeout for the maximum amount of time that we will wait for a request.
 pub const REQUEST_MAX_TIMEOUT_DEFAULT_DURATION: Duration = Duration::from_secs(20);

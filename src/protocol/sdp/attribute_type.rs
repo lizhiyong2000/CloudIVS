@@ -3,17 +3,17 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 extern crate url;
+
 use std::convert::TryFrom;
 use std::fmt;
 use std::iter;
 use std::str::FromStr;
 
+use super::address::{Address, AddressType, ExplicitlyTypedAddress};
+use super::anonymizer::{AnonymizingClone, StatefulSdpAnonymizer};
 use super::error::SdpParserInternalError;
 use super::network::{parse_network_type, parse_unicast_address};
 use super::SdpType;
-
-use super::address::{Address, AddressType, ExplicitlyTypedAddress};
-use super::anonymizer::{AnonymizingClone, StatefulSdpAnonymizer};
 
 // Serialization helper marcos and functions
 #[macro_export]
@@ -3263,8 +3263,10 @@ pub fn parse_attribute(value: &str) -> Result<SdpType, SdpParserInternalError> {
 #[cfg(test)]
 mod tests {
     extern crate url;
-    use super::*;
+
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+
+    use super::*;
 
     macro_rules! make_check_parse {
         ($attr_type:ty, $attr_kind:path) => {

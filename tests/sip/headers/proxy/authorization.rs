@@ -1,6 +1,6 @@
-use cloudmedia::protocol::sip::{headers::parse::parse_proxy_authorization_header, Header};
-
 use nom::error::VerboseError;
+
+use cloudmedia::protocol::sip::{Header, headers::parse::parse_proxy_authorization_header};
 
 #[test]
 fn write() {

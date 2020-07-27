@@ -1,5 +1,3 @@
-use serde::{Deserialize, Serialize};
-
 use std::{
     fmt,
     io::Result as IoResult,
@@ -7,24 +5,23 @@ use std::{
 };
 
 use nom::{
-    IResult,
     character::complete::char,
     combinator::{opt},
-    sequence::pair,
-    error::ParseError
+    combinator::opt,
+    IResult,
+    sequence::pair
 };
+use serde::{Deserialize, Serialize};
 
-pub mod schema;
+pub use self::auth::{parse_uriauth, UriAuth};
+pub use self::domain::{Domain, parse_domain, parse_port};
+pub use self::params::{parse_param, parse_params, UriParam};
 pub use self::schema::{parse_schema, UriSchema};
 
+pub mod schema;
 pub mod domain;
-pub use self::domain::{parse_domain, parse_port, Domain};
-
 pub mod params;
-pub use self::params::{parse_param, parse_params, UriParam};
-
 pub mod auth;
-pub use self::auth::{parse_uriauth, UriAuth};
 
 /// Universal Rescource Identifier for libsip.
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]

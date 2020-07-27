@@ -2,16 +2,16 @@ use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::str::FromStr;
 
-
 use pnet_macros_support::packet::PrimitiveValues;
 use strum;
 use strum_macros::EnumString;
 
+use crate::common::sync_io::{ReadExt, WriteExt};
 use crate::protocol::error::ErrorKind;
-use crate::protocol::rtp::constants::RTP_VERSION;
 use crate::protocol::rtcp::constants::*;
 use crate::protocol::rtcp::payload_specific_feedback::PayloadSpecificFeedbackPacket;
 use crate::protocol::rtcp::transport_layer_feedback::TransportLayerFeedbackPacket;
+use crate::protocol::rtp::constants::RTP_VERSION;
 use crate::protocol::rtp::traits::RtcpPacketTrait;
 use crate::protocol::traits::{PacketData, PacketTrait, ReadFrom, ReadPacket, Result, WritePacket, WriteTo};
 // use super::traits::*;
@@ -23,9 +23,6 @@ use super::payload_specific_feedback;
 use super::report_packet::*;
 use super::source_description_packet::*;
 use super::transport_layer_feedback;
-
-
-use crate::common::sync_io::{ReadExt, WriteExt};
 
 /// RTCP message types.
 ///

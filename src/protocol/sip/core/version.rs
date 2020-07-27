@@ -1,15 +1,16 @@
+use std::fmt;
+
 use nom::{
-    IResult,
     bytes::complete::tag,
-    character::is_digit,
+    bytes::complete::take_while1,
     character::complete::char as parse_char,
+    character::is_digit,
     combinator::map_res,
     error::ParseError,
-    bytes::complete::take_while1
+    IResult
 };
-use crate::protocol::sip::parse::parse_u8;
 
-use std::fmt;
+use crate::protocol::sip::parse::parse_u8;
 
 /// SIP Protocol version struct.
 /// default: 2.0

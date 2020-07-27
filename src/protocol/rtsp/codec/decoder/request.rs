@@ -41,24 +41,25 @@
 //! # }
 //! ```
 
-use bytes::BytesMut;
 use std::convert::{Infallible, TryFrom};
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::mem;
 
+use bytes::BytesMut;
+
+use crate::protocol::rtsp::codec::decoder::{
+    self, BODY_DEFAULT_MAX_LENGTH, DecodeResult as GenericDecodeResult, HEADER_DEFAULT_MAX_COUNT,
+    HEADER_NAME_DEFAULT_MAX_LENGTH, HEADER_VALUE_DEFAULT_MAX_LENGTH, METHOD_DEFAULT_MAX_LENGTH,
+    URI_DEFAULT_MAX_LENGTH,
+};
 use crate::protocol::rtsp::header::map::HeaderMapExtension;
 use crate::protocol::rtsp::header::name::{HeaderName, HeaderNameError};
 use crate::protocol::rtsp::header::types::ContentLength;
 use crate::protocol::rtsp::header::value::{HeaderValue, HeaderValueError};
 use crate::protocol::rtsp::method::{Method, MethodError};
-use crate::protocol::rtsp::codec::decoder::{
-    self, DecodeResult as GenericDecodeResult, BODY_DEFAULT_MAX_LENGTH, HEADER_DEFAULT_MAX_COUNT,
-    HEADER_NAME_DEFAULT_MAX_LENGTH, HEADER_VALUE_DEFAULT_MAX_LENGTH, METHOD_DEFAULT_MAX_LENGTH,
-    URI_DEFAULT_MAX_LENGTH,
-};
 use crate::protocol::rtsp::request::{Builder as RequestBuilder, Request};
-use crate::protocol::rtsp::uri::request::{URIError, URI};
+use crate::protocol::rtsp::uri::request::{URI, URIError};
 use crate::protocol::rtsp::version::{DecodeError as VersionDecodeError, Version};
 
 /// The current state of the request parsing.
@@ -892,11 +893,11 @@ impl From<VersionDecodeError> for DecodeError {
 
 #[cfg(test)]
 mod test {
+    use crate::protocol::rtsp::codec::decoder::request::{
+        ConfigBuilder, DecodeError, Decoder, DecodeResult,
+    };
     use crate::protocol::rtsp::header::name::HeaderNameError;
     use crate::protocol::rtsp::method::MethodError;
-    use crate::protocol::rtsp::codec::decoder::request::{
-        ConfigBuilder, DecodeError, DecodeResult, Decoder,
-    };
     use crate::protocol::rtsp::uri::request::URIError;
     use crate::protocol::rtsp::version::VersionDecodeError;
 

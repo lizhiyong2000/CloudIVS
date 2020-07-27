@@ -1,33 +1,33 @@
-use nom::character::*;
+use std::collections::HashMap;
+
 use nom::{
-    IResult,
-    error::ParseError,
-    combinator::{
-        map, opt,
-        map_res,
-    },
-    sequence::{
-        pair
-    },
-    multi::{
-        separated_list0
+    bytes::complete::{
+        tag, tag_no_case,
+        take_until, take_while
     },
     character::complete::{
         char
     },
-    bytes::complete::{
-        tag_no_case, take_while,
-        tag, take_until
+    combinator::{
+        map, map_res,
+        opt,
+    },
+    sequence::pair,
+    multi::separated_list0,
+    character::complete::char,
+    sequence::{
+        pair
     }
 };
-use super::{content::*, language::*, named::*, *};
+use nom::character::*;
+
 use crate::protocol::sip::{
     core::{parse_method, parse_transport, parse_version},
     parse::*,
     uri::parse_uri,
 };
 
-use std::collections::HashMap;
+use super::{*, content::*, language::*, named::*};
 
 pub fn parse_header<'a, E: ParseError<&'a [u8]>>(input: &'a [u8]) -> IResult<&'a [u8], Header> {
     let (input, _) = opt(tag("\r\n"))(input)?;

@@ -1,5 +1,13 @@
 use std::fmt;
 
+use nom::{
+    branch::alt,
+    bytes::complete::tag_no_case,
+    combinator::map,
+    error::ParseError,
+    IResult
+};
+
 /// Sip protocol Content-Type value.
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum ContentType {
@@ -45,15 +53,6 @@ impl fmt::Display for ContentType {
         }
     }
 }
-
-use nom::{
-    IResult,
-    branch::alt,
-    combinator::map,
-    bytes::complete::tag_no_case,
-    error::ParseError
-};
-
 
 pub fn parse_content_type<'a, E: ParseError<&'a [u8]>>(input: &'a [u8]) -> IResult<&'a [u8], ContentType, E> {
     Ok(alt((

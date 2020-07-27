@@ -1,9 +1,9 @@
-mod encoding;
-mod lang;
+use nom::error::VerboseError;
 
 use cloudmedia::protocol::sip::{*, headers::parse::parse_accept_header};
 
-use nom::error::VerboseError;
+mod encoding;
+mod lang;
 
 #[test]
 fn write() {

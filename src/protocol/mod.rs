@@ -30,6 +30,7 @@ pub mod types {
 
 pub mod error{
     use std::io;
+
     use trackable::error::{ErrorKind as TrackableErrorKind, ErrorKindExt};
     use trackable::error::{IntoTrackableError, TrackableError};
 
@@ -50,7 +51,6 @@ pub mod error{
 }
 
 pub mod traits{
-
     use std::io::{Read, Write};
 
     use super::error::{Error, ErrorKind};

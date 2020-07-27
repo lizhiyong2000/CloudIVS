@@ -1,31 +1,33 @@
-use bytes::BytesMut;
-use chrono::{self, offset, DateTime, Utc};
-use futures::{Stream, TryFutureExt, StreamExt};
-use futures::{future, Future};
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::error::Error;
 use std::net::SocketAddr;
+use std::pin::Pin;
 use std::sync::{Arc, Mutex};
+use std::task::Context;
 use std::time::Duration;
-// use tower_service::Service;
 
+use bytes::BytesMut;
+use chrono::{self, DateTime, offset, Utc};
+use futures::{Stream, StreamExt, TryFutureExt};
+use futures::{future, Future};
+use futures::task::Poll;
 use tokio::net::TcpListener;
+use tower_service::Service;
 
+use crate::protocol::rtsp::connection::Connection;
+use crate::protocol::rtsp::connection::ConnectionHandle;
 use crate::protocol::rtsp::header::map::HeaderMapExtension;
 use crate::protocol::rtsp::header::types::{AcceptRanges, Public};
 use crate::protocol::rtsp::method::Method;
-use crate::protocol::rtsp::connection::Connection;
-use crate::protocol::rtsp::connection::ConnectionHandle;
 use crate::protocol::rtsp::request::Request;
-use crate::protocol::rtsp::response::{Response, BAD_REQUEST_RESPONSE, NOT_IMPLEMENTED_RESPONSE};
-use crate::protocol::rtsp::session::{Session, SessionID, SessionIDError, DEFAULT_SESSION_TIMEOUT};
+use crate::protocol::rtsp::response::{BAD_REQUEST_RESPONSE, NOT_IMPLEMENTED_RESPONSE, Response};
+use crate::protocol::rtsp::session::{DEFAULT_SESSION_TIMEOUT, Session, SessionID, SessionIDError};
 use crate::protocol::rtsp::status::StatusCode;
-use tower_service::Service;
-use std::task::Context;
-use futures::task::Poll;
 use crate::protocol::rtsp::status::StatusCode::OK;
-use std::pin::Pin;
+
+// use tower_service::Service;
+
 // use tokio::io::Result;
 
 pub const SUPPORTED_METHODS: [Method; 2] = [Method::Options, Method::Setup];

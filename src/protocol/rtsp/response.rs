@@ -3,11 +3,12 @@
 //! This module contains structs related to RTSP responses, notably the [`Response`] type itself as
 //! well as a builder to create responses.
 
-use bytes::BytesMut;
-use lazy_static::lazy_static;
 use std::convert::Infallible;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
+
+use bytes::BytesMut;
+use lazy_static::lazy_static;
 
 use crate::protocol::rtsp::header::map::{HeaderMap, HeaderMapExtension, TypedHeader};
 use crate::protocol::rtsp::header::name::HeaderName;

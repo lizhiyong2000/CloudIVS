@@ -1,8 +1,9 @@
-use cloudmedia::protocol::sip::*;
-use cloudmedia::protocol::sip::uri::parse_domain;
+use std::net::Ipv4Addr;
+
 use nom::error::VerboseError;
 
-use std::net::Ipv4Addr;
+use cloudmedia::protocol::sip::*;
+use cloudmedia::protocol::sip::uri::parse_domain;
 
 #[test]
 fn read_domain() {
