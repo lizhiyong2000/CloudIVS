@@ -1,24 +1,14 @@
 use std::collections::HashMap;
 
-use nom::{
-    bytes::complete::{
-        tag, tag_no_case,
-        take_until, take_while
-    },
-    character::complete::{
-        char
-    },
-    combinator::{
-        map, map_res,
-        opt,
-    },
-    sequence::pair,
-    multi::separated_list0,
-    character::complete::char,
-    sequence::{
-        pair
-    }
-};
+use nom::{bytes::complete::{
+    tag, tag_no_case,
+    take_until, take_while
+}, character::complete::{
+    char
+}, combinator::{
+    map, map_res,
+    opt,
+}, sequence::pair, multi::separated_list0, IResult};
 use nom::character::*;
 
 use crate::protocol::sip::{
@@ -28,6 +18,7 @@ use crate::protocol::sip::{
 };
 
 use super::{*, content::*, language::*, named::*};
+use nom::error::ParseError;
 
 pub fn parse_header<'a, E: ParseError<&'a [u8]>>(input: &'a [u8]) -> IResult<&'a [u8], Header> {
     let (input, _) = opt(tag("\r\n"))(input)?;

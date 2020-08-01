@@ -6,7 +6,7 @@ use std::{
 
 use nom::{
     character::complete::char,
-    combinator::{opt},
+    // combinator::{opt},
     combinator::opt,
     IResult,
     sequence::pair
@@ -17,6 +17,7 @@ pub use self::auth::{parse_uriauth, UriAuth};
 pub use self::domain::{Domain, parse_domain, parse_port};
 pub use self::params::{parse_param, parse_params, UriParam};
 pub use self::schema::{parse_schema, UriSchema};
+use nom::error::ParseError;
 
 pub mod schema;
 pub mod domain;
