@@ -1,58 +1,34 @@
-// Strum contains all the trait definitions
-#![allow(non_snake_case)]
-#![allow(dead_code)]
-#![recursion_limit="256"]
-#![feature(int_error_matching)]
+use std::net::TcpStream;
+use std::str;
+use std::io::{self, BufRead, BufReader, Write};
+use crate::rtsp_client::RTSPClient;
+// use crate::errors::ConnectionError;
 
+mod rtsp_client;
 
-#[macro_use]
-extern crate strum_macros;
+fn main() -> Result<(), io::Error>{
+    //rtsp://admin:dm666666@192.168.30.224:554/h264/ch1/main/av_stream
+    let url = "rtsp://admin:dm666666@192.168.30.224:554/h264/ch1/main/av_stream";
+    let mut client = RTSPClient::new(String::from(url));
+    client.connect()?;
+    client.sendSetup();
 
+    // let mut stream = TcpStream::connect("192.168.30.224:554")
+    //     .expect("Could not connect to server");
+    // loop {
+    //
+    //     let mut input = String::new();
+    //     let mut buffer: Vec<u8> = Vec::new();
+    //     io::stdin().read_line(&mut input)
+    //         .expect("Failed to read from stdin");
+    //     stream.write(input.as_bytes())
+    //         .expect("Failed to write to server");
+    //     let mut reader = BufReader::new(&stream);
+    //     reader.read_until(b'\n', &mut buffer)
+    //         .expect("Could not read into buffer");
+    //     print!("{}", str::from_utf8(&buffer)
+    //         .expect("Could not write buffer as string"));
+    // }
 
-extern crate strum;
-
-#[macro_use]
-extern crate trackable;
-// Instead of #[macro_use], newer versions of rust should prefer
-use strum_macros::{Display, EnumIter}; // etc.
-//
-extern crate byteorder;
-extern crate bytecodec;
-
-
-#[macro_use]
-extern crate nom;
-// extern crate serde;
-
-#[macro_use]
-extern crate log;
-
-#[cfg(feature = "serialize")]
-#[macro_use]
-extern crate serde_derive;
-#[cfg(feature = "serialize")]
-extern crate serde;
-extern crate url;
-
-#[macro_use]
-extern crate futures;
-
-
-
-#[cfg(test)]
-#[macro_use]
-extern crate assert_matches;
-
-
-mod common;
-mod protocol;
-
-fn main()
-{
-    let s = String::from("hello");
-    // s.push_str(", world!"); // CANNOT BORROW AS MUTABLE
-    println!("The value of s is: {}", s); // hello
-    let mut t = String::from("hello");
-    t.push_str(", world!"); // CANNOT BORROW AS MUTABLE
-    println!("The value of t is: {}", t); // hello, world!
+    Ok(())
 }
