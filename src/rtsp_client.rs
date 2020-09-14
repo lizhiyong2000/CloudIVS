@@ -9,8 +9,11 @@ use url::quirks::host;
 #[derive(Default)]
 pub struct RTSPClient{
 
-    url: String,
-    connected: bool
+    pub url: String,
+    pub connected: bool,
+
+    _url : Url,
+    _socket: TcpStream,
 
 
 }
@@ -40,7 +43,11 @@ impl RTSPClient{
                     None=> 554
                 };
 
-                let mut stream = TcpStream::connect(format!("{}:{}", host_str, host_port))?;
+                self._url = _url;
+
+                let stream = TcpStream::connect(format!("{}:{}", host_str, host_port))?;
+
+                self._socket = stream;
 
                 self.connected = true;
                 println!("{}", format!("connected to {}:{}", host_str, host_port));
