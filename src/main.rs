@@ -11,7 +11,8 @@ fn main() -> Result<(), io::Error>{
     let url = "rtsp://admin:dm666666@192.168.30.224:554/h264/ch1/main/av_stream";
     let mut client = RTSPClient::new(String::from(url));
     client.connect()?;
-    client.sendSetup();
+    client.sendOptions();
+    client.sendDescribe();
 
     // OPTIONS rtsp://192.168.30.224:554/h264/ch1/main/av_stream&channelId=2 RTSP/1.0\r\n
     // CSeq: 2\r\n

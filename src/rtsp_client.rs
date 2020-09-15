@@ -3,8 +3,9 @@ use std::net::TcpStream;
 use std::io;
 use url::{Url, ParseError};
 use std::fs::read;
-use std::io::ErrorKind;
+use std::io::{ErrorKind, BufReader, BufRead, Write};
 use url::quirks::host;
+use std::str::from_utf8;
 
 #[derive(Default)]
 pub struct RTSPClient{
@@ -12,8 +13,9 @@ pub struct RTSPClient{
     pub url: String,
     pub connected: bool,
 
-    _url : Url,
-    _socket: TcpStream,
+    _url : Option<Url>,
+    _socket: Option<TcpStream>,
+    _cseq: u32,
 
 
 }
@@ -43,11 +45,11 @@ impl RTSPClient{
                     None=> 554
                 };
 
-                self._url = _url;
+                self._url = Some(_url.clone());
 
                 let stream = TcpStream::connect(format!("{}:{}", host_str, host_port))?;
 
-                self._socket = stream;
+                self._socket = Some(stream);
 
                 self.connected = true;
                 println!("{}", format!("connected to {}:{}", host_str, host_port));
@@ -58,7 +60,103 @@ impl RTSPClient{
 
     }
 
+    // OPTIONS rtsp://192.168.30.224:554/h264/ch1/main/av_stream&channelId=2 RTSP/1.0\r\n
+    // CSeq: 2\r\n
+    // User-Agent: LibVLC/3.0.6 (LIVE555 Streaming Media v2016.11.28)\r\n
+    // \r\n
+    pub fn sendOptions(&mut self){
+        let req = format!("OPTIONS {} RTSP/1.0\r\nCSeq: {}\r\nUser-Agent: {}\r\n\r\n",
+                             self.getRequestUrl(), self.getSeq(), self.getUserAgent());
+
+        let mut buffer: Vec<u8> = Vec::new();
+
+        let mut stream = self._socket.as_mut().unwrap();
+
+        stream.write(req.as_bytes())
+            .expect("Failed to write to server");
+        let mut reader = BufReader::new(stream);
+
+        loop{
+            reader.read_until(b'\n', &mut buffer)
+                .expect("Could not read into buffer");
+
+            let b = &buffer[buffer.len()-4..];
+            let end = format!("{}", from_utf8(&b).unwrap());
+
+            // print!("{}", end);
+
+            if end.ends_with("\r\n\r\n"){
+
+                print!("Message Received:\r\n{}", from_utf8(&buffer).unwrap());
+                break;
+            }
+
+
+        }
+
+        // print!("{}", from_utf8(&buffer)
+        //     .expect("Could not write buffer as string"));
+    }
+
+    // DESCRIBE rtsp://192.168.30.224:554/h264/ch1/main/av_stream&channelId=2 RTSP/1.0\r\n
+    // CSeq: 3\r\n
+    // User-Agent: LibVLC/3.0.6 (LIVE555 Streaming Media v2016.11.28)\r\n
+    // Accept: application/sdp\r\n
+    // \r\n
+    pub fn sendDescribe(&mut self) {
+        let req = format!("DESCRIBE {} RTSP/1.0\r\nCSeq: {}\r\nUser-Agent: {}\r\nAccept: application/sdp\r\n\r\n",
+                          self.getRequestUrl(), self.getSeq(), self.getUserAgent());
+
+        let mut buffer: Vec<u8> = Vec::new();
+
+        let mut stream = self._socket.as_mut().unwrap();
+
+        stream.write(req.as_bytes())
+            .expect("Failed to write to server");
+        let mut reader = BufReader::new(stream);
+
+        loop{
+            reader.read_until(b'\n', &mut buffer)
+                .expect("Could not read into buffer");
+
+            let b = &buffer[buffer.len()-4..];
+            let end = format!("{}", from_utf8(&b).unwrap());
+
+            // print!("{}", end);
+
+            if end.ends_with("\r\n\r\n"){
+
+                print!("Message Received:\r\n{}", from_utf8(&buffer).unwrap());
+                break;
+            }
+
+
+        }
+
+        // print!("{}", from_utf8(&buffer)
+        //     .expect("Could not write buffer as string"));
+    }
+
     pub fn sendSetup(&mut self) {
 
+    }
+
+    pub fn getUserAgent(&self) -> &str{
+        return "LibCloudMedia/0.0.1";
+    }
+
+    pub fn getRequestUrl(&self) -> String {
+
+        let temp_url = self._url.as_ref();
+        let mut ref_url = temp_url.unwrap().clone();
+        ref_url.set_username("");
+        ref_url.set_password(Some(""));
+
+        return ref_url.as_str().to_string();
+    }
+
+    pub fn getSeq(&mut self) -> u32{
+        self._cseq += 1;
+        return self._cseq;
     }
 }
