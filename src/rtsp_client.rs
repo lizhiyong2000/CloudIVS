@@ -7,6 +7,21 @@ use std::io::{ErrorKind, BufReader, BufRead, Write};
 use url::quirks::host;
 use std::str::from_utf8;
 
+
+// method            direction        object     requirement
+// DESCRIBE          C->S             P,S        recommended
+// ANNOUNCE          C->S, S->C       P,S        optional
+// GET_PARAMETER     C->S, S->C       P,S        optional
+// OPTIONS           C->S, S->C       P,S        required
+// (S->C: optional)
+// PAUSE             C->S             P,S        recommended
+// PLAY              C->S             P,S        required
+// RECORD            C->S             P,S        optional
+// REDIRECT          S->C             P,S        optional
+// SETUP             C->S             S          required
+// SET_PARAMETER     C->S, S->C       P,S        optional
+// TEARDOWN          C->S             P,S        required
+
 #[derive(Default)]
 pub struct RTSPClient{
 
@@ -103,6 +118,9 @@ impl RTSPClient{
     // User-Agent: LibVLC/3.0.6 (LIVE555 Streaming Media v2016.11.28)\r\n
     // Accept: application/sdp\r\n
     // \r\n
+
+    // Authorization: Digest username="admin", realm="IP Camera(C6496)", nonce="75ebba210a21f5d87902abcc3343d9d0", uri="rtsp://192.168.30.224:554/h264/ch1/main/av_stream&channelId=2", response="6b876cf2eede9d4611e70b38ca531b3d"\r\n
+    //
     pub fn sendDescribe(&mut self) {
         let req = format!("DESCRIBE {} RTSP/1.0\r\nCSeq: {}\r\nUser-Agent: {}\r\nAccept: application/sdp\r\n\r\n",
                           self.getRequestUrl(), self.getSeq(), self.getUserAgent());
