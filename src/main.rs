@@ -1,25 +1,36 @@
-mod rtsp_message;
-mod request;
-mod response;
-mod status;
-mod method;
-mod header;
+#![feature(int_error_matching)]
 
 use std::net::TcpStream;
 use std::str;
 use std::io::{self, BufRead, BufReader, Write};
-use crate::rtsp_client::RTSPClient;
+use crate::proto::rtsp::client::RTSPClient;
+use futures::executor::block_on;
+use std::error::Error;
+// use crate::rtsp_client::RTSPClient;
 // use crate::errors::ConnectionError;
 
 mod rtsp_client;
+mod proto;
 
-fn main() -> Result<(), io::Error>{
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn Error>> {
+    // Connect to a peer
+    let url = "rtsp://admin:dm666666@192.168.30.224:554/h264/ch1/main/av_stream";
+    let mut client = RTSPClient::new(String::from(url));
+    client.connect().await;
+    Ok(())
+}
+
+///
+
+fn main1() -> Result<(), io::Error>{
     //rtsp://admin:dm666666@192.168.30.224:554/h264/ch1/main/av_stream
     let url = "rtsp://admin:dm666666@192.168.30.224:554/h264/ch1/main/av_stream";
     let mut client = RTSPClient::new(String::from(url));
-    client.connect()?;
-    client.sendOptions();
-    client.sendDescribe();
+    block_on(client.connect());
+    // client.sendOptions();
+    // client.sendDescribe();
 
     // OPTIONS rtsp://192.168.30.224:554/h264/ch1/main/av_stream&channelId=2 RTSP/1.0\r\n
     // CSeq: 2\r\n
