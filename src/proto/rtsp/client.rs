@@ -64,23 +64,6 @@ impl RTSPClient {
                     Err(e) => return Err(e),
                 }
 
-                    // .map_err(|e| e.into())
-                    // .map(move |stream| {
-                    //     let codec = Codec::new();
-                    //     self.framed= Some(Framed::new(stream, codec));
-                    //     self.connected = true;
-                    //     Ok(())
-                    //     // RTSPClient { url, connected, framed }
-                    // });
-
-
-
-                // let stream = TcpStream::connect(format!("{}:{}", host_str, host_port))?;
-                //
-                // self._socket = Some(stream);
-                //
-                // self.connected = true;
-                // println!("{}", format!("connected to {}:{}", host_str, host_port));
                 return Ok(());
             }
         }
