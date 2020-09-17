@@ -12,6 +12,9 @@ use tokio::stream::StreamExt;
 use futures::channel::mpsc::{UnboundedSender, Receiver};
 use futures::future::Fuse;
 use futures::future::FutureExt;
+use futures::Future;
+use futures::task::Context;
+use tokio::macros::support::{Pin, Poll};
 
 pub(crate) struct MessageHandler{
     rx_incoming_request: Receiver<(CSeq, Request<BytesMut>)>,
@@ -101,4 +104,17 @@ impl MessageHandler{
         // }
     }
 
+}
+
+
+impl Future for MessageHandler
+    // where
+    //     TStream: Stream<Item = Result<Message, ProtocolError>> + Send + 'static,
+{
+    type Output = ();
+
+    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        println!("{}", "message handler poll");
+        unimplemented!()
+    }
 }

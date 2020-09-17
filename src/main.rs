@@ -6,6 +6,14 @@ use std::io::{self, BufRead, BufReader, Write};
 use crate::proto::rtsp::client::RTSPClient;
 use futures::executor::block_on;
 use std::error::Error;
+use futures::{TryFutureExt, Future, FutureExt};
+use crate::proto::rtsp::message::request::Request;
+use crate::proto::rtsp::message::method::Method;
+use bytes::BytesMut;
+use std::time::Duration;
+use tokio::time;
+use crate::proto::rtsp::message::uri::request::URI;
+use std::convert::TryFrom;
 // use crate::rtsp_client::RTSPClient;
 // use crate::errors::ConnectionError;
 
@@ -15,11 +23,30 @@ mod proto;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+// fn main() -> impl Future<Output = i32> {
     // Connect to a peer
     let url = "rtsp://admin:dm666666@192.168.30.224:554/h264/ch1/main/av_stream";
     let mut client = RTSPClient::new(String::from(url));
     client.connect().await;
+    let addr = client.uri();
+    // println!("Connected to server: {}", addr.unwrap());
+
+    let mut builder = Request::builder();
+    builder.method(Method::Setup).uri(URI::try_from(url).unwrap()).body(BytesMut::new());
+    let request = builder.build().unwrap();
+
+    client.send_request(request).then(|result| {
+        match result {
+            Ok(response) => println!("response: {:?}", response),
+            Err(error) => println!("error sending request: {}", error),
+        }
+
+        futures::future::ready(())
+    });
+
     Ok(())
+
+
 }
 
 ///
@@ -28,7 +55,12 @@ fn main1() -> Result<(), io::Error>{
     //rtsp://admin:dm666666@192.168.30.224:554/h264/ch1/main/av_stream
     let url = "rtsp://admin:dm666666@192.168.30.224:554/h264/ch1/main/av_stream";
     let mut client = RTSPClient::new(String::from(url));
-    block_on(client.connect());
+
+    let rt = tokio::runtime::Runtime::new().unwrap();
+
+    rt.enter(|| {client.connect()});
+
+    // block_on(client.connect());
     // client.sendOptions();
     // client.sendDescribe();
 

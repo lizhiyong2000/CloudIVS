@@ -14,8 +14,11 @@ use tokio_util::codec::Framed;
 use futures::stream::SplitSink;
 use futures::stream::SplitStream;
 
-use crate::proto::rtsp::connection::Connection;
+use crate::proto::rtsp::connection::{Connection, OperationError};
 use std::rc::Rc;
+use crate::proto::rtsp::message::request::Request;
+use crate::proto::rtsp::message::response::Response;
+use bytes::BytesMut;
 
 type RTSPFramed = Framed<TcpStream, Codec>;
 
@@ -37,6 +40,10 @@ impl RTSPClient {
             connection: None,
             _url: None
         }
+    }
+    pub fn uri(&self) -> Option<Url>
+    {
+        return self._url.clone();
     }
 
     pub async fn connect(&mut self) -> Result<(), io::Error>{
@@ -89,7 +96,13 @@ impl RTSPClient {
 
     }
 
-
+    pub fn send_request<R, B>(&mut self, request: R) -> impl Future<Output = Result<Response<BytesMut>, OperationError>>
+        where
+            R: Into<Request<B>>,
+            B: AsRef<[u8]>,
+    {
+        self.connection.as_mut().unwrap().send_request(request)
+    }
     // pub fn connect() -> impl Future<Output=RTSPClient> {
     //     TcpStream::connect(&SocketAddr::new("127.0.0.1".parse().unwrap(), CLIENT_PORT))
     //         .map_err(|e| e.into())

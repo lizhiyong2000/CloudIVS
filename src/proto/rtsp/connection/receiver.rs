@@ -8,7 +8,9 @@ use crate::proto::rtsp::message::header::types::CSeq;
 use crate::proto::rtsp::message::request::Request;
 use bytes::BytesMut;
 use futures::future::Fuse;
-use futures::FutureExt;
+use futures::{FutureExt, Future};
+use futures::task::Context;
+use tokio::macros::support::{Pin, Poll};
 
 pub struct MessageReceiver<TStream>
     where
@@ -45,8 +47,8 @@ impl <TStream> MessageReceiver<TStream>
         decode_timeout_duration: Duration,
     ) -> Self {
         MessageReceiver {
-            stream: stream,
-            rx_codec_event: rx_codec_event,
+            stream,
+            rx_codec_event,
             tx_incoming_request,
             decode_timeout_duration,
             requests_allowed: true,
@@ -54,3 +56,14 @@ impl <TStream> MessageReceiver<TStream>
     }
 }
 
+impl <TStream> Future for MessageReceiver<TStream>
+    where
+        TStream: Stream<Item = Result<Message, ProtocolError>> + Send + 'static,
+{
+    type Output = ();
+
+    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        println!("{}", "message receiver poll");
+        unimplemented!()
+    }
+}
