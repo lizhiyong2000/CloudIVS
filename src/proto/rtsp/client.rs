@@ -1,24 +1,26 @@
-// use tokio_codec::Framed;
-use std::net::{SocketAddr};
-use tokio::net::TcpStream;
-use crate::proto::rtsp::codec::{Message, Codec};
-use futures::{SinkExt, Future, TryFutureExt, FutureExt, StreamExt};
 use std::io;
 use std::io::ErrorKind;
-use url::Url;
+// use tokio_codec::Framed;
+use std::net::SocketAddr;
 use std::ptr::null;
-// use tokio_util::codec::;
-use tokio_util::codec::Framed;
-// use DefultExecutor;
+use std::rc::Rc;
 
+use bytes::BytesMut;
+use futures::{Future, FutureExt, SinkExt, StreamExt, TryFutureExt, future};
 use futures::stream::SplitSink;
 use futures::stream::SplitStream;
+use tokio::net::TcpStream;
+// use tokio_util::codec::;
+use tokio_util::codec::Framed;
+use url::Url;
 
+use crate::proto::rtsp::codec::{Codec, Message};
 use crate::proto::rtsp::connection::{Connection, OperationError};
-use std::rc::Rc;
 use crate::proto::rtsp::message::request::Request;
 use crate::proto::rtsp::message::response::Response;
-use bytes::BytesMut;
+use itertools::Either;
+
+// use DefultExecutor;
 
 type RTSPFramed = Framed<TcpStream, Codec>;
 
@@ -101,7 +103,17 @@ impl RTSPClient {
             R: Into<Request<B>>,
             B: AsRef<[u8]>,
     {
-        self.connection.as_mut().unwrap().send_request(request)
+        let conneciton = self.connection.as_mut();
+
+        if let Some(conn) = conneciton{
+            conn.send_request(request);
+        }
+
+
+        future::err(OperationError::Closed)
+        // return Either::left(Either::Left(OperationError::Closed));
+
+
     }
     // pub fn connect() -> impl Future<Output=RTSPClient> {
     //     TcpStream::connect(&SocketAddr::new("127.0.0.1".parse().unwrap(), CLIENT_PORT))

@@ -1,12 +1,12 @@
+use std::fs::read;
+use std::io;
+use std::io::{BufRead, BufReader, ErrorKind, Write};
 // use crate::errors::ConnectionError;
 use std::net::TcpStream;
-use std::io;
-use url::{Url, ParseError};
-use std::fs::read;
-use std::io::{ErrorKind, BufReader, BufRead, Write};
-use url::quirks::host;
 use std::str::from_utf8;
 
+use url::{ParseError, Url};
+use url::quirks::host;
 
 // method            direction        object     requirement
 // DESCRIBE          C->S             P,S        recommended

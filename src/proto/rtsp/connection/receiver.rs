@@ -1,16 +1,15 @@
-use tokio::stream::Stream;
-use crate::proto::rtsp::codec::{Message, ProtocolError, CodecEvent};
-use tokio::net::TcpStream;
-use tokio::time::Delay;
-use futures::channel::mpsc::{UnboundedReceiver, Sender};
-use std::time::Duration;
-use crate::proto::rtsp::message::header::types::CSeq;
-use crate::proto::rtsp::message::request::Request;
+use std::time::{Duration, Instant};
+
 use bytes::BytesMut;
-use futures::future::Fuse;
-use futures::{FutureExt, Future};
+use futures::{Future, StreamExt};
+use futures::channel::mpsc::{Sender, UnboundedReceiver};
 use futures::task::Context;
 use tokio::macros::support::{Pin, Poll};
+use tokio::stream::Stream;
+
+use crate::proto::rtsp::codec::{CodecEvent, Message, ProtocolError};
+use crate::proto::rtsp::message::header::types::CSeq;
+use crate::proto::rtsp::message::request::Request;
 
 pub struct MessageReceiver<TStream>
     where
@@ -54,6 +53,86 @@ impl <TStream> MessageReceiver<TStream>
             requests_allowed: true,
         }
     }
+
+    fn handle_codec_event(&mut self, event: CodecEvent) {
+        use self::CodecEvent::*;
+
+        match event {
+            DecodingStarted => {
+                let expire_time = Instant::now() + self.decode_timeout_duration;
+                // self.decoding_timer = Some(Delay::new(expire_time));
+            }
+            DecodingEnded => {
+                // self.decoding_timer = None;
+            }
+            _ => {}
+        }
+    }
+    /// Checks for new codec events.
+    ///
+    /// If `Ok(Async::Ready(()))` is never returned.
+    ///
+    /// If `Ok(Async::NotReady)` is returned, then there are no more codec events to be processed.
+    ///
+    /// If `Err(())` is never returned.
+    // pub fn poll_codec_events(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), ()>> {
+    //     loop {
+    //         match self.as_mut()
+    //             .rx_codec_event.poll_next_unpin(cx)
+    //             // .expect("`Receiver.rx_codec_event` should not error")
+    //         {
+    //
+    //             Poll::Ready(Some(event)) =>{
+    //                 self.handle_codec_event(event)
+    //             },
+    //             Poll::Pending =>{
+    //                 return Poll::Pending
+    //             },
+    //             _ =>{
+    //                 return Poll::Pending
+    //             }
+    //             // Async::Ready(Some(event)) => self.handle_codec_event(event),
+    //             // Async::NotReady => return Ok(Async::NotReady),
+    //             // Async::Ready(None) => panic!("`Receiver.rx_codec_event` should not end"),
+    //         }
+    //     }
+    // }
+
+
+    /// Checks if there are any messages to be processed from the internal connection stream.
+///
+/// If `Ok(Async::Ready(()))` is returned, then the stream has been closed and no more messages
+/// will be received.
+///
+/// If `Ok(Async::NotReady)` is returned, then either there are no more messages to be processed
+/// from the stream currently, or no messages can currently be accepted.
+///
+/// If `Err(`[`ProtocolError`]`)` is returned, then there was a protocol error while trying to
+/// poll the stream.
+    pub fn poll_stream(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), ProtocolError>> {
+
+        Poll::Pending
+        // let s = self.stream.take(1);
+        // match s
+        // {
+
+            // Ok(Async::Ready(Some(message))) => {
+            //     if let Err(error) = self.handle_message(message) {
+            //         self.handle_request_receiver_error(error);
+            //     }
+            // }
+            // Ok(Async::NotReady) => {
+            //     self.stream = Some(stream);
+            //     return Ok(Async::NotReady);
+            // }
+            // Ok(Async::Ready(None)) => return Ok(Async::Ready(())),
+            // Err(error) => {
+            //     self.handle_protocol_error(&error);
+            //     return Err(error);
+            // }
+        // }
+
+    }
 }
 
 impl <TStream> Future for MessageReceiver<TStream>
@@ -64,6 +143,19 @@ impl <TStream> Future for MessageReceiver<TStream>
 
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         println!("{}", "message receiver poll");
-        unimplemented!()
+        match self.poll_stream(cx) {
+            Poll::Ready(_)=> {
+                println!("{}", "message received");
+            },
+
+            // Ok(Async::Ready(_)) | Err(_) => {
+            //     self.shutdown_receiving();
+            // }
+            _ => (),
+        }
+
+        // self.poll_codec_events(cx);
+
+        Poll::Pending
     }
 }

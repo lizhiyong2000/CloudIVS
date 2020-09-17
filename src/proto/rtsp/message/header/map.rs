@@ -1,3 +1,5 @@
+use std::mem;
+
 use ordered_multimap::list_ordered_multimap::{
     Entry as MultimapEntry, EntryValues as MultimapEntryValues,
     EntryValuesDrain as MultimapEntryValuesDrain, EntryValuesMut as MultimapEntryValuesMut,
@@ -7,7 +9,6 @@ use ordered_multimap::list_ordered_multimap::{
     Values as MultimapKeyValues, Values as MultimapValues, ValuesMut as MultimapValuesMut,
 };
 use ordered_multimap::ListOrderedMultimap;
-use std::mem;
 
 use crate::proto::rtsp::message::header::name::HeaderName;
 use crate::proto::rtsp::message::header::value::HeaderValue;

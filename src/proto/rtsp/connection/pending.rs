@@ -1,4 +1,5 @@
 use std::time::Duration;
+
 use crate::proto::rtsp::connection::{REQUEST_MAX_TIMEOUT_DEFAULT_DURATION, REQUEST_TIMEOUT_DEFAULT_DURATION};
 
 /// Options used to modify the behavior of a request.

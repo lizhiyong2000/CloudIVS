@@ -1,31 +1,32 @@
-#[macro_use]
-pub mod decoder;
-pub mod encoder;
-
-// use bytes::BytesMut;
-use futures::channel::mpsc::UnboundedSender;
 use std::convert::Infallible;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::io;
 use std::sync::Arc;
-use tokio_util::codec::{Decoder, Encoder};
-// use ::codec
 
+use bytes::BytesMut;
+// use bytes::BytesMut;
+use futures::channel::mpsc::UnboundedSender;
+use tokio_util::codec::{Decoder, Encoder};
+
+use crate::proto::rtsp::codec::decoder::DecodeResult;
 use crate::proto::rtsp::codec::decoder::request::{
-    DecodeError as RequestDecodeError, DecodeState as RequestDecodeState, Decoder as RequestDecoder,
+    DecodeError as RequestDecodeError, Decoder as RequestDecoder, DecodeState as RequestDecodeState,
 };
 use crate::proto::rtsp::codec::decoder::response::{
-    DecodeError as ResponseDecodeError, DecodeState as ResponseDecodeState,
-    Decoder as ResponseDecoder,
+    DecodeError as ResponseDecodeError, Decoder as ResponseDecoder,
+    DecodeState as ResponseDecodeState,
 };
-use crate::proto::rtsp::codec::decoder::DecodeResult;
 use crate::proto::rtsp::codec::encoder::request;
 use crate::proto::rtsp::codec::encoder::response;
 use crate::proto::rtsp::message::request::Request;
 use crate::proto::rtsp::message::response::Response;
-use bytes::BytesMut;
 
+#[macro_use]
+pub mod decoder;
+pub mod encoder;
+
+// use ::codec
 
 /// The minimum amount of bytes needed in the information line in order to differentiate between
 /// requests and responses.
@@ -367,25 +368,26 @@ impl From<ResponseDecodeError> for DecodeError {
 
 #[cfg(test)]
 mod test {
-    use bytes::BytesMut;
     use std::convert::TryFrom;
 
-    use futures::StreamExt;
-    use futures::stream::Stream;
+    use bytes::BytesMut;
     use futures::channel::mpsc::{unbounded, UnboundedSender};
+    use futures::stream::Stream;
+    use futures::StreamExt;
     use tokio::runtime::Runtime;
-    use tokio_codec::{Decoder, Encoder};
-    // use tokio::runtime::current_thread::Runtime;
 
+    use tokio_codec::{Decoder, Encoder};
+
+    use crate::proto::rtsp::codec::{Codec, CodecEvent, Message};
     use crate::proto::rtsp::message::header::name::HeaderName;
     use crate::proto::rtsp::message::header::types::ContentLength;
     use crate::proto::rtsp::message::header::value::HeaderValue;
     use crate::proto::rtsp::message::method::Method;
-    use crate::proto::rtsp::codec::{Codec, CodecEvent, Message};
     use crate::proto::rtsp::message::request::Request;
     use crate::proto::rtsp::message::response::Response;
     use crate::proto::rtsp::message::uri::request::URI;
 
+// use tokio::runtime::current_thread::Runtime;
 
     #[test]
     fn test_codec_decoding() {

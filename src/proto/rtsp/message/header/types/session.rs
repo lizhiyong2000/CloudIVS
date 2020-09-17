@@ -8,11 +8,10 @@ use std::time::Duration;
 use crate::proto::rtsp::message::header::map::TypedHeader;
 use crate::proto::rtsp::message::header::name::HeaderName;
 use crate::proto::rtsp::message::header::value::HeaderValue;
-use crate::proto::rtsp::message::session::Session as SessionData;
 use crate::proto::rtsp::message::session::{SessionID, SessionIDError};
-use crate::proto::rtsp::message::syntax;
-
 pub use crate::proto::rtsp::message::session::{DEFAULT_SESSION_TIMEOUT, MAX_SESSION_TIMEOUT};
+use crate::proto::rtsp::message::session::Session as SessionData;
+use crate::proto::rtsp::message::syntax;
 
 /// The `"Session"` typed header as described by
 /// [RFC7826](https://tools.ietf.org/html/rfc7826#section-18.49).

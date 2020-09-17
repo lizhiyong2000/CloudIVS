@@ -1,37 +1,36 @@
+use std::fmt::{Display, Formatter};
+use std::fmt;
+use std::sync::Arc;
+use std::sync::atomic::AtomicBool;
+use std::time::Duration;
+
+use atomic::Ordering;
+use bytes::BytesMut;
+use futures::{Future, future, FutureExt, SinkExt, StreamExt};
+use futures::channel::{mpsc, oneshot};
+use futures::channel::mpsc::unbounded;
+use futures::future::{Either, Shared};
+use futures::stream::SplitSink;
+use futures::stream::SplitStream;
+use futures::task::Context;
+use tokio::io::{AsyncRead, AsyncWrite};
+use tokio::macros::support::{Pin, Poll};
+use tokio_util::codec::Framed;
+
+use crate::proto::rtsp::codec::{Codec, Message};
+use crate::proto::rtsp::connection::handler::MessageHandler;
+// use crate::proto::rtsp::connection::OperationError::RequestTimedOut;
+use crate::proto::rtsp::connection::pending::RequestOptions;
+use crate::proto::rtsp::connection::receiver::MessageReceiver;
+use crate::proto::rtsp::connection::sender::MessageSender;
+use crate::proto::rtsp::message::request::Request;
+use crate::proto::rtsp::message::response::Response;
+
 mod shutdown;
 mod handler;
 mod sender;
 mod receiver;
 mod pending;
-
-use tokio::io::{AsyncRead, AsyncWrite};
-use std::sync::Arc;
-use std::sync::atomic::AtomicBool;
-use crate::proto::rtsp::codec::{Codec, Message};
-use tokio_util::codec::Framed;
-use futures::future::{Shared, Either};
-use futures::channel::{oneshot, mpsc};
-use crate::proto::rtsp::message::request::Request;
-use bytes::BytesMut;
-use crate::proto::rtsp::message::response::Response;
-use futures::{FutureExt, StreamExt, SinkExt, Future, future};
-use futures::stream::SplitSink;
-use futures::stream::SplitStream;
-
-
-
-use crate::proto::rtsp::connection::receiver::MessageReceiver;
-use crate::proto::rtsp::connection::sender::MessageSender;
-use crate::proto::rtsp::connection::handler::MessageHandler;
-use std::time::Duration;
-use futures::channel::mpsc::unbounded;
-use futures::task::Context;
-use tokio::macros::support::{Pin, Poll};
-use atomic::Ordering;
-use crate::proto::rtsp::connection::pending::RequestOptions;
-use std::fmt::{Display, Formatter};
-use crate::proto::rtsp::connection::OperationError::RequestTimedOut;
-use std::fmt;
 
 pub const DEFAULT_CONTINUE_WAIT_DURATION: Duration = Duration::from_secs(5);
 pub const DEFAULT_DECODE_TIMEOUT_DURATION: Duration = Duration::from_secs(10);

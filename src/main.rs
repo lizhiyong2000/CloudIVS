@@ -1,19 +1,22 @@
 #![feature(int_error_matching)]
 
+use std::convert::TryFrom;
+use std::error::Error;
+use std::io;
 use std::net::TcpStream;
 use std::str;
-use std::io::{self, BufRead, BufReader, Write};
-use crate::proto::rtsp::client::RTSPClient;
-use futures::executor::block_on;
-use std::error::Error;
-use futures::{TryFutureExt, Future, FutureExt};
-use crate::proto::rtsp::message::request::Request;
-use crate::proto::rtsp::message::method::Method;
-use bytes::BytesMut;
 use std::time::Duration;
+
+use bytes::BytesMut;
+use futures::{Future, FutureExt, TryFutureExt};
+use futures::executor::block_on;
 use tokio::time;
+
+use crate::proto::rtsp::client::RTSPClient;
+use crate::proto::rtsp::message::method::Method;
+use crate::proto::rtsp::message::request::Request;
 use crate::proto::rtsp::message::uri::request::URI;
-use std::convert::TryFrom;
+
 // use crate::rtsp_client::RTSPClient;
 // use crate::errors::ConnectionError;
 

@@ -1,20 +1,22 @@
-use crate::proto::rtsp::message::header::name::HeaderName;
-use crate::proto::rtsp::message::header::types::{ContentLength, CSeq};
-use crate::proto::rtsp::message::uri::Scheme;
-use crate::proto::rtsp::message::request::Request;
-use bytes::BytesMut;
-use crate::proto::rtsp::message::header::map::HeaderMapExtension;
-use crate::proto::rtsp::message::response::Response;
-use crate::proto::rtsp::codec::Message;
 use std::time::Duration;
-// use tokio::sync::mpsc::Receiver;
-use tokio::stream::StreamExt;
-use futures::channel::mpsc::{UnboundedSender, Receiver};
-use futures::future::Fuse;
-use futures::future::FutureExt;
+
+use bytes::BytesMut;
+use futures::channel::mpsc::{Receiver, UnboundedSender};
 use futures::Future;
+// use futures::future::Fuse;
+use futures::future::FutureExt;
 use futures::task::Context;
 use tokio::macros::support::{Pin, Poll};
+// use tokio::sync::mpsc::Receiver;
+use tokio::stream::StreamExt;
+
+use crate::proto::rtsp::codec::Message;
+use crate::proto::rtsp::message::header::map::HeaderMapExtension;
+use crate::proto::rtsp::message::header::name::HeaderName;
+use crate::proto::rtsp::message::header::types::{ContentLength, CSeq};
+use crate::proto::rtsp::message::request::Request;
+use crate::proto::rtsp::message::response::Response;
+// use crate::proto::rtsp::message::uri::Scheme;
 
 pub(crate) struct MessageHandler{
     rx_incoming_request: Receiver<(CSeq, Request<BytesMut>)>,
@@ -88,7 +90,7 @@ impl MessageHandler{
     }
 
 
-    fn send_response(&mut self, cseq: CSeq, mut response: Response<BytesMut>) {
+    fn send_response(&mut self, cseq: CSeq, response: Response<BytesMut>) {
         // response.headers_mut().typed_insert(cseq);
 
         // if let Some(sender_handle) = self.sender_handle.as_mut() {
@@ -113,8 +115,8 @@ impl Future for MessageHandler
 {
     type Output = ();
 
-    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         println!("{}", "message handler poll");
-        unimplemented!()
+        Poll::Pending
     }
 }

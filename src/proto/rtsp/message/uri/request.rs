@@ -31,19 +31,20 @@
 //! assert_eq!(uri.to_string(), "rtsp://127.0.0.1/");
 //! ```
 
-use lazy_static::lazy_static;
 use std::convert::{Infallible, TryFrom};
 use std::error::Error;
 use std::fmt::{self, Display, Formatter, Write};
 use std::mem;
+
+use lazy_static::lazy_static;
 use uriparse::{
-    Host as GenericHost, Scheme as GenericScheme, URIReference, URIReferenceError,
-    URI as GenericURI,
+    Host as GenericHost, Scheme as GenericScheme, URI as GenericURI, URIReference,
+    URIReferenceError,
 };
 
 use crate::proto::rtsp::message::uri::{
     Authority, AuthorityError, Fragment, Host, Password, Path, PathError, Query, QueryError,
-    Scheme, SchemeError, Username, RTSPS_DEFAULT_PORT, RTSPU_DEFAULT_PORT, RTSP_DEFAULT_PORT,
+    RTSP_DEFAULT_PORT, RTSPS_DEFAULT_PORT, RTSPU_DEFAULT_PORT, Scheme, SchemeError, Username,
 };
 
 lazy_static! {

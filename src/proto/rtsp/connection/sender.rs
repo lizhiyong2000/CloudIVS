@@ -1,14 +1,14 @@
-use futures::{Sink, Future};
-use crate::proto::rtsp::codec::{Message, ProtocolError};
-use futures::channel::mpsc::{UnboundedReceiver, unbounded};
-use futures::future::Fuse;
+use futures::{Future, Sink};
+use futures::channel::mpsc::{unbounded, UnboundedReceiver};
+// use futures::future::Fuse;
 // use futures::channel::mpsc::unbounded;
 // use tokio::sync::mpsc::UnboundedReceiver;
 // use tokio::stream::StreamExt;
-use futures::future::FutureExt;
+// use futures::future::FutureExt;
 use futures::task::Context;
 use tokio::macros::support::{Pin, Poll};
 
+use crate::proto::rtsp::codec::{Message, ProtocolError};
 
 pub struct MessageSender<TSink>
     where
@@ -47,8 +47,8 @@ impl <TSink> Future for MessageSender<TSink>
 {
     type Output = ();
 
-    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         println!("{}", "message sender poll");
-        unimplemented!()
+        Poll::Pending
     }
 }

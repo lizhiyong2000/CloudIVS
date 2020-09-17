@@ -106,7 +106,7 @@ impl From<Infallible> for VersionDecodeError {
 
 #[cfg(test)]
 pub mod tests {
-    use super::{VersionDecodeError, Version};
+    use super::{Version, VersionDecodeError};
 
     #[test]
     fn test_as_encoded() {

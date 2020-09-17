@@ -1,9 +1,10 @@
-use chrono::{DateTime, TimeZone, Utc};
 use std::convert::Infallible;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::iter::once;
 use std::ops::Deref;
+
+use chrono::{DateTime, TimeZone, Utc};
 
 use crate::proto::rtsp::message::header::common::date::{self, DateTimeError};
 use crate::proto::rtsp::message::header::map::TypedHeader;

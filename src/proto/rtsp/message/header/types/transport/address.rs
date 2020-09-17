@@ -3,6 +3,7 @@ use std::error::Error;
 use std::fmt::{self, Display, Formatter, Write};
 use std::ops::Deref;
 use std::str;
+
 use uriparse::{authority, Host};
 
 use crate::proto::rtsp::message::syntax;

@@ -1,10 +1,11 @@
-use itertools::Itertools;
-use linked_hash_set::LinkedHashSet;
 use std::convert::TryFrom;
 use std::fmt::{self, Display, Formatter};
-use std::iter::{once, FromIterator};
+use std::iter::{FromIterator, once};
 use std::ops::{Deref, DerefMut};
 use std::str;
+
+use itertools::Itertools;
+use linked_hash_set::LinkedHashSet;
 
 use crate::proto::rtsp::message::header::map::TypedHeader;
 use crate::proto::rtsp::message::header::name::HeaderName;

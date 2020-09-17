@@ -1,6 +1,7 @@
-use base64::{self, DecodeError as Base64DecodeError};
 use std::convert::TryFrom;
 use std::ops::Deref;
+
+use base64::{self, DecodeError as Base64DecodeError};
 
 /// The MIKEY parameter used in conjunction with transport specifications that can utilize MIKEY
 /// [[RFC3830]](https://tools.ietf.org/html/rfc3830) for security context establishment.

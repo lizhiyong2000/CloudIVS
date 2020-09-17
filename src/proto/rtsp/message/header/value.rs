@@ -1,9 +1,9 @@
 //! Header Value
 
+use std::{cmp, str};
 use std::convert::{Infallible, TryFrom};
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
-use std::{cmp, str};
 
 /// An RTSP header value that is UTF-8 encoded.
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
