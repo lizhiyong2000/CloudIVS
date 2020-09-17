@@ -2,13 +2,20 @@
 use std::net::{SocketAddr};
 use tokio::net::TcpStream;
 use crate::proto::rtsp::codec::{Message, Codec};
-use futures::{SinkExt, Future, TryFutureExt, FutureExt};
+use futures::{SinkExt, Future, TryFutureExt, FutureExt, StreamExt};
 use std::io;
 use std::io::ErrorKind;
 use url::Url;
 use std::ptr::null;
 // use tokio_util::codec::;
 use tokio_util::codec::Framed;
+// use DefultExecutor;
+
+use futures::stream::SplitSink;
+use futures::stream::SplitStream;
+
+use crate::proto::rtsp::connection::Connection;
+use std::rc::Rc;
 
 type RTSPFramed = Framed<TcpStream, Codec>;
 
@@ -16,7 +23,7 @@ type RTSPFramed = Framed<TcpStream, Codec>;
 pub struct RTSPClient {
     pub url: String,
     pub connected: bool,
-    framed: Option<RTSPFramed>,
+    connection: Option<Connection<TcpStream>>,
     _url : Option<Url>,
 }
 
@@ -27,7 +34,7 @@ impl RTSPClient {
         return RTSPClient{
             url,
             connected:false,
-            framed: None,
+            connection: None,
             _url: None
         }
     }
@@ -51,14 +58,25 @@ impl RTSPClient {
 
 
                 let stream = TcpStream::connect(format!("{}:{}", host_str, host_port)).await;
-                let codec = Codec::new();
-                // self.framed= Some(Framed::new(stream.unwrap(), codec));
+                // let codec = Codec::new();
 
                 println!("{}", format!("connected to {}:{}", host_str, host_port));
                 //     Ok(())
                 match stream{
                     Ok(c) => {
-                        self.framed= Some(Framed::new(c, codec));
+                        // self.framed= Some(Framed::new(c, codec));
+
+                        // let mut executor = DefaultExecutor::current();
+
+                        let connection  = Connection::new(c);
+
+                        // self.connection = Some(connection);
+                        tokio::spawn(Box::new(connection));
+
+                        // if let Some(handler) = handler {
+                        //     executor.spawn(Box::new(handler)).unwrap();
+                        // }
+
                         self.connected = true;
                     },
                     Err(e) => return Err(e),
