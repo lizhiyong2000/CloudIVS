@@ -1,5 +1,5 @@
 use futures::{Future, Sink};
-use futures::channel::mpsc::{unbounded, UnboundedReceiver};
+use futures::channel::mpsc::{unbounded, UnboundedReceiver, UnboundedSender};
 // use futures::future::Fuse;
 // use futures::channel::mpsc::unbounded;
 // use tokio::sync::mpsc::UnboundedReceiver;
@@ -28,7 +28,7 @@ impl<TSink> MessageSender<TSink>
     where
         TSink: Sink<Message, Error = ProtocolError> + Send + 'static,
 {
-    pub fn new(sink: TSink, rx_outgoing_message:UnboundedReceiver<Message>) -> Self {
+    pub fn new(sink: TSink, rx_outgoing_message:UnboundedReceiver<Message>) -> (Self, SenderHandle) {
         let (tx_outgoing_message, rx_outgoing_message) = unbounded();
         let sender = MessageSender {
             buffered_message: None,
@@ -36,7 +36,9 @@ impl<TSink> MessageSender<TSink>
             sink,
         };
 
-        sender
+        let sender_handle = SenderHandle(tx_outgoing_message);
+
+        (sender, sender_handle)
     }
 }
 
@@ -50,5 +52,15 @@ impl <TSink> Future for MessageSender<TSink>
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         println!("{}", "message sender poll");
         Poll::Pending
+    }
+}
+
+
+#[derive(Clone, Debug)]
+pub struct SenderHandle(pub(crate) UnboundedSender<Message>);
+
+impl SenderHandle {
+    pub fn try_send_message(&self, message: Message) -> Result<(), ()> {
+        self.0.unbounded_send(message).map_err(|_| ())
     }
 }

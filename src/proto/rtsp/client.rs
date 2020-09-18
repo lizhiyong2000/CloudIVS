@@ -15,10 +15,11 @@ use tokio_util::codec::Framed;
 use url::Url;
 
 use crate::proto::rtsp::codec::{Codec, Message};
-use crate::proto::rtsp::connection::{Connection, OperationError};
+use crate::proto::rtsp::connection::{Connection, OperationError, ConnectionHandle};
 use crate::proto::rtsp::message::request::Request;
 use crate::proto::rtsp::message::response::Response;
 use itertools::Either;
+use std::sync::Arc;
 
 // use DefultExecutor;
 
@@ -28,7 +29,7 @@ type RTSPFramed = Framed<TcpStream, Codec>;
 pub struct RTSPClient {
     pub url: String,
     pub connected: bool,
-    connection: Option<Connection<TcpStream>>,
+    connection: Option<ConnectionHandle>,
     _url : Option<Url>,
 }
 
@@ -77,10 +78,17 @@ impl RTSPClient {
 
                         // let mut executor = DefaultExecutor::current();
 
-                        let connection  = Connection::new(c);
+                        let (connection, handle)  = Connection::new(c);
 
-                        // self.connection = Some(connection);
+                        self.connection = Some(handle);
+
+                        // let mut runtime = tokio::runtime::Runtime::new().unwrap();
+
+                        // runtime.block_on(connection);
+
                         tokio::spawn(Box::new(connection));
+
+
 
                         // if let Some(handler) = handler {
                         //     executor.spawn(Box::new(handler)).unwrap();

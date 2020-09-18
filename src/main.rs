@@ -16,6 +16,8 @@ use crate::proto::rtsp::client::RTSPClient;
 use crate::proto::rtsp::message::method::Method;
 use crate::proto::rtsp::message::request::Request;
 use crate::proto::rtsp::message::uri::request::URI;
+use tokio::time::delay_for;
+use crate::proto::rtsp::connection::OperationError;
 
 // use crate::rtsp_client::RTSPClient;
 // use crate::errors::ConnectionError;
@@ -30,7 +32,18 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // Connect to a peer
     let url = "rtsp://admin:dm666666@192.168.30.224:554/h264/ch1/main/av_stream";
     let mut client = RTSPClient::new(String::from(url));
-    client.connect().await;
+    let result = client.connect().await;
+    // .then(|result| {
+    match result {
+        Ok(_) => println!("Connected: {:?}", client.uri()),
+        Err(error) => {
+            println!("connect error: {}", error);
+            // return Err(Box::new("connect error"));
+            return Err("connect error".into());
+        },
+    }
+
+
     let addr = client.uri();
     // println!("Connected to server: {}", addr.unwrap());
 
@@ -38,15 +51,20 @@ async fn main() -> Result<(), Box<dyn Error>> {
     builder.method(Method::Setup).uri(URI::try_from(url).unwrap()).body(BytesMut::new());
     let request = builder.build().unwrap();
 
-    client.send_request(request).then(|result| {
-        match result {
-            Ok(response) => println!("response: {:?}", response),
-            Err(error) => println!("error sending request: {}", error),
-        }
+    // println!("request:{}", request);
 
-        futures::future::ready(())
-    });
+    let result = client.send_request(request).await;
 
+    // .then(|result| {
+    match result {
+        Ok(response) => println!("response: {:?}", response),
+        Err(error) => println!("error sending request: {}", error),
+    }
+
+    // futures::future::ready(())
+    // });
+
+    delay_for(Duration::from_millis(1000 * 1000)).await;
     Ok(())
 
 

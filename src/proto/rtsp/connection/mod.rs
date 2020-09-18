@@ -1,6 +1,6 @@
-use std::fmt::{Display, Formatter};
-use std::fmt;
-use std::sync::Arc;
+use std::fmt::{Display, Formatter, Debug};
+use std::{fmt, mem};
+use std::sync::{Arc, Mutex};
 use std::sync::atomic::AtomicBool;
 use std::time::Duration;
 
@@ -8,7 +8,7 @@ use atomic::Ordering;
 use bytes::BytesMut;
 use futures::{Future, future, FutureExt, SinkExt, StreamExt};
 use futures::channel::{mpsc, oneshot};
-use futures::channel::mpsc::unbounded;
+use futures::channel::mpsc::{unbounded, UnboundedSender};
 use futures::future::{Either, Shared};
 use futures::stream::SplitSink;
 use futures::stream::SplitStream;
@@ -20,11 +20,14 @@ use tokio_util::codec::Framed;
 use crate::proto::rtsp::codec::{Codec, Message};
 use crate::proto::rtsp::connection::handler::MessageHandler;
 // use crate::proto::rtsp::connection::OperationError::RequestTimedOut;
-use crate::proto::rtsp::connection::pending::RequestOptions;
+use crate::proto::rtsp::connection::pending::{RequestOptions, PendingRequestUpdate, SendRequest};
 use crate::proto::rtsp::connection::receiver::MessageReceiver;
-use crate::proto::rtsp::connection::sender::MessageSender;
+use crate::proto::rtsp::connection::sender::{MessageSender, SenderHandle};
 use crate::proto::rtsp::message::request::Request;
 use crate::proto::rtsp::message::response::Response;
+use std::error::Error;
+use crate::proto::rtsp::message::header::map::HeaderMapExtension;
+use crate::proto::rtsp::message::header::types::CSeq;
 
 mod shutdown;
 mod handler;
@@ -98,80 +101,12 @@ impl<TTransport> Connection<TTransport>
     /// See [`Connection::with_config`] for more information.
     pub fn new(
         transport: TTransport,
-    ) -> Self
+    ) -> (Self, ConnectionHandle)
     {
         Connection::with_config(transport, Config::default())
     }
 
 
-    /// Sends the given request with default options.
-    ///
-    /// See [`ConnectionHandle::send_request_with_options`] for more information.
-    pub fn send_request<TRequest, TBody>(
-        &mut self,
-        request: TRequest,
-    ) -> impl Future<Output = Result<Response<BytesMut>, OperationError>>
-        where
-            TRequest: Into<Request<TBody>>,
-            TBody: AsRef<[u8]>,
-    {
-
-        let options = RequestOptions::builder()
-            .max_timeout_duration(self.request_max_timeout_default_duration)
-            .timeout_duration(self.request_timeout_default_duration)
-            .build();
-
-        if !self.allow_requests.load(Ordering::SeqCst) {
-            // future::Either::
-            return Either::Left(future::err(OperationError::Closed));
-        }
-
-        return Either::Right(future::err(OperationError::Closed)) ;
-        //
-        // let mut lock = self
-        //     .sequence_number
-        //     .lock()
-        //     .expect("`ConnectionHandler.sequence_number` should not be poisoned");
-        // let sequence_number = *lock;
-        //
-        // // Convert the request into the expect transport format, including setting the `"CSeq"`.
-        // let mut request = request.into().map(|body| BytesMut::from(body.as_ref()));
-        // request.headers_mut().typed_insert(sequence_number);
-        //
-        // // Notify the response receiver that we are going to be expecting a response for this
-        // // request.
-        // let (tx_response, rx_response) = oneshot::channel();
-        // let update = PendingRequestUpdate::AddPendingRequest((sequence_number, tx_response));
-        //
-        // if self.tx_pending_request.unbounded_send(update).is_err() {
-        //     return Either::A(future::err(OperationError::Closed));
-        // }
-        //
-        // if self
-        //     .sender_handle
-        //     .try_send_message(Message::Request(request))
-        //     .is_err()
-        // {
-        //     // The sender is shutdown, so we need to renotify the response receiver and remove the
-        //     // pending request we just added. If this fails as well, then the response receiver has
-        //     // been shutdown, but it does not matter.
-        //     let _ = self
-        //         .tx_pending_request
-        //         .unbounded_send(PendingRequestUpdate::RemovePendingRequest(sequence_number));
-        //     return Either::A(future::err(OperationError::Closed));
-        // }
-        //
-        // *lock = sequence_number.wrapping_increment();
-        // mem::drop(lock);
-        //
-        // Either::B(SendRequest::new(
-        //     rx_response,
-        //     self.tx_pending_request.clone(),
-        //     sequence_number,
-        //     options.timeout_duration(),
-        //     options.max_timeout_duration(),
-        // ))
-    }
 
     /// Polls the receiver if it is still running.
     fn poll_receiver(mut self: Pin<&mut Self>, cx: &mut Context<'_>) {
@@ -279,7 +214,7 @@ impl<TTransport> Connection<TTransport>
     pub fn with_config(
         transport: TTransport,
         config: Config,
-    ) -> Self
+    ) -> (Self, ConnectionHandle)
     {
         // Create all channels that the connection components will use to communicate with each
         // other.
@@ -293,11 +228,11 @@ impl<TTransport> Connection<TTransport>
 
         let (tx_outgoing_message, rx_outgoing_message) = unbounded();
 
-        // let (tx_pending_request, rx_pending_request) = mpsc::unbounded();
+        let (tx_pending_request, rx_pending_request) = mpsc::unbounded();
 
 
-        // let (tx_initiate_shutdown, rx_initiate_shutdown) = oneshot::channel();
-        // let (tx_connection_shutdown_event, rx_connection_shutdown_event) = oneshot::channel();
+        let (tx_initiate_shutdown, rx_initiate_shutdown) = oneshot::channel();
+        let (tx_connection_shutdown_event, rx_connection_shutdown_event) = oneshot::channel();
         // let (tx_handler_shutdown_event, rx_handler_shutdown_event) = oneshot::channel();
 
 
@@ -305,7 +240,7 @@ impl<TTransport> Connection<TTransport>
 
         // Create individual components. A request handler is only created if a service was given.
 
-        let sender = MessageSender::new(sink,  rx_outgoing_message);
+        let (sender, sender_handle) = MessageSender::new(sink,  rx_outgoing_message);
         let receiver = MessageReceiver::new(
             stream,
             rx_codec_event,
@@ -350,19 +285,27 @@ impl<TTransport> Connection<TTransport>
 
             request_timeout_default_duration: None,
         };
-        // let connection_handle = ConnectionHandle::new(
-        //     connection.allow_requests.clone(),
-        //     rx_connection_shutdown_event.shared(),
-        //     rx_handler_shutdown_event,
-        //     sender_handle,
-        //     tx_pending_request,
-        //     tx_initiate_shutdown,
-        //     config.graceful_shutdown_timeout_default_duration(),
-        //     config.request_max_timeout_default_duration(),
-        //     config.request_timeout_default_duration(),
-        // );
+        let connection_handle = ConnectionHandle::new(
+            connection.allow_requests.clone(),
+            config.request_max_timeout_default_duration(),
+            config.request_timeout_default_duration(),
 
-        connection
+            tx_initiate_shutdown,
+            rx_connection_shutdown_event.shared(),
+            sender_handle,
+            // connection.allow_requests.clone(),
+
+            // rx_handler_shutdown_event,
+
+            tx_pending_request,
+
+
+            // config.graceful_shutdown_timeout_default_duration(),
+            // config.request_max_timeout_default_duration(),
+            // config.request_timeout_default_duration(),
+        );
+
+        (connection, connection_handle)
     }
 }
 // pub struct Connection<TTransport>
@@ -591,6 +534,9 @@ pub enum RequestTimeoutType {
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[non_exhaustive]
 pub enum OperationError {
+
+    RequestNotAllowed,
+
     /// An attempt was made to send a request when the write state no longer allows sending
     /// requests. This situation can occur if, for example, a graceful shutdown is happening or an
     /// error occurred while trying to send a message to the receiving agent.
@@ -615,9 +561,199 @@ impl Display for OperationError{
         use self::OperationError::*;
 
         match self {
+            RequestNotAllowed => write!(formatter, "RequestNotAllowed"),
             RequestTimedOut(error) => write!(formatter, "RequestTimedOut"),
             Closed => write!(formatter, "Closed"),
             RequestCancelled => write!(formatter, "RequestCancelled"),
         }
     }
+}
+
+// impl Debug for OperationError{
+//     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
+//         write!(formatter, "{}", "test");
+//     }
+// }
+
+impl Error for OperationError {}
+
+/// A handle to an RTSP connection.
+///
+/// This can be used to send requests or shutdown the connection.
+// #[derive(Clone, Debug)]
+pub struct ConnectionHandle {
+    allow_requests: Arc<AtomicBool>,
+
+    request_max_timeout_default_duration: Option<Duration>,
+
+    request_timeout_default_duration: Option<Duration>,
+
+    rx_connection_shutdown_event:Shared<oneshot::Receiver<()>>,
+    tx_initiate_shutdown:Option<oneshot::Sender<()>>,
+    /// A handle to the sender, so that we can send requests.
+    sender_handle: SenderHandle,
+
+    // /// The next `"CSeq"` that will be used when sending a request.
+    // sequence_number: Arc<Mutex<CSeq>>,
+    //
+    // /// A receiver which can be used to check when shutdown of the connection and request handler
+    // /// has finished.
+    // shutdown_receiver: ConnectionShutdownReceiver,
+    //
+    // /// A shared sender which allows us to shutdown the connection.
+    // shutdown_sender: Arc<Mutex<ConnectionShutdownSender>>,
+    //
+    // /// A sender used to notify the response receiver that we want to add a new pending request.
+    tx_pending_request: UnboundedSender<PendingRequestUpdate>,
+
+    /// The next `"CSeq"` that will be used when sending a request.
+    sequence_number: Arc<Mutex<CSeq>>,
+}
+
+impl ConnectionHandle {
+    /// Constructs a new connection handle.
+    #[allow(clippy::too_many_arguments)]
+    pub(self) fn new(
+        allow_requests: Arc<AtomicBool>,
+
+        request_max_timeout_default_duration: Option<Duration>,
+
+        request_timeout_default_duration: Option<Duration>,
+
+
+        tx_initiate_shutdown: oneshot::Sender<()>,
+        // allow_requests: Arc<AtomicBool>,
+        rx_connection_shutdown_event: Shared<oneshot::Receiver<()>>,
+        // rx_handler_shutdown_event: Option<Shared<oneshot::Receiver<()>>>,
+        sender_handle: SenderHandle,
+        tx_pending_request: UnboundedSender<PendingRequestUpdate>,
+
+        // graceful_shutdown_timeout_default_duration: Duration,
+        // request_max_timeout_default_duration: Option<Duration>,
+        // request_timeout_default_duration: Option<Duration>,
+
+
+    ) -> Self {
+        // let shutdown_receiver = ConnectionShutdownReceiver::new(
+        //     rx_connection_shutdown_event,
+        //     rx_handler_shutdown_event,
+        // );
+        // let shutdown_sender = ConnectionShutdownSender::new(
+        //     tx_initiate_shutdown,
+        //     graceful_shutdown_timeout_default_duration,
+        // );
+
+        ConnectionHandle {
+            allow_requests,
+            request_max_timeout_default_duration,
+            request_timeout_default_duration,
+            sender_handle,
+            rx_connection_shutdown_event,
+            tx_initiate_shutdown: Some(tx_initiate_shutdown),
+            tx_pending_request,
+            sequence_number: Arc::new(Mutex::new(CSeq::random())),
+        }
+    }
+
+    // /// Sends the given request with default options.
+    // ///
+    // /// See [`ConnectionHandle::send_request_with_options`] for more information.
+    // pub fn send_request<TRequest, TBody>(
+    //     &mut self,
+    //     request: TRequest,
+    // ) -> impl Future<Output = Result<Response<BytesMut>, OperationError>>
+    //     where
+    //         TRequest: Into<Request<TBody>>,
+    //         TBody: AsRef<[u8]>,
+    // {
+    //
+    //     self.sender_handle.try_send_message()
+    // }
+
+
+    /// Shuts down the connection if it is not already shutdown.
+    ///
+    /// See [`ShutdownType`] for the different ways in which the connection can be shutdown.
+    ///
+    /// Even if the connection is shutdown, the request handler may still be processing remaining
+    /// requests.
+    pub fn shutdown(&mut self) {
+        if let Some(tx_initiate_shutdown) = self.tx_initiate_shutdown.take() {
+            let _ = tx_initiate_shutdown.send(());
+        }
+    }
+
+    /// Sends the given request with default options.
+    ///
+    /// See [`ConnectionHandle::send_request_with_options`] for more information.
+    pub fn send_request<TRequest, TBody>(
+        &mut self,
+        request: TRequest,
+    ) -> impl Future<Output = Result<Response<BytesMut>, OperationError>>
+        where
+            TRequest: Into<Request<TBody>>,
+            TBody: AsRef<[u8]>,
+    {
+
+        println!("{}","send request");
+
+        let options = RequestOptions::builder()
+            .max_timeout_duration(self.request_max_timeout_default_duration)
+            .timeout_duration(self.request_timeout_default_duration)
+            .build();
+
+        if !self.allow_requests.load(Ordering::SeqCst) {
+            // future::Either::
+            return future::err(OperationError::RequestNotAllowed);
+        }
+
+        // return future::err(OperationError::Closed) ;
+
+        let mut lock = self
+            .sequence_number
+            .lock()
+            .expect("`ConnectionHandler.sequence_number` should not be poisoned");
+        let sequence_number = *lock;
+
+        // Convert the request into the expect transport format, including setting the `"CSeq"`.
+        let mut request = request.into().map(|body| BytesMut::from(body.as_ref()));
+        request.headers_mut().typed_insert(sequence_number);
+
+        // Notify the response receiver that we are going to be expecting a response for this
+        // request.
+        let (tx_response, rx_response) = oneshot::channel();
+        let update = PendingRequestUpdate::AddPendingRequest((sequence_number, tx_response));
+
+        if self.tx_pending_request.unbounded_send(update).is_err() {
+            return future::err(OperationError::Closed);
+        }
+
+        if self
+            .sender_handle
+            .try_send_message(Message::Request(request))
+            .is_err()
+        {
+            // The sender is shutdown, so we need to renotify the response receiver and remove the
+            // pending request we just added. If this fails as well, then the response receiver has
+            // been shutdown, but it does not matter.
+            let _ = self
+                .tx_pending_request
+                .unbounded_send(PendingRequestUpdate::RemovePendingRequest(sequence_number));
+            return future::err(OperationError::Closed);
+        }
+
+        *lock = sequence_number.wrapping_increment();
+        mem::drop(lock);
+
+        SendRequest::new(
+            rx_response,
+            self.tx_pending_request.clone(),
+            sequence_number,
+            options.timeout_duration(),
+            options.max_timeout_duration(),
+        )
+
+
+    }
+
 }
