@@ -6,7 +6,7 @@ use std::time::Duration;
 
 use atomic::Ordering;
 use bytes::BytesMut;
-use futures::{Future, future, FutureExt, SinkExt, StreamExt};
+use futures::{Future, future, FutureExt, SinkExt, StreamExt, TryFutureExt};
 use futures::channel::{mpsc, oneshot};
 use futures::channel::mpsc::{unbounded, UnboundedSender};
 use futures::future::{Either, Shared};
@@ -686,10 +686,11 @@ impl ConnectionHandle {
     /// Sends the given request with default options.
     ///
     /// See [`ConnectionHandle::send_request_with_options`] for more information.
-    pub fn send_request<TRequest, TBody>(
+    pub async fn send_request<TRequest, TBody>(
         &mut self,
         request: TRequest,
-    ) -> impl Future<Output = Result<Response<BytesMut>, OperationError>>
+    ) -> Result<Response<BytesMut>, OperationError>
+    // ) -> impl Future<Output = Result<Response<BytesMut>, OperationError>>
         where
             TRequest: Into<Request<TBody>>,
             TBody: AsRef<[u8]>,
@@ -704,7 +705,7 @@ impl ConnectionHandle {
 
         if !self.allow_requests.load(Ordering::SeqCst) {
             // future::Either::
-            return future::err(OperationError::RequestNotAllowed);
+            return Err(OperationError::RequestNotAllowed);
         }
 
         // return future::err(OperationError::Closed) ;
@@ -725,7 +726,7 @@ impl ConnectionHandle {
         let update = PendingRequestUpdate::AddPendingRequest((sequence_number, tx_response));
 
         if self.tx_pending_request.unbounded_send(update).is_err() {
-            return future::err(OperationError::Closed);
+            return Err(OperationError::Closed);
         }
 
         if self
@@ -739,20 +740,21 @@ impl ConnectionHandle {
             let _ = self
                 .tx_pending_request
                 .unbounded_send(PendingRequestUpdate::RemovePendingRequest(sequence_number));
-            return future::err(OperationError::Closed);
+            return Err(OperationError::Closed);
         }
 
         *lock = sequence_number.wrapping_increment();
         mem::drop(lock);
 
-        SendRequest::new(
+        // return future::err(OperationError::Closed);
+        let mut sr = SendRequest::new(
             rx_response,
             self.tx_pending_request.clone(),
             sequence_number,
             options.timeout_duration(),
             options.max_timeout_duration(),
-        )
-
+        );
+        Pin::new(&mut sr).await
 
     }
 
