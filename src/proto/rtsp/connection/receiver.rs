@@ -10,10 +10,12 @@ use tokio::stream::Stream;
 use crate::proto::rtsp::codec::{CodecEvent, Message, ProtocolError};
 use crate::proto::rtsp::message::header::types::CSeq;
 use crate::proto::rtsp::message::request::Request;
+use crate::proto::rtsp::connection::pending::PendingRequestUpdate;
+// use crate::proto::rtsp::codec::Message::{Request as MessageReque};
 
 pub struct MessageReceiver<TStream>
     where
-        TStream: Stream<Item = Result<Message, ProtocolError>> + Send + 'static,
+        TStream: Stream<Item = Result<Message, ProtocolError>> + Send + Unpin + 'static,
 {
 
     /// The underlying connection stream from which messages are read and decoded from. This stream
@@ -22,6 +24,8 @@ pub struct MessageReceiver<TStream>
 
     /// A stream of codec events used to reset the decoding timer.
     rx_codec_event: UnboundedReceiver<CodecEvent>,
+
+    rx_pending_request: UnboundedReceiver<PendingRequestUpdate>,
 
     tx_incoming_request: Sender<(CSeq, Request<BytesMut>)>,
     /// How long should we wait before decoding is timed out and the connection is dropped.
@@ -35,7 +39,7 @@ pub struct MessageReceiver<TStream>
 
 impl <TStream> MessageReceiver<TStream>
     where
-        TStream: Stream<Item = Result<Message, ProtocolError>> + Send + 'static,
+        TStream: Stream<Item = Result<Message, ProtocolError>> + Send + Unpin + 'static,
 {
 
     /// Constructs a new receiver.
@@ -43,12 +47,14 @@ impl <TStream> MessageReceiver<TStream>
         stream: TStream,
         rx_codec_event: UnboundedReceiver<CodecEvent>,
         tx_incoming_request: Sender<(CSeq, Request<BytesMut>)>,
+        rx_pending_request: UnboundedReceiver<PendingRequestUpdate>,
         decode_timeout_duration: Duration,
     ) -> Self {
         MessageReceiver {
             stream,
             rx_codec_event,
             tx_incoming_request,
+            rx_pending_request,
             decode_timeout_duration,
             requests_allowed: true,
         }
@@ -111,25 +117,65 @@ impl <TStream> MessageReceiver<TStream>
 /// poll the stream.
     pub fn poll_stream(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), ProtocolError>> {
 
+
+        let stream_result = self.stream.poll_next_unpin(cx);
+        match stream_result {
+            Poll::Ready(Some(result)) => {
+                match result{
+                    Ok(message) => {
+
+                        if let Message::Request(request) = message.clone(){
+                            println!("Message recieved:{}", "request");
+                        }
+                        if let Message::Response(response) = message.clone(){
+                            println!("Message recieved:{}", "response");
+                        }
+
+
+                        // if let Err(error) = self.as_mut().handle_message(message) {
+                        //     // self.as_mut().handle_request_receiver_error(error);
+                        // }
+                    },
+
+                    Err(p) =>{
+                        println!("poll_stream error:{}", p);
+                        return Poll::Ready(Err(p))
+                    }
+
+                }
+            }
+            Poll::Pending => {
+                // self.stream = Some(stream);
+                return Poll::Pending;
+            }
+            Poll::Ready(None) => return Poll::Ready(Ok(())),
+            // Poll::Ready(Err(error)) => {
+            //     self.handle_protocol_error(&error);
+            //     return Poll::Ready(Err(error));
+            // }
+        }
+
+
+
         Poll::Pending
         // let s = self.stream.take(1);
         // match s
         // {
-
-            // Ok(Async::Ready(Some(message))) => {
-            //     if let Err(error) = self.handle_message(message) {
-            //         self.handle_request_receiver_error(error);
-            //     }
-            // }
-            // Ok(Async::NotReady) => {
-            //     self.stream = Some(stream);
-            //     return Ok(Async::NotReady);
-            // }
-            // Ok(Async::Ready(None)) => return Ok(Async::Ready(())),
-            // Err(error) => {
-            //     self.handle_protocol_error(&error);
-            //     return Err(error);
-            // }
+        //
+        //     // Ok(Async::Ready(Some(message))) => {
+        //     //     if let Err(error) = self.handle_message(message) {
+        //     //         self.handle_request_receiver_error(error);
+        //     //     }
+        //     // }
+        //     // Ok(Async::NotReady) => {
+        //     //     self.stream = Some(stream);
+        //     //     return Ok(Async::NotReady);
+        //     // }
+        //     // Ok(Async::Ready(None)) => return Ok(Async::Ready(())),
+        //     // Err(error) => {
+        //     //     self.handle_protocol_error(&error);
+        //     //     return Err(error);
+        //     // }
         // }
 
     }
@@ -137,15 +183,28 @@ impl <TStream> MessageReceiver<TStream>
 
 impl <TStream> Future for MessageReceiver<TStream>
     where
-        TStream: Stream<Item = Result<Message, ProtocolError>> + Send + 'static,
+        TStream: Stream<Item = Result<Message, ProtocolError>> + Send + Unpin + 'static,
 {
     type Output = ();
 
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         println!("{}", "message receiver poll");
         match self.poll_stream(cx) {
-            Poll::Ready(_)=> {
-                println!("{}", "message received");
+            Poll::Ready(Ok(message))=> {
+                // match message{
+                //     Message::Request(request) =>{
+                //         println!("{}", "request received");
+                //     },
+                //     Message::Response(request) =>{
+                //         println!("{}", "response received");
+                //     },
+                //     _ => {}
+                // }
+                println!("{}", "message received ok");
+            },
+
+            Poll::Ready(Err(err))=> {
+                println!("{}", "message received error");
             },
 
             // Ok(Async::Ready(_)) | Err(_) => {

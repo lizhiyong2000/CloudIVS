@@ -82,6 +82,8 @@ impl RTSPClient {
 
                         self.connection = Some(handle);
 
+                        println!("{}", "client connection set");
+
                         // let mut runtime = tokio::runtime::Runtime::new().unwrap();
 
                         // runtime.block_on(connection);
@@ -106,19 +108,24 @@ impl RTSPClient {
 
     }
 
-    pub fn send_request<R, B>(&mut self, request: R) -> impl Future<Output = Result<Response<BytesMut>, OperationError>>
+    pub async fn send_request<R, B>(&mut self, request: R) -> Result<Response<BytesMut>, OperationError>
         where
             R: Into<Request<B>>,
             B: AsRef<[u8]>,
     {
         let conneciton = self.connection.as_mut();
 
+        // println!("{}", conn);
+
         if let Some(conn) = conneciton{
-            conn.send_request(request);
+            return conn.send_request(request).await;
+        }
+        else{
+            println!("{}", "connection not set");
         }
 
 
-        future::err(OperationError::Closed)
+        Err(OperationError::Closed)
         // return Either::left(Either::Left(OperationError::Closed));
 
 

@@ -500,7 +500,7 @@ impl<TBody> Builder<TBody> {
         let uri = self.uri.ok_or(RequestError::MissingURI)?;
         let body = self.body.ok_or(RequestError::MissingBody)?;
 
-        if self.version != Version::Rtsp2_0 {
+        if self.version != Version::Rtsp2_0 && self.version != Version::Rtsp1_0{
             return Err(RequestError::UnsupportedVersion);
         }
 

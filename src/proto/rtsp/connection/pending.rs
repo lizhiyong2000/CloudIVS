@@ -13,6 +13,8 @@ use futures::task::{Context, Poll};
 use crate::proto::rtsp::codec::ProtocolError;
 use futures::channel::oneshot::Canceled;
 use tokio::time::{Delay, delay_for};
+use std::fmt::{Display, Formatter};
+use std::fmt;
 
 /// Options used to modify the behavior of a request.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -53,6 +55,12 @@ impl RequestOptions {
 impl Default for RequestOptions {
     fn default() -> Self {
         RequestOptions::new()
+    }
+}
+
+impl Display for RequestOptions {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
+        write!(formatter, "RequestOptions:{}, {}", self.max_timeout_duration.unwrap().as_secs(), self.timeout_duration.unwrap().as_secs())
     }
 }
 
@@ -330,17 +338,21 @@ impl Future for SendRequest {
     ///
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
 
-        match self.poll_request(cx) {
+        match self.as_mut().poll_request(cx) {
             Poll::Ready(Ok(response)) => return Poll::Ready(Ok(response)),
             Poll::Ready(Err(error)) => return Poll::Ready(Err(error)),
             _ => (),
         }
 
-        if let Poll::Ready(Err(error)) = self.poll_max_timer(cx) {
+        if let Poll::Ready(Err(error)) = self.as_mut().poll_max_timer(cx) {
+
+            println!("{}", "poll_max_timer error");
             return Poll::Ready(Err(error));
         }
 
-        if let Poll::Ready(Err(error)) = self.poll_timer(cx) {
+        if let Poll::Ready(Err(error)) = self.as_mut().poll_timer(cx) {
+
+            println!("{}", "poll_timer error");
             return Poll::Ready(Err(error));
         }
 
