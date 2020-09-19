@@ -7,6 +7,8 @@ use futures::task::Context;
 use tokio::macros::support::{Pin, Poll};
 use tokio::stream::Stream;
 
+use log::info;
+
 use crate::proto::rtsp::codec::{CodecEvent, Message, ProtocolError};
 use crate::proto::rtsp::message::header::types::CSeq;
 use crate::proto::rtsp::message::request::Request;
@@ -188,23 +190,23 @@ impl <TStream> Future for MessageReceiver<TStream>
     type Output = ();
 
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        println!("{}", "message receiver poll");
+        info!("message receiver poll");
         match self.poll_stream(cx) {
             Poll::Ready(Ok(message))=> {
                 // match message{
                 //     Message::Request(request) =>{
-                //         println!("{}", "request received");
+                //         info!("request received");
                 //     },
                 //     Message::Response(request) =>{
-                //         println!("{}", "response received");
+                //         info!("response received");
                 //     },
                 //     _ => {}
                 // }
-                println!("{}", "message received ok");
+                info!("message received ok");
             },
 
             Poll::Ready(Err(err))=> {
-                println!("{}", "message received error");
+                info!("message received error");
             },
 
             // Ok(Async::Ready(_)) | Err(_) => {

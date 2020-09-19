@@ -4,6 +4,8 @@ use std::sync::{Arc, Mutex};
 use std::sync::atomic::AtomicBool;
 use std::time::Duration;
 
+use log::info;
+
 use atomic::Ordering;
 use bytes::BytesMut;
 use futures::{Future, future, FutureExt, SinkExt, StreamExt, TryFutureExt};
@@ -324,7 +326,7 @@ impl <TTransport> Future for Connection<TTransport>
         self.as_mut().poll_sender(cx);
         self.as_mut().poll_handler(cx);
 
-        println!("{}", "connection poll");
+        info!("connection poll");
 
         Poll::Pending
 
@@ -704,7 +706,7 @@ impl ConnectionHandle {
             .timeout_duration(self.request_timeout_default_duration)
             .build();
 
-        println!("{}", options);
+        info!("{}", options);
 
         if !self.allow_requests.load(Ordering::SeqCst) {
             // future::Either::
@@ -729,7 +731,7 @@ impl ConnectionHandle {
         let update = PendingRequestUpdate::AddPendingRequest((sequence_number, tx_response));
 
         if self.tx_pending_request.unbounded_send(update).is_err() {
-            println!("{}", "tx_pending_request send failed");
+            info!("tx_pending_request send failed");
             return Err(OperationError::Closed);
         }
 
@@ -739,7 +741,7 @@ impl ConnectionHandle {
             .is_err()
         {
 
-            println!("{}", "sender handle send error");
+            info!("sender handle send error");
             // The sender is shutdown, so we need to renotify the response receiver and remove the
             // pending request we just added. If this fails as well, then the response receiver has
             // been shutdown, but it does not matter.

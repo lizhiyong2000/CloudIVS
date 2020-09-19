@@ -8,6 +8,8 @@ use futures::channel::mpsc::{unbounded, UnboundedReceiver, UnboundedSender};
 use futures::task::Context;
 use tokio::macros::support::{Pin, Poll};
 
+use log::info;
+
 use crate::proto::rtsp::codec::{Message, ProtocolError};
 use crate::proto::rtsp::message::header::map::HeaderMapExtension;
 use crate::proto::rtsp::message::header::types::Date;
@@ -80,7 +82,7 @@ impl <TSink> Future for MessageSender<TSink>
     type Output = Result<(), ProtocolError>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        println!("{}", "message sender poll");
+        info!("message sender poll");
 
         loop {
             match self
@@ -127,7 +129,7 @@ pub struct SenderHandle(pub(crate) UnboundedSender<Message>);
 impl SenderHandle {
     pub fn try_send_message(&self, message: Message) -> Result<(), ()> {
 
-        println!("{}", "message sended");
+        info!("message sended");
         self.0.unbounded_send(message).map_err(|_| ())
 
 

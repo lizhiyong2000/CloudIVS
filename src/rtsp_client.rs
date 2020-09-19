@@ -67,7 +67,7 @@ impl RTSPClient{
                 self._socket = Some(stream);
 
                 self.connected = true;
-                // println!("{}", format!("connected to {}:{}", host_str, host_port));
+                // info!(format!("connected to {}:{}", host_str, host_port));
                 return Ok(());
             }
         }

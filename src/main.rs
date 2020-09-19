@@ -1,6 +1,8 @@
 #![feature(int_error_matching)]
 // #![feature(ready_macro)]
 
+use log::info;
+use log4rs;
 
 use std::convert::TryFrom;
 use std::error::Error;
@@ -30,6 +32,10 @@ mod proto;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+
+    log4rs::init_file("log4rs.yaml", Default::default()).unwrap();
+    info!("INFO");
+
 // fn main() -> impl Future<Output = i32> {
     // Connect to a peer
     let url = "rtsp://admin:dm666666@192.168.30.224:554/h264/ch1/main/av_stream";

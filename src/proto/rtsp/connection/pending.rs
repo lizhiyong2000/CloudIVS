@@ -16,6 +16,8 @@ use tokio::time::{Delay, delay_for};
 use std::fmt::{Display, Formatter};
 use std::fmt;
 
+use log::info;
+
 /// Options used to modify the behavior of a request.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct RequestOptions {
@@ -346,13 +348,13 @@ impl Future for SendRequest {
 
         if let Poll::Ready(Err(error)) = self.as_mut().poll_max_timer(cx) {
 
-            println!("{}", "poll_max_timer error");
+            info!("poll_max_timer error");
             return Poll::Ready(Err(error));
         }
 
         if let Poll::Ready(Err(error)) = self.as_mut().poll_timer(cx) {
 
-            println!("{}", "poll_timer error");
+            info!("poll_timer error");
             return Poll::Ready(Err(error));
         }
 

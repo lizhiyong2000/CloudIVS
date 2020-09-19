@@ -5,6 +5,8 @@ use std::net::SocketAddr;
 use std::ptr::null;
 use std::rc::Rc;
 
+use log::info;
+
 use bytes::BytesMut;
 use futures::{Future, FutureExt, SinkExt, StreamExt, TryFutureExt, future};
 use futures::stream::SplitSink;
@@ -70,7 +72,7 @@ impl RTSPClient {
                 let stream = TcpStream::connect(format!("{}:{}", host_str, host_port)).await;
                 // let codec = Codec::new();
 
-                println!("{}", format!("connected to {}:{}", host_str, host_port));
+                info!("{}", format!("connected to {}:{}", host_str, host_port));
                 //     Ok(())
                 match stream{
                     Ok(c) => {
@@ -82,7 +84,7 @@ impl RTSPClient {
 
                         self.connection = Some(handle);
 
-                        println!("{}", "client connection set");
+                        info!("client connection set");
 
                         // let mut runtime = tokio::runtime::Runtime::new().unwrap();
 
@@ -115,13 +117,13 @@ impl RTSPClient {
     {
         let conneciton = self.connection.as_mut();
 
-        // println!("{}", conn);
+        // info!(conn);
 
         if let Some(conn) = conneciton{
             return conn.send_request(request).await;
         }
         else{
-            println!("{}", "connection not set");
+            info!("connection not set");
         }
 
 

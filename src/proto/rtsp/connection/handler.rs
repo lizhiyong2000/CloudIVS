@@ -10,6 +10,8 @@ use tokio::macros::support::{Pin, Poll};
 // use tokio::sync::mpsc::Receiver;
 use tokio::stream::StreamExt;
 
+use log::info;
+
 use crate::proto::rtsp::codec::Message;
 use crate::proto::rtsp::message::header::map::HeaderMapExtension;
 use crate::proto::rtsp::message::header::name::HeaderName;
@@ -116,7 +118,7 @@ impl Future for MessageHandler
     type Output = ();
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        println!("{}", "message handler poll");
+        info!("message handler poll");
         Poll::Pending
     }
 }
