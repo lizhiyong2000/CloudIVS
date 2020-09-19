@@ -74,6 +74,12 @@ impl Sub for CSeq {
     }
 }
 
+impl Display for CSeq{
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
+        write!(formatter, "{}", self.0)
+    }
+}
+
 impl TryFrom<u32> for CSeq {
     type Error = CSeqError;
 

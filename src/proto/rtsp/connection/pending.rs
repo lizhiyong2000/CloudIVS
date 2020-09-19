@@ -196,12 +196,12 @@ pub struct SendRequest {
 impl SendRequest {
     /// Cancels the request by removing the pending request from the response receiver.
     fn cancel_request(&mut self) {
-        let _ = self
-            .tx_pending_request
-            .unbounded_send(PendingRequestUpdate::RemovePendingRequest(
-                self.sequence_number,
-            ));
-        self.rx_response.close();
+        // let _ = self
+        //     .tx_pending_request
+        //     .unbounded_send(PendingRequestUpdate::RemovePendingRequest(
+        //         self.sequence_number,
+        //     ));
+        // self.rx_response.close();
     }
 
     /// Constructs a new pending request.
@@ -226,8 +226,8 @@ impl SendRequest {
     }
 
     /// Returns whether the request has already been cancelled.
-    fn poll_is_cancelled(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> bool {
-        if let Poll::Ready(Err(Canceled)) = self.rx_response.poll_unpin(cx) {
+    pub fn poll_is_cancelled(&mut self) -> bool {
+        if let Err(Canceled) = self.rx_response.try_recv(){
             true
         } else {
             false
@@ -257,7 +257,11 @@ impl SendRequest {
                         .map(|duration| delay_for(duration));
                 }
                 PendingRequestResponse::None => return Poll::Ready(Err(OperationError::RequestCancelled)),
-                PendingRequestResponse::Response(response) => return Poll::Ready(Ok(response)),
+                PendingRequestResponse::Response(response) =>{
+
+                    info!("response confirmed");
+                    return Poll::Ready(Ok(response))
+                }
                 // Ok(_) => {}
                 // Err(_) => {}
             }
@@ -272,6 +276,8 @@ impl SendRequest {
         if let Some(timer) = self.max_timer.as_mut() {
             match timer.poll_unpin(cx) {
                 Poll::Ready(()) => {
+
+                    info!("cancel_request for poll_max_timer");
 
                     self.cancel_request();
                     return Poll::Ready(Err(OperationError::RequestTimedOut(RequestTimeoutType::Long)));
@@ -295,7 +301,7 @@ impl SendRequest {
         if let Some(timer) = self.timer.as_mut() {
             match timer.poll_unpin(cx) {
                 Poll::Ready(()) => {
-
+                    info!("cancel_request for poll_timer");
                     self.cancel_request();
                     return Poll::Ready(Err(OperationError::RequestTimedOut(RequestTimeoutType::Short)));
                 },
@@ -319,9 +325,10 @@ impl SendRequest {
 
 impl Drop for SendRequest {
     fn drop(&mut self) {
-        // if !self.poll_is_cancelled() {
+        if !self.poll_is_cancelled() {
+            info!("cancel_request for drop");
             self.cancel_request();
-        // }
+        }
     }
 }
 

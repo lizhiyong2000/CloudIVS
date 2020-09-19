@@ -1,7 +1,7 @@
 use std::time::{Duration, Instant};
 
 use bytes::BytesMut;
-use futures::{Future, StreamExt};
+use futures::{Future, StreamExt, FutureExt};
 use futures::channel::mpsc::{Sender, UnboundedReceiver};
 use futures::task::Context;
 use tokio::macros::support::{Pin, Poll};
@@ -111,28 +111,47 @@ impl <TStream> MessageReceiver<TStream>
     //     }
     // }
 
+    pub fn poll_handler(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), ProtocolError>> {
+        // if let Some(message_handler) = self.message_handler.as_ref() {
+        //     // If the forwarding receiver is full, then any incoming requests cannot be
+        //     // handled. This also blocks any incoming responses, since we have to process
+        //     // messages as they come.
+        //     if message_handler.is_full() {
+        //         // self.stream = Some(stream);
+        //         return Poll::Pending;
+        //     }
+        //
+        //     // Box::pin(message_handler).poll(cx);
+        // }
 
-    /// Checks if there are any messages to be processed from the internal connection stream.
-///
-/// If `Ok(Async::Ready(()))` is returned, then the stream has been closed and no more messages
-/// will be received.
-///
-/// If `Ok(Async::NotReady)` is returned, then either there are no more messages to be processed
-/// from the stream currently, or no messages can currently be accepted.
-///
-/// If `Err(`[`ProtocolError`]`)` is returned, then there was a protocol error while trying to
-/// poll the stream.
+        if let Some(message_handler) = self.message_handler.as_mut() {
+
+            message_handler.poll_unpin(cx);
+
+        }
+
+        // self.as_mut().message_handler(cx);
+
+
+
+        Poll::Pending
+    }
+
+
+
+        /// Checks if there are any messages to be processed from the internal connection stream.
+    ///
+    /// If `Ok(Async::Ready(()))` is returned, then the stream has been closed and no more messages
+    /// will be received.
+    ///
+    /// If `Ok(Async::NotReady)` is returned, then either there are no more messages to be processed
+    /// from the stream currently, or no messages can currently be accepted.
+    ///
+    /// If `Err(`[`ProtocolError`]`)` is returned, then there was a protocol error while trying to
+    /// poll the stream.
     pub fn poll_stream(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), ProtocolError>> {
 
-        if let Some(message_handler) = self.message_handler.as_ref() {
-            // If the forwarding receiver is full, then any incoming requests cannot be
-            // handled. This also blocks any incoming responses, since we have to process
-            // messages as they come.
-            if message_handler.is_full() {
-                // self.stream = Some(stream);
-                return Poll::Pending;
-            }
-        }
+
 
 
         let stream_result = self.stream.poll_next_unpin(cx);
@@ -211,9 +230,34 @@ impl <TStream> Future for MessageReceiver<TStream>
 {
     type Output = ();
 
-    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         info!("message receiver poll");
-        match self.poll_stream(cx) {
+
+        match self.as_mut().poll_handler(cx) {
+            Poll::Ready(Ok(message))=> {
+                // match message{
+                //     Message::Request(request) =>{
+                //         info!("request received");
+                //     },
+                //     Message::Response(request) =>{
+                //         info!("response received");
+                //     },
+                //     _ => {}
+                // }
+                info!("poll_handler ok");
+            },
+
+            Poll::Ready(Err(err))=> {
+                info!("poll_handler error");
+            },
+
+            // Ok(Async::Ready(_)) | Err(_) => {
+            //     self.shutdown_receiving();
+            // }
+            _ => (),
+        }
+
+        match self.as_mut().poll_stream(cx) {
             Poll::Ready(Ok(message))=> {
                 // match message{
                 //     Message::Request(request) =>{
@@ -236,6 +280,18 @@ impl <TStream> Future for MessageReceiver<TStream>
             // }
             _ => (),
         }
+
+
+        // let is_shutdown = match self.message_handler.as_mut() {
+        //     Some(message_handler) => match message_handler.poll_unpin(cx) {
+        //         Poll::Ready(Err(_)) => self.as_mut().shutdown_forwarding_receiver(),
+        //         Poll::Ready(Ok(_)) if self.is_request_receiver_shutdown() => {
+        //             self.as_mut().shutdown_forwarding_receiver()
+        //         }
+        //         _ => false,
+        //     },
+        //     None => self.is_shutdown(),
+        // };
 
         // self.poll_codec_events(cx);
 

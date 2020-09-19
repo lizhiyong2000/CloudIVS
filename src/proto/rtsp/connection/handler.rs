@@ -3,19 +3,19 @@ use std::str;
 
 use bytes::{BytesMut, Buf};
 use futures::channel::mpsc::{Receiver, UnboundedSender, UnboundedReceiver};
-use futures::Future;
+use futures::{Future, StreamExt};
 // use futures::future::Fuse;
 use futures::future::FutureExt;
 use futures::task::Context;
 use tokio::macros::support::{Pin, Poll};
 // use tokio::sync::mpsc::Receiver;
-use tokio::stream::StreamExt;
+// use tokio::stream::StreamExt;
 
 use log::{info, error};
 
 use fnv::FnvBuildHasher;
 
-use crate::proto::rtsp::codec::{Message, Codec};
+use crate::proto::rtsp::codec::{Message, Codec, ProtocolError};
 use crate::proto::rtsp::message::header::map::HeaderMapExtension;
 use crate::proto::rtsp::message::header::name::HeaderName;
 use crate::proto::rtsp::message::header::types::{ContentLength, CSeq};
@@ -29,7 +29,10 @@ use std::collections::HashMap;
 use std::collections::hash_map::Entry;
 use crate::proto::rtsp::connection::receiver::RequestReceiverError;
 use tokio_util::codec::Encoder;
+use crate::proto::rtsp::message::uri::Scheme;
 // use crate::proto::rtsp::message::uri::Scheme;
+use crate::proto::rtsp::message::response::{NOT_IMPLEMENTED_RESPONSE, BAD_REQUEST_RESPONSE};
+use crate::proto::rtsp::connection::sender::SenderHandle;
 
 pub struct MessageHandler{
     rx_incoming_request: Receiver<(CSeq, Request<BytesMut>)>,
@@ -52,6 +55,8 @@ pub struct MessageHandler{
     /// Are requests allowed to be accepted.
     requests_allowed: bool,
 
+    sender_handle: Option<SenderHandle>,
+
 
 }
 
@@ -63,6 +68,7 @@ impl MessageHandler{
         rx_pending_request: UnboundedReceiver<PendingRequestUpdate>,
         continue_wait_duration: Option<Duration>,
         request_buffer_size: usize,
+        sender_handle: SenderHandle,
     ) -> Self {
         MessageHandler {
             rx_incoming_request,
@@ -77,7 +83,8 @@ impl MessageHandler{
             pending_requests: HashMap::with_hasher(FnvBuildHasher::default()),
 
             /// Are requests allowed to be accepted.
-            requests_allowed: true
+            requests_allowed: true,
+            sender_handle: Some(sender_handle)
         }
     }
 
@@ -184,27 +191,30 @@ impl MessageHandler{
                         self.pending_requests.remove(&cseq);
                     }
                 }
-            } else if let Some(pending_request) = self.pending_requests.remove(&cseq) {
+            }
+            else if let Some(pending_request) = self.pending_requests.remove(&cseq) {
+
+                info!("send PendingRequestResponse::Response: {} ", cseq);
                 let _ = pending_request.send(PendingRequestResponse::Response(response));
             }
         }
     }
 
 
-    fn send_response(&mut self, cseq: CSeq, response: Response<BytesMut>) {
-        // response.headers_mut().typed_insert(cseq);
+    fn send_response(&mut self, cseq: CSeq, mut response: Response<BytesMut>) {
+        response.headers_mut().typed_insert(cseq);
 
-        // if let Some(sender_handle) = self.sender_handle.as_mut() {
-        //     if sender_handle
-        //         .try_send_message(Message::Response(response))
-        //         .is_err()
-        //     {
-        //         // The receive has been dropped implying no more responses can be sent. We'll still
-        //         // process all incoming requests, but since no more responses can be sent, no more
-        //         // requests should be handled other than the one already queued.
-        //         self.sender_handle = None;
-        //     }
-        // }
+        if let Some(sender_handle) = self.sender_handle.as_mut() {
+            if sender_handle
+                .try_send_message(Message::Response(response))
+                .is_err()
+            {
+                // The receive has been dropped implying no more responses can be sent. We'll still
+                // process all incoming requests, but since no more responses can be sent, no more
+                // requests should be handled other than the one already queued.
+                self.sender_handle = None;
+            }
+        }
     }
 
 
@@ -229,6 +239,112 @@ impl MessageHandler{
     }
 
 
+    /// Handles a pending request updates.
+    ///
+    /// If the update is the addition of a pending request, the request, along with its `"CSeq"`
+    /// value, will be stored awaiting the corresponding response.
+    ///
+    /// If the update is the removal of a pending request, the request with the given `"CSeq"` is
+    /// removed and no response will be matched even if it does come at a later time.
+    fn handle_pending_request_update(&mut self, update: PendingRequestUpdate) {
+        use self::PendingRequestUpdate::*;
+
+        match update {
+            AddPendingRequest((cseq, tx_pending_request)) => {
+                info!("to AddPendingRequest :{}", cseq);
+                debug_assert!(!self.pending_requests.contains_key(&cseq));
+                self.pending_requests.insert(cseq, tx_pending_request);
+                info!("AddPendingRequest success:{}", cseq);
+                println!("{:?}", self.pending_requests);
+                info!("pending_requests size :{}", self.pending_requests.len());
+            }
+            RemovePendingRequest(cseq) => {
+                info!("to RemovePendingRequest :{}", cseq);
+                println!("{:?}", self.pending_requests);
+                info!("pending_requests size :{}", self.pending_requests.len());
+                debug_assert!(self.pending_requests.contains_key(&cseq));
+                self.pending_requests.remove(&cseq);
+
+                info!("RemovePendingRequest success:{}", cseq);
+            }
+        }
+    }
+
+    /// Handles incoming pending request updates.
+    ///
+    /// A pending request update is either the addition of a pending request or the removal of a
+    /// pending request (probably due a timeout).
+    ///
+    /// If `Poll::Ready(Ok(()))` is returned, then the pending request update stream has ended and
+    /// the response receiver is shutdown.
+    ///
+    /// If `Poll::Pending` is returned, then there are no pending request updates to be
+    /// processed currently.
+    ///
+    /// The error `Err(())` will never be returned.
+    fn poll_pending_request(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), ProtocolError>>{
+        loop {
+            match self
+                .rx_pending_request
+                .poll_next_unpin(cx)
+            // .expect("`ResponseReceiver.rx_pending_request` should not error")
+            {
+                Poll::Ready(Some(update)) => self.as_mut().handle_pending_request_update(update),
+                Poll::Pending => return Poll::Pending,
+                Poll::Ready(None) => {
+                    // If the pending request stream has ended, this means there should be no
+                    // pending requests. If there were pending requests, they could never expire
+                    // because the stream used to remove them has ended. So, we assume that it
+                    // cannot happen.
+                    debug_assert!(self.pending_requests.is_empty());
+                    return Poll::Ready(Ok(()));
+                }
+            }
+        }
+    }
+
+
+    //
+    // /// Tries to forward any ready requests to the request handler.
+    // ///
+    // /// If `Poll::Ready(Ok(()))` is returned, then all requests that could have been forwarded have
+    // /// been forwarded.
+    // ///
+    // /// If `Poll::Pending` is returned, then channel between the forwarding receiver and the
+    // /// request handler is full, and forwarding will have to be tried again later.
+    // ///
+    // /// If `Err(())` is returned, then the request handler's receiver has been dropped meaning the
+    // /// forwarding receiver can be shutdown.
+    //
+    // fn poll_incoming_request(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), ProtocolError>>{
+    //     if let Some(mut incoming_sequence_number) = self.incoming_sequence_number {
+    //         // let test = self.tx_incoming_request;
+    //         // test.
+    //
+    //         while let Some(request) = self.buffered_requests.remove(&incoming_sequence_number) {
+    //             match self
+    //                 .tx_incoming_request
+    //                 .try_send((incoming_sequence_number, request.clone()))
+    //             // .map_err(|_| ())?
+    //             {
+    //                 Ok(_) => {
+    //                     incoming_sequence_number = incoming_sequence_number.wrapping_increment()
+    //                 }
+    //                 Err(_) => {
+    //                     self.buffered_requests
+    //                         .insert(incoming_sequence_number, request);
+    //                     self.incoming_sequence_number = Some(incoming_sequence_number);
+    //                     return Poll::Pending;
+    //                 }
+    //                 _ => {}
+    //             }
+    //         }
+    //
+    //         self.incoming_sequence_number = Some(incoming_sequence_number);
+    //     }
+    //
+    //     Poll::Ready(Ok(()))
+    // }
 }
 
 
@@ -240,6 +356,62 @@ impl Future for MessageHandler
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         info!("message handler poll");
+
+        self.as_mut().poll_pending_request(cx);
+
+
+
+        if let Some(mut incoming_sequence_number) = self.incoming_sequence_number {
+            // let test = self.tx_incoming_request;
+            // test.
+
+            while let Some(request) = self.buffered_requests.remove(&incoming_sequence_number) {
+
+                if request.uri().scheme() == Some(Scheme::RTSPU) {
+                    self.send_response(incoming_sequence_number, NOT_IMPLEMENTED_RESPONSE.clone());
+                    // return;
+                }
+
+                match request.headers().typed_get::<ContentLength>() {
+                    Some(content_length)
+                    if *content_length > 0
+                        && !request.headers().contains_key(&HeaderName::ContentType) =>
+                        {
+                            self.send_response(incoming_sequence_number, BAD_REQUEST_RESPONSE.clone());
+                        }
+                    _ => {
+                        // self.reset_continue_timer();
+                        // self.serviced_request = Some((incoming_sequence_number, self.service.call(request)));
+                    }
+                }
+
+
+                // match self
+                //     .tx_incoming_request
+                //     .try_send((incoming_sequence_number, request.clone()))
+                // // .map_err(|_| ())?
+                // {
+                //     Ok(_) => {
+                //         incoming_sequence_number = incoming_sequence_number.wrapping_increment()
+                //     }
+                //     Err(_) => {
+                //         self.buffered_requests
+                //             .insert(incoming_sequence_number, request);
+                //         self.incoming_sequence_number = Some(incoming_sequence_number);
+                //         return Poll::Pending;
+                //     }
+                //     _ => {}
+                // }
+            }
+
+            self.incoming_sequence_number = Some(incoming_sequence_number);
+        }
+
+        // Poll::Ready(Ok(()))
+
+
         Poll::Pending
     }
+
+
 }
