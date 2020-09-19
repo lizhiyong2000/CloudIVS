@@ -21,7 +21,8 @@ pub struct CSeq(u32);
 
 impl CSeq {
     pub fn random() -> Self {
-        let cseq = rand::thread_rng().gen_range(0, MAX_CSEQ + 1);
+        // let cseq = rand::thread_rng().gen_range(0, MAX_CSEQ + 1);
+        let cseq = 1;
         CSeq(cseq)
     }
 

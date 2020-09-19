@@ -91,6 +91,7 @@ dependencies = [
  "base64",
  "bytes",
  "chrono",
+ "fnv",
  "futures",
  "http",
  "indexmap",

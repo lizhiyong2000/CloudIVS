@@ -248,7 +248,7 @@ impl<TTransport> Connection<TTransport>
         let handler = MessageHandler::new(
             rx_incoming_request,
             rx_pending_request,
-            config.continue_wait_duration());
+            config.continue_wait_duration(), config.request_buffer_size());
 
 
         let receiver = MessageReceiver::new(

@@ -14,6 +14,9 @@ use crate::proto::rtsp::message::header::types::CSeq;
 use crate::proto::rtsp::message::request::Request;
 use crate::proto::rtsp::connection::pending::PendingRequestUpdate;
 use crate::proto::rtsp::connection::handler::MessageHandler;
+use std::fmt::{Display, Formatter};
+use std::fmt;
+use std::error::Error;
 // use crate::proto::rtsp::codec::Message::{Request as MessageReque};
 
 pub struct MessageReceiver<TStream>
@@ -34,9 +37,9 @@ pub struct MessageReceiver<TStream>
     message_handler: Option<MessageHandler>,
     /// How long should we wait before decoding is timed out and the connection is dropped.
     decode_timeout_duration: Duration,
-
-    /// Are requests allowed to be accepted.
-    requests_allowed: bool,
+    //
+    // /// Are requests allowed to be accepted.
+    // requests_allowed: bool,
 
 
 }
@@ -60,7 +63,7 @@ impl <TStream> MessageReceiver<TStream>
             tx_incoming_request,
             message_handler,
             decode_timeout_duration,
-            requests_allowed: true,
+            // requests_allowed: true,
         }
     }
 
@@ -121,6 +124,16 @@ impl <TStream> MessageReceiver<TStream>
 /// poll the stream.
     pub fn poll_stream(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), ProtocolError>> {
 
+        if let Some(message_handler) = self.message_handler.as_ref() {
+            // If the forwarding receiver is full, then any incoming requests cannot be
+            // handled. This also blocks any incoming responses, since we have to process
+            // messages as they come.
+            if message_handler.is_full() {
+                // self.stream = Some(stream);
+                return Poll::Pending;
+            }
+        }
+
 
         let stream_result = self.stream.poll_next_unpin(cx);
         match stream_result {
@@ -128,12 +141,19 @@ impl <TStream> MessageReceiver<TStream>
                 match result{
                     Ok(message) => {
 
-                        if let Message::Request(request) = message.clone(){
-                            info!("Message recieved:{}", "request");
+                        info!("Message recieved");
+
+                        if let Some(message_handler) = self.message_handler.as_mut() {
+                            message_handler.handle_message(message);
                         }
-                        if let Message::Response(response) = message.clone(){
-                            info!("Message recieved:{}", "response");
-                        }
+
+                        // if let Message::Request(request) = message.clone(){
+                        //     info!("Message recieved:{}", "request");
+                        // }
+                        // if let Message::Response(response) = message.clone(){
+                        //     info!("Message recieved:{}", "response");
+                        // }
+
 
 
                         // if let Err(error) = self.as_mut().handle_message(message) {
@@ -222,3 +242,30 @@ impl <TStream> Future for MessageReceiver<TStream>
         Poll::Pending
     }
 }
+
+
+
+/// Error that may be returned when processing incoming requests.
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[non_exhaustive]
+pub enum RequestReceiverError {
+    /// Some part of the request is invalid and cannot be processed.
+    BadRequest,
+
+    /// The difference in the next expected `"CSeq"` and the request's `"CSeq"` was too large to
+    /// internally buffer.
+    CSeqDifferenceTooLarge,
+}
+
+impl Display for RequestReceiverError {
+    fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
+        use self::RequestReceiverError::*;
+
+        match self {
+            BadRequest => write!(formatter, "bad request"),
+            CSeqDifferenceTooLarge => write!(formatter, "CSeq difference too large"),
+        }
+    }
+}
+
+impl Error for RequestReceiverError {}
