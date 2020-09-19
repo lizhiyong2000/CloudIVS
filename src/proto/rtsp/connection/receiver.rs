@@ -7,12 +7,13 @@ use futures::task::Context;
 use tokio::macros::support::{Pin, Poll};
 use tokio::stream::Stream;
 
-use log::info;
+use log::{info, error};
 
 use crate::proto::rtsp::codec::{CodecEvent, Message, ProtocolError};
 use crate::proto::rtsp::message::header::types::CSeq;
 use crate::proto::rtsp::message::request::Request;
 use crate::proto::rtsp::connection::pending::PendingRequestUpdate;
+use crate::proto::rtsp::connection::handler::MessageHandler;
 // use crate::proto::rtsp::codec::Message::{Request as MessageReque};
 
 pub struct MessageReceiver<TStream>
@@ -27,9 +28,10 @@ pub struct MessageReceiver<TStream>
     /// A stream of codec events used to reset the decoding timer.
     rx_codec_event: UnboundedReceiver<CodecEvent>,
 
-    rx_pending_request: UnboundedReceiver<PendingRequestUpdate>,
 
     tx_incoming_request: Sender<(CSeq, Request<BytesMut>)>,
+
+    message_handler: Option<MessageHandler>,
     /// How long should we wait before decoding is timed out and the connection is dropped.
     decode_timeout_duration: Duration,
 
@@ -49,14 +51,14 @@ impl <TStream> MessageReceiver<TStream>
         stream: TStream,
         rx_codec_event: UnboundedReceiver<CodecEvent>,
         tx_incoming_request: Sender<(CSeq, Request<BytesMut>)>,
-        rx_pending_request: UnboundedReceiver<PendingRequestUpdate>,
+        message_handler: Option<MessageHandler>,
         decode_timeout_duration: Duration,
     ) -> Self {
         MessageReceiver {
             stream,
             rx_codec_event,
             tx_incoming_request,
-            rx_pending_request,
+            message_handler,
             decode_timeout_duration,
             requests_allowed: true,
         }
@@ -127,10 +129,10 @@ impl <TStream> MessageReceiver<TStream>
                     Ok(message) => {
 
                         if let Message::Request(request) = message.clone(){
-                            println!("Message recieved:{}", "request");
+                            info!("Message recieved:{}", "request");
                         }
                         if let Message::Response(response) = message.clone(){
-                            println!("Message recieved:{}", "response");
+                            info!("Message recieved:{}", "response");
                         }
 
 
@@ -140,7 +142,7 @@ impl <TStream> MessageReceiver<TStream>
                     },
 
                     Err(p) =>{
-                        println!("poll_stream error:{}", p);
+                        error!("poll_stream error:{}", p);
                         return Poll::Ready(Err(p))
                     }
 

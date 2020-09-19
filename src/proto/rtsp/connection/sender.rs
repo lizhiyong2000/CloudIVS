@@ -8,7 +8,7 @@ use futures::channel::mpsc::{unbounded, UnboundedReceiver, UnboundedSender};
 use futures::task::Context;
 use tokio::macros::support::{Pin, Poll};
 
-use log::info;
+use log::{info, error};
 
 use crate::proto::rtsp::codec::{Message, ProtocolError};
 use crate::proto::rtsp::message::header::map::HeaderMapExtension;
@@ -32,11 +32,11 @@ impl<TSink> MessageSender<TSink>
     where
         TSink: Sink<Message, Error = ProtocolError> + Send + Unpin + 'static,
 {
-    pub fn new(sink: TSink, rx_outgoing_message:UnboundedReceiver<Message>) -> (Self, SenderHandle) {
+    pub fn new(sink: TSink) -> (Self, SenderHandle) {
         let (tx_outgoing_message, rx_outgoing_message) = unbounded();
         let sender = MessageSender {
             buffered_message: None,
-            rx_outgoing_message: rx_outgoing_message,
+            rx_outgoing_message,
             sink,
         };
 

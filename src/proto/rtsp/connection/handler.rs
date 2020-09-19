@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use bytes::BytesMut;
-use futures::channel::mpsc::{Receiver, UnboundedSender};
+use futures::channel::mpsc::{Receiver, UnboundedSender, UnboundedReceiver};
 use futures::Future;
 // use futures::future::Fuse;
 use futures::future::FutureExt;
@@ -10,7 +10,7 @@ use tokio::macros::support::{Pin, Poll};
 // use tokio::sync::mpsc::Receiver;
 use tokio::stream::StreamExt;
 
-use log::info;
+use log::{info, error};
 
 use crate::proto::rtsp::codec::Message;
 use crate::proto::rtsp::message::header::map::HeaderMapExtension;
@@ -18,11 +18,13 @@ use crate::proto::rtsp::message::header::name::HeaderName;
 use crate::proto::rtsp::message::header::types::{ContentLength, CSeq};
 use crate::proto::rtsp::message::request::Request;
 use crate::proto::rtsp::message::response::Response;
+use crate::proto::rtsp::connection::pending::PendingRequestUpdate;
 // use crate::proto::rtsp::message::uri::Scheme;
 
-pub(crate) struct MessageHandler{
+pub struct MessageHandler{
+
     rx_incoming_request: Receiver<(CSeq, Request<BytesMut>)>,
-    tx_outgoing_message: UnboundedSender<Message>,
+    rx_pending_request: UnboundedReceiver<PendingRequestUpdate>,
     continue_wait_duration: Option<Duration>,
 }
 
@@ -31,12 +33,12 @@ impl MessageHandler{
 
     pub fn new(
         rx_incoming_request: Receiver<(CSeq, Request<BytesMut>)>,
-        tx_outgoing_message: UnboundedSender<Message>,
+        rx_pending_request: UnboundedReceiver<PendingRequestUpdate>,
         continue_wait_duration: Option<Duration>,
     ) -> Self {
         MessageHandler {
-            rx_incoming_request: rx_incoming_request,
-            tx_outgoing_message,
+            rx_incoming_request,
+            rx_pending_request,
             continue_wait_duration
         }
     }

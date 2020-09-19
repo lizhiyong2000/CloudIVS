@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex};
 use std::sync::atomic::AtomicBool;
 use std::time::Duration;
 
-use log::info;
+use log::{info, error};
 
 use atomic::Ordering;
 use bytes::BytesMut;
@@ -71,11 +71,11 @@ pub struct Connection<TTransport>
     /// The internal sender responsible for sending all outgoing messages through the connection.
     sender: Option<MessageSender<SplitSink<Framed<TTransport, Codec>, Message>>>,
 
-    /// A shutdown event receiver for when the request handler has finished processing all requests.
+    // A shutdown event receiver for when the request handler has finished processing all requests.
     // rx_handler_shutdown_event: Option<Shared<oneshot::Receiver<()>>>,
-
-    /// The shutdown handler that keeps watch for a shutdown signal.
-    handler: Option<MessageHandler>,
+    //
+    // /// The shutdown handler that keeps watch for a shutdown signal.
+    // handler: Option<MessageHandler>,
 }
 
 
@@ -159,17 +159,17 @@ impl<TTransport> Connection<TTransport>
     }
 
 
-    fn poll_handler(mut self: Pin<&mut Self>, cx: &mut Context<'_>) {
-        if let Some(handler) = self.handler.as_mut() {
-            match handler.poll_unpin(cx) {
-                Poll::Ready(_) => {
-                    // self.shutdown_request_receiver();
-                    self.shutdown_handler();
-                }
-                _ => (),
-            }
-        }
-    }
+    // fn poll_handler(mut self: Pin<&mut Self>, cx: &mut Context<'_>) {
+    //     if let Some(handler) = self.handler.as_mut() {
+    //         match handler.poll_unpin(cx) {
+    //             Poll::Ready(_) => {
+    //                 // self.shutdown_request_receiver();
+    //                 self.shutdown_handler();
+    //             }
+    //             _ => (),
+    //         }
+    //     }
+    // }
 
 
     /// Shuts down the receiver.
@@ -195,9 +195,9 @@ impl<TTransport> Connection<TTransport>
     }
 
     /// Shuts down the sender.
-    fn shutdown_handler(&mut self) {
-        self.handler = None;
-    }
+    // fn shutdown_handler(&mut self) {
+    //     self.handler = None;
+    // }
 
     /// Constructs a new connection with the given configuration.
     ///
@@ -228,7 +228,7 @@ impl<TTransport> Connection<TTransport>
         let (tx_incoming_request, rx_incoming_request) =
             mpsc::channel(config.request_buffer_size());
 
-        let (tx_outgoing_message, rx_outgoing_message) = unbounded();
+        // let (tx_outgoing_message, rx_outgoing_message) = unbounded();
 
         let (tx_pending_request, rx_pending_request) = mpsc::unbounded();
 
@@ -242,19 +242,24 @@ impl<TTransport> Connection<TTransport>
 
         // Create individual components. A request handler is only created if a service was given.
 
-        let (sender, sender_handle) = MessageSender::new(sink,  rx_outgoing_message);
+        let (sender, sender_handle) = MessageSender::new(sink);
+
+
+        let handler = MessageHandler::new(
+            rx_incoming_request,
+            rx_pending_request,
+            config.continue_wait_duration());
+
+
         let receiver = MessageReceiver::new(
             stream,
             rx_codec_event,
             tx_incoming_request,
-            rx_pending_request,
+            Some(handler),
             config.decode_timeout_duration(),
         );
 
-        let handler = MessageHandler::new(
-            rx_incoming_request,
-            tx_outgoing_message,
-            config.continue_wait_duration());
+
 
         // let handler = if let Some(service) = service {
         //     Some(RequestHandler::new(
@@ -283,7 +288,7 @@ impl<TTransport> Connection<TTransport>
             receiver: Some(receiver),
             // rx_handler_shutdown_event: rx_handler_shutdown_event.clone(),
             sender: Some(sender),
-            handler: Some(handler),
+            // handler: Some(handler),
             request_max_timeout_default_duration: None,
 
             request_timeout_default_duration: None,
@@ -324,7 +329,7 @@ impl <TTransport> Future for Connection<TTransport>
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         self.as_mut().poll_receiver(cx);
         self.as_mut().poll_sender(cx);
-        self.as_mut().poll_handler(cx);
+        // self.as_mut().poll_handler(cx);
 
         info!("connection poll");
 
@@ -699,7 +704,7 @@ impl ConnectionHandle {
             TBody: AsRef<[u8]>,
     {
 
-        println!("{}","send request");
+        info!("{}","send request");
 
         let options = RequestOptions::builder()
             .max_timeout_duration(self.request_max_timeout_default_duration)

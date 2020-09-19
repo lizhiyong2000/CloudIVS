@@ -16,7 +16,7 @@ use tokio::time::{Delay, delay_for};
 use std::fmt::{Display, Formatter};
 use std::fmt;
 
-use log::info;
+use log::{info, error};
 
 /// Options used to modify the behavior of a request.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]

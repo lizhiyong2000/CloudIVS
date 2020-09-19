@@ -1,7 +1,7 @@
 #![feature(int_error_matching)]
 // #![feature(ready_macro)]
 
-use log::info;
+use log::{info, error};
 use log4rs;
 
 use std::convert::TryFrom;
@@ -43,9 +43,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let result = client.connect().await;
     // .then(|result| {
     match result {
-        Ok(_) => println!("Connected: {:?}", client.uri()),
+        Ok(_) => info!("Connected: {:?}", client.uri()),
         Err(error) => {
-            println!("connect error: {}", error);
+            error!("connect error: {}", error);
             // return Err(Box::new("connect error"));
             return Err("connect error".into());
         },
@@ -65,8 +65,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     // .then(|result| {
     match result {
-        Ok(response) => println!("response: {:?}", response),
-        Err(error) => println!("error sending request: {}", error),
+        Ok(response) => info!("response: {:?}", response),
+        Err(error) => info!("error sending request: {}", error),
     }
 
     // futures::future::ready(())

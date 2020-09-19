@@ -5,7 +5,7 @@ use std::net::SocketAddr;
 use std::ptr::null;
 use std::rc::Rc;
 
-use log::info;
+use log::{info, error};
 
 use bytes::BytesMut;
 use futures::{Future, FutureExt, SinkExt, StreamExt, TryFutureExt, future};
