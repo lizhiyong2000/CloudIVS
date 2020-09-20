@@ -58,7 +58,7 @@ impl<TSink> MessageSender<TSink>
     /// If `Err(`[`ProtocolError`]`)` is returned, there was an error trying to send the message
     /// through the sink.
     fn try_send_message(mut self: Pin<&mut Self>, cx: &mut Context<'_>, message: Message) -> Poll<Result<(), ProtocolError>> {
-        debug_assert!(self.buffered_message.is_none());
+        // debug_assert!(self.buffered_message.is_none());
 
         if let Poll::Pending = self.sink.poll_ready_unpin(cx){
             return Poll::Pending;
@@ -67,7 +67,7 @@ impl<TSink> MessageSender<TSink>
 
         if let result = self.sink.start_send_unpin(message.clone())? {
             self.buffered_message = Some(message);
-            // return Poll::Pending;
+            return Poll::Pending;
         }
 
         Poll::Ready(Ok(()))
@@ -83,6 +83,10 @@ impl <TSink> Future for MessageSender<TSink>
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         info!("message sender poll");
+
+        if let Some(buffered_message) = self.buffered_message.take() {
+            self.as_mut().try_send_message(cx, buffered_message);
+        }
 
         loop {
             match self

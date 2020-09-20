@@ -16,4 +16,5 @@ pub mod expires;
 pub mod public;
 pub mod session;
 pub mod transport;
+pub mod authenticate;
 

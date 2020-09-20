@@ -17,7 +17,7 @@ use tokio_util::codec::Framed;
 use url::Url;
 
 use crate::proto::rtsp::codec::{Codec, Message};
-use crate::proto::rtsp::connection::{Connection, OperationError, ConnectionHandle};
+use crate::proto::rtsp::connection::{Connection, OperationError, ConnectionHandle, Authenticator};
 use crate::proto::rtsp::message::request::Request;
 use crate::proto::rtsp::message::response::Response;
 use itertools::Either;
@@ -49,6 +49,11 @@ impl RTSPClient {
     pub fn uri(&self) -> Option<Url>
     {
         return self._url.clone();
+    }
+
+    pub fn setAuthenticator(&mut self, auth:Authenticator){
+        let conn = self.connection.as_mut().unwrap();
+        conn.setAuthenticator(auth);
     }
 
     pub async fn connect(&mut self) -> Result<(), io::Error>{

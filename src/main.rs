@@ -21,7 +21,11 @@ use crate::proto::rtsp::message::method::Method;
 use crate::proto::rtsp::message::request::Request;
 use crate::proto::rtsp::message::uri::request::URI;
 use tokio::time::delay_for;
-use crate::proto::rtsp::connection::OperationError;
+use crate::proto::rtsp::connection::{OperationError, Authenticator};
+use regex::Regex;
+use crate::proto::rtsp::message::status::StatusCode;
+use crate::proto::rtsp::message::header::map::HeaderMapExtension;
+use crate::proto::rtsp::message::header::types::authenticate::WWWAuthenticate;
 
 // use crate::rtsp_client::RTSPClient;
 // use crate::errors::ConnectionError;
@@ -33,12 +37,23 @@ mod proto;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
 
+    let s = "realm=\"IP Camera(C6496)\"";
+    let r = Regex::new("(\\w+)=\"(.+)\"").unwrap();
+    if let Some(caps) = r.captures(&s){
+        for j in 0..caps.len() {
+            println!("group {} : {}",  j, &caps[j]);
+        }
+    }
+
+
+
     log4rs::init_file("log4rs.yaml", Default::default()).unwrap();
     info!("INFO");
 
 // fn main() -> impl Future<Output = i32> {
     // Connect to a peer
-    let url = "rtsp://admin:dm666666@192.168.30.224:554/h264/ch1/main/av_stream";
+    // let url = "rtsp://admin:dm666666@192.168.30.224:554/h264/ch1/main/av_stream";
+    let url = "rtsp://192.168.30.224:554/h264/ch1/main/av_stream";
     let mut client = RTSPClient::new(String::from(url));
     let result = client.connect().await;
     // .then(|result| {
@@ -61,11 +76,51 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     // println!("request:{}", request);
 
-    let result = client.send_request(request).await;
+    let result = client.send_request(request.clone()).await;
 
     // .then(|result| {
     match result {
-        Ok(response) => info!("response: {:?}", response),
+        Ok(response) => {
+            info!("response: {:?}", response);
+
+            if response.status_code() == StatusCode::Unauthorized{
+
+                let www_auth_header = response.headers().typed_try_get::<WWWAuthenticate>();
+
+                match www_auth_header{
+                    Ok(Some(authenticate))=>{
+
+                        let username = "admin".to_string();
+                        let password = "dm666666".to_string();
+
+                        client.setAuthenticator(Authenticator{username, password, authenticate});
+
+                        client.send_request(request.clone()).await;
+                    },
+
+                    Err(err) =>{
+                        info!("WWWAuthenticate error: {:?} ", err);
+                    }
+                    _ => {}
+                }
+
+                // if let Some(www_authenticate) = response.headers().typed_try_get::<WWWAuthenticate>(){
+                //
+                //     match www_authenticate{
+                //         WWWAuthenticate::Digest(parts) =>{
+                //             info!("Digest WWWAuthenticate: {:?} ", parts);
+                //         },
+                //
+                //         WWWAuthenticate::Basic(parts) =>{
+                //             info!("Basic WWWAuthenticate: {:?} ", parts);
+                //         },
+                //     }
+                //     // info!("WWW-Authenticate: {}", www_authenticate)
+                // }
+            }
+
+
+        },
         Err(error) => info!("error sending request: {}", error),
     }
 
@@ -82,7 +137,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 fn main1() -> Result<(), io::Error>{
     //rtsp://admin:dm666666@192.168.30.224:554/h264/ch1/main/av_stream
-    let url = "rtsp://admin:dm666666@192.168.30.224:554/h264/ch1/main/av_stream";
+    // let url = "rtsp://admin:dm666666@192.168.30.224:554/h264/ch1/main/av_stream";
+    let url = "rtsp://192.168.30.224:554/h264/ch1/main/av_stream";
     let mut client = RTSPClient::new(String::from(url));
 
     let rt = tokio::runtime::Runtime::new().unwrap();

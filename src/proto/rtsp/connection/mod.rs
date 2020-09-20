@@ -30,6 +30,10 @@ use crate::proto::rtsp::message::response::Response;
 use std::error::Error;
 use crate::proto::rtsp::message::header::map::HeaderMapExtension;
 use crate::proto::rtsp::message::header::types::CSeq;
+use crate::proto::rtsp::message::header::types::authenticate::{WWWAuthenticate, WWWAuthenticatePart, WWWAuthenticateMethod};
+use crate::proto::rtsp::message::header::types::authenticate::Authorization;
+use linked_hash_set::LinkedHashSet;
+// use crate::proto::rtsp::message::header::name::HeaderName::Authorization;
 
 mod shutdown;
 mod handler;
@@ -47,6 +51,15 @@ pub const REQUEST_MAX_TIMEOUT_DEFAULT_DURATION: Duration = Duration::from_secs(2
 
 /// The default timeout for the amount of time that we will wait for a request in between responses.
 pub const REQUEST_TIMEOUT_DEFAULT_DURATION: Duration = Duration::from_secs(10);
+
+
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub struct Authenticator{
+    pub username:String,
+    pub password:String,
+
+    pub authenticate :WWWAuthenticate,
+}
 
 /// Represents an RTSP connection between two RTSP agents.
 ///
@@ -616,6 +629,8 @@ pub struct ConnectionHandle {
 
     /// The next `"CSeq"` that will be used when sending a request.
     sequence_number: Arc<Mutex<CSeq>>,
+
+    authenticator: Option<Authenticator>
 }
 
 impl ConnectionHandle {
@@ -660,7 +675,56 @@ impl ConnectionHandle {
             tx_initiate_shutdown: Some(tx_initiate_shutdown),
             tx_pending_request,
             sequence_number: Arc::new(Mutex::new(CSeq::random())),
+            authenticator: None,
         }
+    }
+
+    pub(self) fn get_authorization(request : &Request<BytesMut>, authenticator: &Authenticator) -> Authorization{
+
+        let mut auth_parts = LinkedHashSet::new();
+
+        let authenticate = authenticator.authenticate.clone();
+
+        let username = authenticator.username.as_str();
+        let password = authenticator.password.as_str();
+
+        match authenticate.method {
+            WWWAuthenticateMethod::Basic => {
+
+                let basic_response = Authorization::gen_basic_response(username, password);
+
+                auth_parts.insert(WWWAuthenticatePart::BasicResponse(basic_response));
+
+                return Authorization{method:WWWAuthenticateMethod::Basic, parts:auth_parts };
+            },
+            WWWAuthenticateMethod::Digest => {
+
+                // Authorization: Digest username="admin", realm="IP Camera(C6496)", nonce="75ebba210a21f5d87902abcc3343d9d0", uri="rtsp://192.168.30.224:554/h264/ch1/main/av_stream&channelId=2/", response="98962c804dbb3a95d7cdbbbe1a2234a4"\r\n
+
+
+                let realm = authenticate.realm();
+                let nonce = authenticate.nonce();
+                let method = request.method().as_str();
+                let uri = request.uri();
+                let response = Authorization::gen_digest_response(username,
+                                                                  password,
+                                                                  realm.as_str(),
+                                                                  nonce.as_str(),
+                method, uri.to_string().as_str());
+
+                auth_parts.insert(WWWAuthenticatePart::Username(username.to_string()));
+                auth_parts.insert(WWWAuthenticatePart::Realm(realm.to_string()));
+
+                auth_parts.insert(WWWAuthenticatePart::Nonce(nonce.to_string()));
+
+                auth_parts.insert(WWWAuthenticatePart::Uri(uri.to_string()));
+
+                auth_parts.insert(WWWAuthenticatePart::Response(response.to_string()));
+                return Authorization{method:WWWAuthenticateMethod::Digest, parts:auth_parts };
+                // return Authorization::Digest(auth_parts);
+            },
+        }
+
     }
 
     // /// Sends the given request with default options.
@@ -689,6 +753,13 @@ impl ConnectionHandle {
         if let Some(tx_initiate_shutdown) = self.tx_initiate_shutdown.take() {
             let _ = tx_initiate_shutdown.send(());
         }
+    }
+
+
+    pub fn setAuthenticator(&mut self, auth:Authenticator){
+
+        self.authenticator = Some(auth);
+
     }
 
     /// Sends the given request with default options.
@@ -729,6 +800,16 @@ impl ConnectionHandle {
         // Convert the request into the expect transport format, including setting the `"CSeq"`.
         let mut request = request.into().map(|body| BytesMut::from(body.as_ref()));
         request.headers_mut().typed_insert(sequence_number);
+
+        // Authorization: Digest username="admin", realm="IP Camera(C6496)", nonce="75ebba210a21f5d87902abcc3343d9d0", uri="rtsp://192.168.30.224:554/h264/ch1/main/av_stream&channelId=2", response="6b876cf2eede9d4611e70b38ca531b3d"\r\n
+
+        if let Some(auth) = self.authenticator.clone(){
+            let authorization = ConnectionHandle::get_authorization(&request, &auth);
+            request.headers_mut().typed_insert(authorization);
+        }
+
+
+        // request.headers_mut().typed_insert(authorization);
 
         // Notify the response receiver that we are going to be expecting a response for this
         // request.

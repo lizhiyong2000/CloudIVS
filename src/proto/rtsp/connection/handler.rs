@@ -33,6 +33,7 @@ use crate::proto::rtsp::message::uri::Scheme;
 // use crate::proto::rtsp::message::uri::Scheme;
 use crate::proto::rtsp::message::response::{NOT_IMPLEMENTED_RESPONSE, BAD_REQUEST_RESPONSE};
 use crate::proto::rtsp::connection::sender::SenderHandle;
+use crate::proto::rtsp::message::header::types::authenticate::WWWAuthenticate;
 
 pub struct MessageHandler{
     rx_incoming_request: Receiver<(CSeq, Request<BytesMut>)>,
@@ -56,6 +57,8 @@ pub struct MessageHandler{
     requests_allowed: bool,
 
     sender_handle: Option<SenderHandle>,
+
+    www_authenticate: Option<WWWAuthenticate>,
 
 
 }
@@ -84,7 +87,8 @@ impl MessageHandler{
 
             /// Are requests allowed to be accepted.
             requests_allowed: true,
-            sender_handle: Some(sender_handle)
+            sender_handle: Some(sender_handle),
+            www_authenticate:None,
         }
     }
 
@@ -195,7 +199,9 @@ impl MessageHandler{
             else if let Some(pending_request) = self.pending_requests.remove(&cseq) {
 
                 info!("send PendingRequestResponse::Response: {} ", cseq);
-                let _ = pending_request.send(PendingRequestResponse::Response(response));
+                let _ = pending_request.send(PendingRequestResponse::Response(response.clone()));
+
+
             }
         }
     }
