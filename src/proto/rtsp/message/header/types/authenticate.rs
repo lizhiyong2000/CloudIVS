@@ -93,7 +93,7 @@ impl TypedHeader for Authorization{
             return Err(WWWAuthenticateError::MoreThanOneHeader);
         }
 
-        let authenticate = decoce_autherization(value.as_str())?;
+        let authenticate = decode_autherization(value.as_str())?;
         Ok(Some(authenticate))
     }
 
@@ -124,7 +124,7 @@ impl TypedHeader for Authorization{
 
     /// Returns the statically assigned [`HeaderName`] for this header.
     fn header_name() -> &'static HeaderName {
-        &HeaderName::WWWAuthenticate
+        &HeaderName::Authorization
     }
 }
 
@@ -175,13 +175,13 @@ pub fn decoce_www_authenticate(value:&str) -> Result<WWWAuthenticate, WWWAuthent
 }
 
 
-pub fn decoce_autherization(value:&str) -> Result<Authorization, WWWAuthenticateError>{
+pub fn decode_autherization(value:&str) -> Result<Authorization, WWWAuthenticateError>{
 
 
 
     let v: Vec<&str> = value.splitn(2, |c| c == ' ').collect();
 
-    info!("decoce_autherization: {:?}", v);
+    info!("decode_autherization: {:?}", v);
 
     if v.len() <2 {
         return Err(WWWAuthenticateError::Incomplete);
@@ -214,7 +214,7 @@ pub fn decoce_autherization(value:&str) -> Result<Authorization, WWWAuthenticate
         },
 
         _=>{
-            info!("decoce_autherization InvalidAuthenticateMethod");
+            info!("decode_autherization InvalidAuthenticateMethod");
             return Err(WWWAuthenticateError::InvalidAuthenticateMethod)
         } ,
     }
@@ -319,14 +319,14 @@ impl WWWAuthenticatePart {
         use self::WWWAuthenticatePart::*;
 
         match self {
-            Realm(value) => format!("realm: \"{}|\"", value),
-            Nonce(value) => format!("nonce: \"{}\"", value),
-            Stale(value) => format!("stale: \"{}\"", value),
-            Username(value) => format!("username: \"{}\"", value),
-            Uri(value) => format!("uri: \"{}\"", value),
-            Response(value) => format!("response: \"{}\"", value),
+            Realm(value) => format!("realm=\"{}\"", value),
+            Nonce(value) => format!("nonce=\"{}\"", value),
+            Stale(value) => format!("stale=\"{}\"", value),
+            Username(value) => format!("username=\"{}\"", value),
+            Uri(value) => format!("uri=\"{}\"", value),
+            Response(value) => format!("response=\"{}\"", value),
             BasicResponse(value) => format!("{}", value),
-            Extension(name, value)=> format!("{}: \"{}\"", name, value),
+            Extension(name, value)=> format!("{}=\"{}\"", name, value),
 
         }
     }
