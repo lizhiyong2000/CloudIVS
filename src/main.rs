@@ -1,5 +1,17 @@
 #![feature(int_error_matching)]
+#![recursion_limit="256"]
 // #![feature(ready_macro)]
+#![allow(unused_imports)]
+#![allow(dead_code)]
+#![allow(non_camel_case_types)]
+#![allow(unreachable_code)]
+
+#[macro_use]
+extern crate trackable;
+
+#[macro_use]
+extern crate nom;
+
 
 use log::{info, error};
 use log4rs;
@@ -33,7 +45,6 @@ use crate::proto::rtsp::message::header::types::Session;
 // use crate::rtsp_client::RTSPClient;
 // use crate::errors::ConnectionError;
 
-mod rtsp_client;
 mod proto;
 
 
