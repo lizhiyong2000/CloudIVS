@@ -775,7 +775,7 @@ impl ConnectionHandle {
             TBody: AsRef<[u8]>,
     {
 
-        info!("{}","send request");
+        info!("{}","connection handle send request");
 
         let options = RequestOptions::builder()
             .max_timeout_duration(self.request_max_timeout_default_duration)

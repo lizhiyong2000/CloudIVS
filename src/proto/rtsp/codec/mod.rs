@@ -376,7 +376,7 @@ mod test {
     use futures::StreamExt;
     use tokio::runtime::Runtime;
 
-    use tokio_codec::{Decoder, Encoder};
+    // use tokio_codec::{Decoder, Encoder};
 
     use crate::proto::rtsp::codec::{Codec, CodecEvent, Message};
     use crate::proto::rtsp::message::header::name::HeaderName;
@@ -386,6 +386,7 @@ mod test {
     use crate::proto::rtsp::message::request::Request;
     use crate::proto::rtsp::message::response::Response;
     use crate::proto::rtsp::message::uri::request::URI;
+    use tokio_util::codec::{Encoder, Decoder};
 
 // use tokio::runtime::current_thread::Runtime;
 

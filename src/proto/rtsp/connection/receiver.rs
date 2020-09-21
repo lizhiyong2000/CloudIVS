@@ -231,7 +231,7 @@ impl <TStream> Future for MessageReceiver<TStream>
     type Output = ();
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        info!("message receiver poll");
+        // info!("message receiver poll");
 
         match self.as_mut().poll_handler(cx) {
             Poll::Ready(Ok(message))=> {

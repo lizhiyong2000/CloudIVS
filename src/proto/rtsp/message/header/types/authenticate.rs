@@ -135,7 +135,7 @@ pub fn decoce_www_authenticate(value:&str) -> Result<WWWAuthenticate, WWWAuthent
 
     let v: Vec<&str> = value.splitn(2, |c| c == ' ').collect();
 
-    info!("decoce_www_authenticate: {:?}", v);
+    // info!("decoce_www_authenticate: {:?}", v);
 
     if v.len() <2 {
         return Err(WWWAuthenticateError::Incomplete);
@@ -418,7 +418,7 @@ impl<'auth_part> TryFrom<&'auth_part [u8]> for WWWAuthenticatePart {
             let item = &caps[1];
             let val = &caps[2];
 
-            info!("WWWAuthenticatePart-{} {}", item, val);
+            // info!("WWWAuthenticatePart-{} {}", item, val);
 
             match item.to_lowercase().as_str() {
                 "realm" => return Ok(WWWAuthenticatePart::Realm(val.to_string())),
@@ -451,3 +451,52 @@ impl<'auth_part> TryFrom<&'auth_part str> for WWWAuthenticatePart {
         WWWAuthenticatePart::try_from(value.as_bytes())
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    // Authorization: Digest username="admin", realm="IP Camera(C6496)", nonce="75ebba210a21f5d87902abcc3343d9d0", uri="rtsp://192.168.30.224:554/h264/ch1/main/av_stream&channelId=2/", response="98962c804dbb3a95d7cdbbbe1a2234a4"
+    #[test]
+    fn test_digest_response() {
+        let username = "admin";
+        let password = "dm666666";
+        let realm = "IP Camera(C6496)"      ;
+        let nonce = "75ebba210a21f5d87902abcc3343d9d0";
+        let method = "PLAY";
+        let uri = "rtsp://192.168.30.224:554/h264/ch1/main/av_stream&channelId=2/";
+        let response = Authorization::gen_digest_response(username,
+                                                          password,
+                                                          realm,
+                                                          nonce,
+                                                          method, uri);
+
+        println!("response:{}", response);
+
+        assert_eq!(response.as_str(), "98962c804dbb3a95d7cdbbbe1a2234a4");
+
+
+    }
+
+    #[test]
+    fn test_digest_response_fail() {
+        let username = "admin";
+        let password = "dm666666";
+        let realm = "IP Camera(C6496)"      ;
+        let nonce = "06f85e0128e71d0b8c48373762bb62ba";
+        let method = "SETUP";
+        let uri = "rtsp://192.168.30.224:554/h264/ch1/main/av_stream";
+        let response = Authorization::gen_digest_response(username,
+                                                          password,
+                                                          realm,
+                                                          nonce,
+                                                          method, uri);
+
+        println!("response:{}", response);
+
+        assert_eq!(response.as_str(), "dc3170611844e63d0705eb9cf9d42e7f");
+
+
+    }
+
+}
+

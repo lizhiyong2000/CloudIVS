@@ -361,7 +361,7 @@ impl Future for MessageHandler
     type Output = ();
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        info!("message handler poll");
+        // info!("message handler poll");
 
         self.as_mut().poll_pending_request(cx);
 

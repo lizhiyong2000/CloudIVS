@@ -64,8 +64,8 @@ impl<TSink> MessageSender<TSink>
             return Poll::Pending;
         }
 
-
-        if let result = self.sink.start_send_unpin(message.clone())? {
+        //TODO duplicate send
+        if let Err(rr) = self.sink.start_send_unpin(message.clone()) {
             self.buffered_message = Some(message);
             return Poll::Pending;
         }
@@ -82,10 +82,10 @@ impl <TSink> Future for MessageSender<TSink>
     type Output = Result<(), ProtocolError>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        info!("message sender poll");
+        // info!("message sender poll");
 
         if let Some(buffered_message) = self.buffered_message.take() {
-            self.as_mut().try_send_message(cx, buffered_message);
+            return self.as_mut().try_send_message(cx, buffered_message);
         }
 
         loop {
