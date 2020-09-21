@@ -1,87 +1,186 @@
-mod rtsp_message;
-mod request;
-mod response;
-mod status;
-mod method;
-mod header;
+#![feature(int_error_matching)]
+// #![feature(ready_macro)]
 
+use log::{info, error};
+use log4rs;
+
+use std::convert::TryFrom;
+use std::error::Error;
+use std::io;
 use std::net::TcpStream;
 use std::str;
-use std::io::{self, BufRead, BufReader, Write};
-use crate::rtsp_client::RTSPClient;
+use std::time::Duration;
+
+use bytes::BytesMut;
+use futures::{Future, FutureExt, TryFutureExt};
+use futures::executor::block_on;
+use tokio::time;
+
+use crate::proto::rtsp::client::RTSPClient;
+use crate::proto::rtsp::message::method::Method;
+use crate::proto::rtsp::message::request::Request;
+use crate::proto::rtsp::message::uri::request::URI;
+use tokio::time::delay_for;
+use crate::proto::rtsp::connection::{OperationError, Authenticator};
+use regex::Regex;
+use crate::proto::rtsp::message::status::StatusCode;
+use crate::proto::rtsp::message::header::map::HeaderMapExtension;
+use crate::proto::rtsp::message::header::types::authenticate::WWWAuthenticate;
+use crate::proto::rtsp::message::header::name::HeaderName;
+use crate::proto::rtsp::message::header::value::HeaderValue;
+use crate::proto::rtsp::message::header::types::Session;
+
+// use crate::rtsp_client::RTSPClient;
 // use crate::errors::ConnectionError;
 
 mod rtsp_client;
+mod proto;
 
-fn main() -> Result<(), io::Error>{
-    //rtsp://admin:dm666666@192.168.30.224:554/h264/ch1/main/av_stream
-    let url = "rtsp://admin:dm666666@192.168.30.224:554/h264/ch1/main/av_stream";
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn Error>> {
+
+    let s = "realm=\"IP Camera(C6496)\"";
+    let r = Regex::new("(\\w+)=\"(.+)\"").unwrap();
+    if let Some(caps) = r.captures(&s){
+        for j in 0..caps.len() {
+            println!("group {} : {}",  j, &caps[j]);
+        }
+    }
+
+
+
+    log4rs::init_file("log4rs.yaml", Default::default()).unwrap();
+    info!("INFO");
+
+// fn main() -> impl Future<Output = i32> {
+    // Connect to a peer
+    // let url = "rtsp://admin:dm666666@192.168.30.224:554/h264/ch1/main/av_stream";
+    let url = "rtsp://192.168.30.224:554/h264/ch1/main/av_stream";
     let mut client = RTSPClient::new(String::from(url));
-    client.connect()?;
-    client.sendOptions();
-    client.sendDescribe();
-
-    // OPTIONS rtsp://192.168.30.224:554/h264/ch1/main/av_stream&channelId=2 RTSP/1.0\r\n
-    // CSeq: 2\r\n
-    // User-Agent: LibVLC/3.0.6 (LIVE555 Streaming Media v2016.11.28)\r\n
-    // \r\n
-
-    // DESCRIBE rtsp://192.168.30.224:554/h264/ch1/main/av_stream&channelId=2 RTSP/1.0\r\n
-    // CSeq: 3\r\n
-    // User-Agent: LibVLC/3.0.6 (LIVE555 Streaming Media v2016.11.28)\r\n
-    // Accept: application/sdp\r\n
-    // \r\n
+    let result = client.connect().await;
+    // .then(|result| {
+    match result {
+        Ok(_) => info!("Connected: {:?}", client.uri()),
+        Err(error) => {
+            error!("connect error: {}", error);
+            // return Err(Box::new("connect error"));
+            return Err("connect error".into());
+        },
+    }
 
 
-    // RTSP/1.0 401 Unauthorized\r\n
-    // CSeq: 3\r\n
-    // WWW-Authenticate: Digest realm="IP Camera(C6496)", nonce="75ebba210a21f5d87902abcc3343d9d0", stale="FALSE"\r\n
-    // Date:  Thu, Jul 23 2020 16:03:04 GMT\r\n
-    // \r\n
+    let addr = client.uri();
+    // println!("Connected to server: {}", addr.unwrap());
+
+    let mut builder = Request::builder();
+    builder.method(Method::Describe).uri(URI::try_from(url).unwrap()).body(BytesMut::new());
+    let request = builder.build().unwrap();
+
+    // println!("request:{}", request);
+
+    let result = client.send_request(request.clone()).await;
+
+    // .then(|result| {
+    match result {
+        Ok(response) => {
+            // info!("response: {:?}", response);
+
+            if response.status_code() == StatusCode::Unauthorized{
+
+                let www_auth_header = response.headers().typed_try_get::<WWWAuthenticate>();
+
+                match www_auth_header{
+                    Ok(Some(authenticate))=>{
+
+                        let username = "admin".to_string();
+                        let password = "dm666666".to_string();
+
+                        client.setAuthenticator(Authenticator{username, password, authenticate});
+
+                        let result = client.send_request(request.clone()).await;
+
+                        match result {
+                            Ok(response) => {
+                                // info!("response: {:?}", response);
+
+                                if response.status_code() == StatusCode::OK {
+                                    let mut builder = Request::builder();
+                                    builder.method(Method::Setup).uri(URI::try_from("rtsp://192.168.30.224:554/h264/ch1/main/av_stream/trackID=1").unwrap()).body(BytesMut::new());
+                                    builder.header(
+                                        HeaderName::Transport,
+                                        HeaderValue::try_from("RTP/AVP;unicast;client_port=63994-63995").unwrap(),
+                                    );
+                                    // Transport: RTP/AVP;unicast;client_port=63994-63995
+                                    let request = builder.build().unwrap();
+
+                                    // println!("request:{}", request);
+
+                                    let result = client.send_request(request.clone()).await;
+
+                                    match result {
+                                        Ok(response) => {
+                                            // info!("response: {:?}", response);
+
+                                            if response.status_code() == StatusCode::OK {
+
+                                                let session = response.headers().typed_try_get::<Session>();
+
+                                                if let Ok(Some(s)) = session{
+                                                    let session_id = s.id();
+                                                    let mut builder = Request::builder();
+                                                    builder.method(Method::Play).uri(URI::try_from("rtsp://192.168.30.224:554/h264/ch1/main/av_stream").unwrap()).body(BytesMut::new());
+
+                                                    builder.header(
+                                                        HeaderName::Session,
+                                                        HeaderValue::try_from(session_id.as_str()).unwrap(),
+                                                    );
+                                                    builder.header(
+                                                        HeaderName::Range,
+                                                        HeaderValue::try_from("npt=0.000-").unwrap(),
+                                                    );
+                                                    // Transport: RTP/AVP;unicast;client_port=63994-63995
+                                                    let request = builder.build().unwrap();
+                                                    client.send_request(request.clone()).await;
+                                                }
 
 
-    // DESCRIBE rtsp://192.168.30.224:554/h264/ch1/main/av_stream&channelId=2 RTSP/1.0\r\n
-    // CSeq: 4\r\n
-    // Authorization: Digest username="admin", realm="IP Camera(C6496)", nonce="75ebba210a21f5d87902abcc3343d9d0", uri="rtsp://192.168.30.224:554/h264/ch1/main/av_stream&channelId=2", response="6b876cf2eede9d4611e70b38ca531b3d"\r\n
-    // User-Agent: LibVLC/3.0.6 (LIVE555 Streaming Media v2016.11.28)\r\n
-    // Accept: application/sdp\r\n
-    // \r\n
 
 
-    // SETUP rtsp://192.168.30.224:554/h264/ch1/main/av_stream&channelId=2/trackID=1 RTSP/1.0\r\n
-    // CSeq: 5\r\n
-    // Authorization: Digest username="admin", realm="IP Camera(C6496)", nonce="75ebba210a21f5d87902abcc3343d9d0", uri="rtsp://192.168.30.224:554/h264/ch1/main/av_stream&channelId=2/", response="b207757f4152a1b793670dceb37c11d4"\r\n
-    // User-Agent: LibVLC/3.0.6 (LIVE555 Streaming Media v2016.11.28)\r\n
-    // Transport: RTP/AVP;unicast;client_port=63994-63995
-    // \r\n
+                                            }
+                                        },
+
+                                        Err(err) => {
+                                            info!("WWWAuthenticate error: {:?} ", err);
+                                        }
+                                    }
+                                }
+                            }
+
+                            _ => {}
+                        }
 
 
+                    },
 
-    // PLAY rtsp://192.168.30.224:554/h264/ch1/main/av_stream&channelId=2/ RTSP/1.0\r\n
-    // CSeq: 6\r\n
-    // Authorization: Digest username="admin", realm="IP Camera(C6496)", nonce="75ebba210a21f5d87902abcc3343d9d0", uri="rtsp://192.168.30.224:554/h264/ch1/main/av_stream&channelId=2/", response="98962c804dbb3a95d7cdbbbe1a2234a4"\r\n
-    // User-Agent: LibVLC/3.0.6 (LIVE555 Streaming Media v2016.11.28)\r\n
-    // Session: 771996478
-    // Range: npt=0.000-\r\n
-    // \r\n
+                    Err(err) =>{
+                        info!("WWWAuthenticate error: {:?} ", err);
+                    }
+                    _ => {}
+                }
+
+            }
 
 
-    // let mut stream = TcpStream::connect("192.168.30.224:554")
-    //     .expect("Could not connect to server");
-    // loop {
-    //
-    //     let mut input = String::new();
-    //     let mut buffer: Vec<u8> = Vec::new();
-    //     io::stdin().read_line(&mut input)
-    //         .expect("Failed to read from stdin");
-    //     stream.write(input.as_bytes())
-    //         .expect("Failed to write to server");
-    //     let mut reader = BufReader::new(&stream);
-    //     reader.read_until(b'\n', &mut buffer)
-    //         .expect("Could not read into buffer");
-    //     print!("{}", str::from_utf8(&buffer)
-    //         .expect("Could not write buffer as string"));
-    // }
+        },
+        Err(error) => info!("error sending request: {}", error),
+    }
 
+    // futures::future::ready(())
+    // });
+
+    delay_for(Duration::from_millis(1000 * 1000)).await;
     Ok(())
+
+
 }
