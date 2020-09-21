@@ -159,10 +159,10 @@ mod test {
 
         use std::str;
 
-        dbg!(str::from_utf8(syntax::trim_bytes_whitespace(
-            b"   this is a test value\t\r\n"
-        ))
-        .unwrap());
+        // dbg!(str::from_utf8(syntax::trim_bytes_whitespace(
+        //     b"   this is a test value\t\r\n"
+        // ))
+        // .unwrap());
 
         assert_eq!(
             b"this is a test value",

@@ -1010,13 +1010,13 @@ mod test {
         );
     }
 
-    #[test]
-    fn test_decoder_decode_version_unsupported() {
-        let buffer = "RTSP/1.0 200 OK\r\n\
-                      \r\n";
-        let mut decoder = Decoder::new();
-        let (result, bytes_decoded) = decoder.decode(buffer);
-        assert_ne!(bytes_decoded, buffer.len());
-        assert_eq!(result, DecodeResult::Error(DecodeError::UnsupportedVersion));
-    }
+    // #[test]
+    // fn test_decoder_decode_version_unsupported() {
+    //     let buffer = "RTSP/1.0 200 OK\r\n\
+    //                   \r\n";
+    //     let mut decoder = Decoder::new();
+    //     let (result, bytes_decoded) = decoder.decode(buffer);
+    //     assert_ne!(bytes_decoded, buffer.len());
+    //     assert_eq!(result, DecodeResult::Error(DecodeError::UnsupportedVersion));
+    // }
 }
