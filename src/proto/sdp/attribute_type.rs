@@ -177,7 +177,7 @@ impl fmt::Display for SdpAttributeCandidateTcpType {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct SdpAttributeCandidate {
     pub foundation: String,
@@ -297,7 +297,7 @@ impl AnonymizingClone for SdpAttributeCandidate {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub enum SdpAttributeDtlsMessage {
     Client(String),
@@ -314,7 +314,7 @@ impl fmt::Display for SdpAttributeDtlsMessage {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct SdpAttributeRemoteCandidate {
     pub component: u32,
@@ -344,7 +344,7 @@ impl AnonymizingClone for SdpAttributeRemoteCandidate {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct SdpAttributeSimulcastId {
     pub id: String,
@@ -377,7 +377,7 @@ impl fmt::Display for SdpAttributeSimulcastId {
 }
 
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct SdpAttributeSimulcastVersion {
     pub ids: Vec<SdpAttributeSimulcastId>,
@@ -405,7 +405,7 @@ impl fmt::Display for SdpAttributeSimulcastVersion {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct SdpAttributeSimulcast {
     pub send: Vec<SdpAttributeSimulcastVersion>,
@@ -423,7 +423,7 @@ impl fmt::Display for SdpAttributeSimulcast {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct SdpAttributeRtcp {
     pub port: u16,
@@ -452,7 +452,7 @@ impl fmt::Display for SdpAttributeRtcp {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub enum SdpAttributeRtcpFbType {
     Ack = 0,
@@ -479,7 +479,7 @@ impl fmt::Display for SdpAttributeRtcpFbType {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct SdpAttributeRtcpFb {
     pub payload_type: SdpAttributePayloadType,
@@ -503,7 +503,7 @@ impl fmt::Display for SdpAttributeRtcpFb {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub enum SdpAttributeDirection {
     Recvonly,
@@ -522,7 +522,7 @@ impl fmt::Display for SdpAttributeDirection {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct SdpAttributeExtmap {
     pub id: u16,
@@ -544,7 +544,7 @@ impl fmt::Display for SdpAttributeExtmap {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct RtxFmtpParameters {
     pub apt: u8,
@@ -561,7 +561,7 @@ impl fmt::Display for RtxFmtpParameters {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct SdpAttributeFmtpParameters {
     // H264
@@ -645,7 +645,7 @@ impl fmt::Display for SdpAttributeFmtpParameters {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct SdpAttributeFmtp {
     pub payload_type: u8,
@@ -663,7 +663,7 @@ impl fmt::Display for SdpAttributeFmtp {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Debug, Copy)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub enum SdpAttributeFingerprintHashType {
     Sha1,
@@ -686,7 +686,7 @@ impl fmt::Display for SdpAttributeFingerprintHashType {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct SdpAttributeFingerprint {
     pub hash_algorithm: SdpAttributeFingerprintHashType,
@@ -831,7 +831,7 @@ impl fmt::Display for SdpAttributeImageAttrSetList {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct SdpAttributeImageAttr {
     pub pt: SdpAttributePayloadType,
@@ -854,7 +854,7 @@ impl fmt::Display for SdpAttributeImageAttr {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct SdpAttributeSctpmap {
     pub port: u16,
@@ -872,7 +872,7 @@ impl fmt::Display for SdpAttributeSctpmap {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub enum SdpAttributeGroupSemantic {
     LipSynchronization,          // RFC5888
@@ -899,7 +899,7 @@ impl fmt::Display for SdpAttributeGroupSemantic {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct SdpAttributeGroup {
     pub semantics: SdpAttributeGroupSemantic,
@@ -917,7 +917,7 @@ impl fmt::Display for SdpAttributeGroup {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct SdpAttributeMsid {
     pub id: String,
@@ -948,7 +948,7 @@ impl fmt::Display for SdpAttributeMsidSemantic {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct SdpAttributeRidParameters {
     pub max_width: u32,
@@ -977,7 +977,7 @@ impl fmt::Display for SdpAttributeRidParameters {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct SdpAttributeRid {
     pub id: String,
@@ -1009,7 +1009,7 @@ impl fmt::Display for SdpAttributeRid {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct SdpAttributeRtpmap {
     pub payload_type: u8,
@@ -1046,7 +1046,7 @@ impl fmt::Display for SdpAttributeRtpmap {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub enum SdpAttributeSetup {
     Active,
@@ -1067,7 +1067,7 @@ impl fmt::Display for SdpAttributeSetup {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct SdpAttributeSsrc {
     pub id: u32,
@@ -1119,7 +1119,7 @@ impl AnonymizingClone for SdpAttributeSsrc {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub enum SdpSsrcGroupSemantic {
     Duplication,              // RFC7104
@@ -1142,7 +1142,7 @@ impl fmt::Display for SdpSsrcGroupSemantic {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub enum SdpAttribute {
     BundleOnly,

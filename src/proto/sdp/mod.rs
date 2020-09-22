@@ -34,7 +34,7 @@ pub mod network;
  * RFC4566
  * bandwidth-fields =    *(%x62 "=" bwtype ":" bandwidth CRLF)
  */
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub enum SdpBandwidth {
     As(u32),
@@ -60,7 +60,7 @@ impl fmt::Display for SdpBandwidth {
  * connection-field =    [%x63 "=" nettype SP addrtype SP
  *                       connection-address CRLF]
  */
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct SdpConnection {
     pub address: ExplicitlyTypedAddress,
@@ -89,7 +89,7 @@ impl AnonymizingClone for SdpConnection {
  * origin-field =        %x6f "=" username SP sess-id SP sess-version SP
  *                       nettype SP addrtype SP unicast-address CRLF
  */
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct SdpOrigin {
     pub username: String,
@@ -126,7 +126,7 @@ impl AnonymizingClone for SdpOrigin {
  *                       *(CRLF repeat-fields) CRLF)
  *                       [zone-adjustments CRLF]
  */
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct SdpTiming {
     pub start: u64,
@@ -140,6 +140,7 @@ impl fmt::Display for SdpTiming {
 }
 
 #[cfg_attr(feature = "serialize", derive(Serialize))]
+#[derive(Debug)]
 pub enum SdpType {
     // Note: Email, Information, Key, Phone, Repeat, Uri and Zone are left out
     //       on purposes as we don't want to support them.
@@ -154,6 +155,7 @@ pub enum SdpType {
 }
 
 #[cfg_attr(feature = "serialize", derive(Serialize))]
+#[derive(Debug)]
 pub struct SdpLine {
     pub line_number: usize,
     pub sdp_type: SdpType,
@@ -177,7 +179,7 @@ pub struct SdpLine {
  *                       attribute-fields
  *                       media-descriptions
  */
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct SdpSession {
     pub version: u64,
@@ -588,36 +590,36 @@ fn parse_sdp_line(line: &str, line_number: usize) -> Result<SdpLine, SdpParserEr
         "a" => parse_attribute(line_value),
         "b" => parse_bandwidth(line_value),
         "c" => parse_connection(line_value),
-        "e" => Err(SdpParserInternalError::Generic(format!(
+        "e" => Err(SdpParserInternalError::Unsupported(format!(
             "unsupported type email: {}",
             line_value
         ))),
-        "i" => Err(SdpParserInternalError::Generic(format!(
+        "i" => Err(SdpParserInternalError::Unsupported(format!(
             "unsupported type information: {}",
             line_value
         ))),
-        "k" => Err(SdpParserInternalError::Generic(format!(
+        "k" => Err(SdpParserInternalError::Unsupported(format!(
             "unsupported insecure key exchange: {}",
             line_value
         ))),
         "m" => parse_media(line_value),
         "o" => parse_origin(line_value),
-        "p" => Err(SdpParserInternalError::Generic(format!(
+        "p" => Err(SdpParserInternalError::Unsupported(format!(
             "unsupported type phone: {}",
             line_value
         ))),
-        "r" => Err(SdpParserInternalError::Generic(format!(
+        "r" => Err(SdpParserInternalError::Unsupported(format!(
             "unsupported type repeat: {}",
             line_value
         ))),
         "s" => parse_session(untrimmed_line_value),
         "t" => parse_timing(line_value),
-        "u" => Err(SdpParserInternalError::Generic(format!(
+        "u" => Err(SdpParserInternalError::Unsupported(format!(
             "unsupported type uri: {}",
             line_value
         ))),
         "v" => parse_version(line_value),
-        "z" => Err(SdpParserInternalError::Generic(format!(
+        "z" => Err(SdpParserInternalError::Unsupported(format!(
             "unsupported type zone: {}",
             line_value
         ))),

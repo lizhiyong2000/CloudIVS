@@ -11,18 +11,18 @@ use super::*;
 /// Calling the `code` method before the `build` method is
 /// required.
 #[derive(Default)]
-pub struct ResponseGenerator {
+pub struct ResponseBuilder {
     code: Option<u32>,
     version: Version,
     headers: Headers,
     body: Vec<u8>,
 }
 
-impl ResponseGenerator {
+impl ResponseBuilder {
 
-    /// Get a new instance of the ResponseGenerator.
-    pub fn new() -> ResponseGenerator {
-        ResponseGenerator {
+    /// Get a new instance of the ResponseBuilder.
+    pub fn new() -> ResponseBuilder {
+        ResponseBuilder {
             code: None,
             version: Version::default(),
             headers: Headers::new(),
@@ -31,7 +31,7 @@ impl ResponseGenerator {
     }
 
     /// Set the response status code.
-    pub fn code(mut self, code: u32) -> ResponseGenerator {
+    pub fn code(mut self, code: u32) -> ResponseBuilder {
         self.code = Some(code);
         self
     }
@@ -39,13 +39,13 @@ impl ResponseGenerator {
     /// Add multiple headers to the response header list.
     /// This use's Vec::extend so that the current items
     /// in the header list are kept.
-    pub fn headers(mut self, headers: Vec<Header>) -> ResponseGenerator {
+    pub fn headers(mut self, headers: Vec<Header>) -> ResponseBuilder {
         self.headers.extend(headers);
         self
     }
 
     /// Add a single header to the response header list.
-    pub fn header(mut self, header: Header) -> ResponseGenerator {
+    pub fn header(mut self, header: Header) -> ResponseBuilder {
         self.headers.push(header);
         self
     }
@@ -62,7 +62,7 @@ impl ResponseGenerator {
 
     /// Set the sip response body. This completely replaces
     /// the current response body.
-    pub fn body(mut self, body: Vec<u8>) -> ResponseGenerator {
+    pub fn body(mut self, body: Vec<u8>) -> ResponseBuilder {
         self.body = body;
         self
     }
@@ -80,7 +80,7 @@ impl ResponseGenerator {
         } else {
             Err(IoError::new(
                 IoErrorKind::InvalidInput,
-                "ResponseGenerator requires `code` method be called.",
+                "ResponseBuilder requires `code` method be called.",
             ))
         }
     }

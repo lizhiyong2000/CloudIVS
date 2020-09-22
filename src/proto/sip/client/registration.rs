@@ -114,7 +114,7 @@ impl RegistrationManager {
         if let Some(exp) = self.expires_header {
             headers.push(Header::Expires(exp));
         }
-        Ok(RequestGenerator::new()
+        Ok(RequestBuilder::new()
             .method(Method::Register)
             .uri(self.account_uri.clone().authless())
             .headers(headers)

@@ -8,7 +8,7 @@ use std::fmt::{self, Display, Formatter};
 /// One of the two values must be specified. Clients that are capable of handling both
 /// unicast and multicast transmission need to indicate such capability by including two full
 /// transport-specs with separate parameters for each.
-#[derive(Clone, Copy)]
+#[derive(Clone, Debug, Copy)]
 pub enum DeliveryType {
     /// Multicast delivery is to be used.
     ///

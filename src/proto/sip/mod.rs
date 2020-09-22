@@ -16,8 +16,8 @@ pub use self::{
         Headers, Language, NamedHeader,
         parse_header, via::ViaHeader
     },
-    request::RequestGenerator,
-    response::ResponseGenerator,
+    request::RequestBuilder,
+    response::ResponseBuilder,
     uri::{Domain, parse_uri, Uri, UriAuth, UriParam, UriSchema}
 };
 

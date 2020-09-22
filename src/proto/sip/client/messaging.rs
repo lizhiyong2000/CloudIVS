@@ -67,7 +67,7 @@ impl MessageHelper {
     /// immediatly after receiving the message to tell it to stop
     /// transmiting.
     pub fn received(&self, header_cfg: &HeaderWriteConfig) -> IoResult<SipMessage> {
-        let mut req = ResponseGenerator::new()
+        let mut req = ResponseBuilder::new()
             .code(200)
             .header(self.headers.from().unwrap())
             .header(self.headers.to().unwrap())
@@ -111,7 +111,7 @@ impl MessageWriter {
         header_cfg: &HeaderWriteConfig,
     ) -> IoResult<SipMessage> {
         self.cseq += 1;
-        let mut req = RequestGenerator::new()
+        let mut req = RequestBuilder::new()
             .method(Method::Message)
             .uri(to.clone().schema(UriSchema::Sip))
             .header(via_header)

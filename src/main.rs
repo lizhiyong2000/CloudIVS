@@ -41,6 +41,8 @@ use crate::proto::rtsp::message::header::types::authenticate::WWWAuthenticate;
 use crate::proto::rtsp::message::header::name::HeaderName;
 use crate::proto::rtsp::message::header::value::HeaderValue;
 use crate::proto::rtsp::message::header::types::Session;
+use crate::proto::sdp::{SdpLine, parse_sdp};
+use nom::AsBytes;
 
 // use crate::rtsp_client::RTSPClient;
 // use crate::errors::ConnectionError;
@@ -112,10 +114,36 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         let result = client.send_request(request.clone()).await;
 
                         match result {
-                            Ok(response) => {
+                            Ok(response) => unsafe {
                                 // info!("response: {:?}", response);
 
                                 if response.status_code() == StatusCode::OK {
+                                    let mut lines_vec: Vec<SdpLine> = Vec::new();
+
+                                    let body = response.body();
+
+                                    let content = str::from_utf8_unchecked(body.as_bytes());
+                                    let result = parse_sdp(content, false);
+
+                                    match result{
+                                        Ok(sesion) =>{
+                                            println!("{:?}", sesion);
+                                        },
+                                        Err(err) => {
+                                            println!("{:?}", err);
+                                        }
+                                    }
+
+
+                                    // assert!(parse_sdp_vector(&mut line_vec).is_ok());
+
+
+                                    // lines.push(parse_sdp_line("v=0", 1)?);
+                                    // for _ in 0..3 {
+                                    //     lines.push(parse_sdp_line("a=sendrecv", 1)?);
+                                    // }
+
+
                                     let mut builder = Request::builder();
                                     builder.method(Method::Setup).uri(URI::try_from("rtsp://192.168.30.224:554/h264/ch1/main/av_stream/trackID=1").unwrap()).body(BytesMut::new());
                                     builder.header(
@@ -134,10 +162,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                             // info!("response: {:?}", response);
 
                                             if response.status_code() == StatusCode::OK {
-
                                                 let session = response.headers().typed_try_get::<Session>();
 
-                                                if let Ok(Some(s)) = session{
+                                                if let Ok(Some(s)) = session {
                                                     let session_id = s.id();
                                                     let mut builder = Request::builder();
                                                     builder.method(Method::Play).uri(URI::try_from("rtsp://192.168.30.224:554/h264/ch1/main/av_stream").unwrap()).body(BytesMut::new());
@@ -154,10 +181,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                                     let request = builder.build().unwrap();
                                                     client.send_request(request.clone()).await;
                                                 }
-
-
-
-
                                             }
                                         },
 
@@ -165,7 +188,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                             info!("WWWAuthenticate error: {:?} ", err);
                                         }
                                     }
-                                }
+                                } else {}
                             }
 
                             _ => {}

@@ -18,7 +18,7 @@ use log::trace;
  * media-field =         %x6d "=" media SP port ["/" integer]
  *                       SP proto 1*(SP fmt) CRLF
  */
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct SdpMediaLine {
     pub media: SdpMediaValue,
@@ -96,7 +96,7 @@ impl fmt::Display for SdpProtocolValue {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub enum SdpFormatList {
     Integers(Vec<u32>),
@@ -122,7 +122,7 @@ impl fmt::Display for SdpFormatList {
  *                       key-field
  *                       attribute-fields )
  */
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct SdpMedia {
     media: SdpMediaLine,

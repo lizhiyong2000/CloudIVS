@@ -62,7 +62,7 @@ impl InviteHelper {
 
     /// Get A Ringing(180) request to answer this invite.
     pub fn ringing(&self, header_cfg: &HeaderWriteConfig) -> IoResult<SipMessage> {
-        let mut req = ResponseGenerator::new()
+        let mut req = ResponseBuilder::new()
             .code(180)
             .header(self.headers.from().unwrap())
             .header(self.headers.to().unwrap())
@@ -76,7 +76,7 @@ impl InviteHelper {
 
     /// Generate a response that will accept the invite with the sdp as the body.
     pub fn accept(&self, sdp: Vec<u8>, header_cfg: &HeaderWriteConfig) -> IoResult<SipMessage> {
-        let mut req = ResponseGenerator::new()
+        let mut req = ResponseBuilder::new()
             .code(200)
             .header(self.headers.cseq().unwrap())
             .header(self.headers.via().unwrap())
@@ -91,7 +91,7 @@ impl InviteHelper {
     
     /// Generate a Bye response for this Invite Request.
     pub fn bye(&self, header_cfg: &HeaderWriteConfig) -> IoResult<SipMessage> {
-        let mut req = RequestGenerator::new()
+        let mut req = RequestBuilder::new()
             .method(Method::Bye)
             .uri(self.uri.clone())
             .header(self.headers.cseq().unwrap())
@@ -132,12 +132,12 @@ impl InviteHelper {
         header_cfg.write_headers(&mut final_headers);
 
         Ok((
-            ResponseGenerator::new()
+            ResponseBuilder::new()
                 .code(200)
                 .headers(final_headers.clone().0)
                 .header(Header::ContentLength(0))
                 .build()?,
-            ResponseGenerator::new()
+            ResponseBuilder::new()
                 .code(487)
                 .headers(final_headers.0)
                 .header(Header::ContentLength(0))
@@ -170,7 +170,7 @@ impl InviteWriter {
     pub fn generate_invite(&mut self, uri: Uri, sdp: Vec<u8>) -> IoResult<SipMessage> {
         self.cseq += 1;
         let me_uri = self.uri.clone();
-        RequestGenerator::new()
+        RequestBuilder::new()
             .method(Method::Invite)
             .uri(uri.clone())
             .header(self.cseq()?)

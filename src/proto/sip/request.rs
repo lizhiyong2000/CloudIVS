@@ -11,7 +11,7 @@ use super::*;
 /// Calling the `method` & `uri` methods before the `build`
 /// method is required.
 #[derive(Default)]
-pub struct RequestGenerator {
+pub struct RequestBuilder {
     method: Option<Method>,
     uri: Option<Uri>,
     version: Version,
@@ -19,10 +19,10 @@ pub struct RequestGenerator {
     body: Vec<u8>,
 }
 
-impl RequestGenerator {
+impl RequestBuilder {
     /// Create a new instance.
-    pub fn new() -> RequestGenerator {
-        RequestGenerator {
+    pub fn new() -> RequestBuilder {
+        RequestBuilder {
             method: None,
             uri: None,
             version: Version::default(),
@@ -32,13 +32,13 @@ impl RequestGenerator {
     }
 
     /// Set the sip request method.
-    pub fn method(mut self, method: Method) -> RequestGenerator {
+    pub fn method(mut self, method: Method) -> RequestBuilder {
         self.method = Some(method);
         self
     }
 
     /// Set the sip request uri.
-    pub fn uri(mut self, uri: Uri) -> RequestGenerator {
+    pub fn uri(mut self, uri: Uri) -> RequestBuilder {
         self.uri = Some(uri);
         self
     }
@@ -46,13 +46,13 @@ impl RequestGenerator {
     /// Add multiple headers to the request header list.
     /// This use's Vec::extend so that the current items
     /// in the header list are kept.
-    pub fn headers(mut self, headers: Vec<Header>) -> RequestGenerator {
+    pub fn headers(mut self, headers: Vec<Header>) -> RequestBuilder {
         self.headers.extend(headers);
         self
     }
 
     /// Add a single header to the request header list.
-    pub fn header(mut self, header: Header) -> RequestGenerator {
+    pub fn header(mut self, header: Header) -> RequestBuilder {
         self.headers.push(header);
         self
     }
@@ -69,7 +69,7 @@ impl RequestGenerator {
 
     /// Set the sip request body. This completely replaces
     /// the current request body.
-    pub fn body(mut self, body: Vec<u8>) -> RequestGenerator {
+    pub fn body(mut self, body: Vec<u8>) -> RequestBuilder {
         self.body = body;
         self
     }
