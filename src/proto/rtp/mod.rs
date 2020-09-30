@@ -1,6 +1,7 @@
 pub mod rtp;
 pub mod srtp;
 pub mod mutex;
+pub mod codec;
 
 
 pub mod constants{

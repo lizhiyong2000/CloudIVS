@@ -6,7 +6,13 @@ use crate::proto::rtp::traits::{RtcpPacketTrait, RtpPacketTrait};
 use crate::proto::traits::{PacketTrait, ReadPacket, Result, WritePacket};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct MuxPacketReader<T, U> {
+pub struct MuxPacketReader<T, U>
+    where
+        T: ReadPacket,
+        T::Packet: RtpPacketTrait,
+        U: ReadPacket,
+        U::Packet: RtcpPacketTrait,
+{
     rtp_reader: T,
     rtcp_reader: U,
 }
@@ -51,7 +57,13 @@ impl<T, U> ReadPacket for MuxPacketReader<T, U>
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct MuxPacketWriter<T, U> {
+pub struct MuxPacketWriter<T, U>
+    where
+        T: WritePacket,
+        T::Packet: RtpPacketTrait,
+        U: WritePacket,
+        U::Packet: RtcpPacketTrait,
+{
     rtp_writer: T,
     rtcp_writer: U,
 }

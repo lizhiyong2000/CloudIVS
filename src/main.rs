@@ -49,6 +49,8 @@ use nom::AsBytes;
 
 mod proto;
 
+mod worker;
+
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -167,7 +169,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                                 if let Ok(Some(s)) = session {
                                                     let session_id = s.id();
                                                     let mut builder = Request::builder();
-                                                    builder.method(Method::Play).uri(URI::try_from("rtsp://192.168.30.224:554/h264/ch1/main/av_stream").unwrap()).body(BytesMut::new());
+                                                    builder.method(Method::Play).uri(URI::try_from("rtsp://192.168.30.224:554/h264/ch1/main/av_stream/trackID=1").unwrap()).body(BytesMut::new());
 
                                                     builder.header(
                                                         HeaderName::Session,

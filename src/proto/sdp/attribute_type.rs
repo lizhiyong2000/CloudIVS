@@ -1185,6 +1185,8 @@ pub enum SdpAttribute {
     Simulcast(SdpAttributeSimulcast),
     Ssrc(SdpAttributeSsrc),
     SsrcGroup(SdpSsrcGroupSemantic, Vec<SdpAttributeSsrc>),
+    XDimensions(u16, u16),
+    Control(String),
 }
 
 impl SdpAttribute {
@@ -1230,7 +1232,12 @@ impl SdpAttribute {
             | SdpAttribute::Recvonly
             | SdpAttribute::Sendonly
             | SdpAttribute::Sendrecv
-            | SdpAttribute::Setup(..) => true,
+            | SdpAttribute::Setup(..)
+            | SdpAttribute::XDimensions(..)
+            | SdpAttribute::Control(..)
+            | SdpAttribute::XDimensions(..)
+            | SdpAttribute::Control(..)
+            => true,
         }
     }
 
@@ -1276,7 +1283,9 @@ impl SdpAttribute {
             | SdpAttribute::Setup(..)
             | SdpAttribute::Simulcast(..)
             | SdpAttribute::Ssrc(..)
-            | SdpAttribute::SsrcGroup(..) => true,
+            | SdpAttribute::SsrcGroup(..)
+            | SdpAttribute::XDimensions(..)
+            | SdpAttribute::Control(..) => true,
         }
     }
 }
@@ -1344,6 +1353,8 @@ impl FromStr for SdpAttribute {
             "setup" => parse_setup(val),
             "simulcast" => parse_simulcast(val),
             "ssrc" => parse_ssrc(val),
+            "x-dimensions" => parse_dimension(val),
+            "control" => Ok(SdpAttribute::Control(string_or_empty(val)?)),
             _ => Err(SdpParserInternalError::Unsupported(format!(
                 "Unknown attribute type {}",
                 name
@@ -1400,7 +1411,9 @@ impl fmt::Display for SdpAttribute {
                 let stringified_ssrcs: Vec<String> =
                     ssrcs.iter().map(|ssrc| ssrc.to_string()).collect();
                 attr_to_string(a.to_string()) + " " + &stringified_ssrcs.join(" ")
-            }
+            },
+            SdpAttribute::Control(ref a) => attr_to_string(a.to_string()),
+            SdpAttribute::XDimensions(ref a, ref b) => attr_to_string(a.to_string() + "," + b.to_string().as_str()),
         }
         .fmt(f)
     }
@@ -1462,6 +1475,8 @@ pub enum SdpAttributeType {
     Simulcast,
     Ssrc,
     SsrcGroup,
+    XDimensions,
+    Control,
 }
 
 impl<'a> From<&'a SdpAttribute> for SdpAttributeType {
@@ -1507,7 +1522,9 @@ impl<'a> From<&'a SdpAttribute> for SdpAttributeType {
             SdpAttribute::Simulcast { .. } => SdpAttributeType::Simulcast,
             SdpAttribute::Ssrc { .. } => SdpAttributeType::Ssrc,
             SdpAttribute::SsrcGroup { .. } => SdpAttributeType::SsrcGroup,
-        }
+            SdpAttribute::XDimensions{ .. }=> SdpAttributeType::XDimensions,
+                SdpAttribute::Control{ .. }=> SdpAttributeType::Control,
+    }
     }
 }
 
@@ -1554,6 +1571,8 @@ impl fmt::Display for SdpAttributeType {
             SdpAttributeType::Simulcast => "simulcast",
             SdpAttributeType::Ssrc => "ssrc",
             SdpAttributeType::SsrcGroup => "ssrc-group",
+            SdpAttributeType::XDimensions => "x-dimensions",
+            SdpAttributeType::Control => "control",
         }
         .fmt(f)
     }
@@ -3256,9 +3275,35 @@ fn parse_ssrc(to_parse: &str) -> Result<SdpAttribute, SdpParserInternalError> {
     Ok(SdpAttribute::Ssrc(ssrc))
 }
 
+
+///////////////////////////////////////////////////////////////////////////
+// a=sctp-port, draft-ietf-mmusic-sctp-sdp-26#section-15.2.1
+//-------------------------------------------------------------------------
+// no ABNF given
+fn parse_dimension(to_parse: &str) -> Result<SdpAttribute, SdpParserInternalError> {
+
+    if to_parse.find(',') == None {
+        return Err(SdpParserInternalError::Generic(
+            "X-dimension attribute is in wrong format".to_string(),
+        ));
+    } else {
+        let v: Vec<&str> = to_parse.splitn(2, ',').collect();
+
+        let a = v[0].parse::<u16>()?;
+        let b = v[1].parse::<u16>()?;
+
+        return Ok(SdpAttribute::XDimensions(a, b));
+
+    }
+
+}
+
 pub fn parse_attribute(value: &str) -> Result<SdpType, SdpParserInternalError> {
     Ok(SdpType::Attribute(value.trim().parse()?))
 }
+
+
+
 
 #[cfg(test)]
 mod tests {
