@@ -30,7 +30,7 @@ use crate::proto::rtsp::message::response::Response;
 use std::error::Error;
 use crate::proto::rtsp::message::header::map::HeaderMapExtension;
 use crate::proto::rtsp::message::header::types::CSeq;
-use crate::proto::rtsp::message::header::types::authenticate::{WWWAuthenticate, WWWAuthenticatePart, WWWAuthenticateMethod};
+use crate::proto::rtsp::message::header::types::authenticate::{WWWAuthenticate, AuthenticatePart, AuthenticateMethod, WWWAuthenticateSingle};
 use crate::proto::rtsp::message::header::types::authenticate::Authorization;
 use linked_hash_set::LinkedHashSet;
 // use crate::proto::rtsp::message::header::name::HeaderName::Authorization;
@@ -58,7 +58,7 @@ pub struct Authenticator{
     pub username:String,
     pub password:String,
 
-    pub authenticate :WWWAuthenticate,
+    pub authenticate :WWWAuthenticateSingle,
 }
 
 /// Represents an RTSP connection between two RTSP agents.
@@ -689,15 +689,15 @@ impl ConnectionHandle {
         let password = authenticator.password.as_str();
 
         match authenticate.method {
-            WWWAuthenticateMethod::Basic => {
+            AuthenticateMethod::Basic => {
 
                 let basic_response = Authorization::gen_basic_response(username, password);
 
-                auth_parts.insert(WWWAuthenticatePart::BasicResponse(basic_response));
+                auth_parts.insert(AuthenticatePart::BasicResponse(basic_response));
 
-                return Authorization{method:WWWAuthenticateMethod::Basic, parts:auth_parts };
+                return Authorization{method:AuthenticateMethod::Basic, parts:auth_parts };
             },
-            WWWAuthenticateMethod::Digest => {
+            AuthenticateMethod::Digest => {
 
                 // Authorization: Digest username="admin", realm="IP Camera(C6496)", nonce="75ebba210a21f5d87902abcc3343d9d0", uri="rtsp://192.168.30.224:554/h264/ch1/main/av_stream&channelId=2/", response="98962c804dbb3a95d7cdbbbe1a2234a4"\r\n
 
@@ -712,15 +712,15 @@ impl ConnectionHandle {
                                                                   nonce.as_str(),
                 method, uri.to_string().as_str());
 
-                auth_parts.insert(WWWAuthenticatePart::Username(username.to_string()));
-                auth_parts.insert(WWWAuthenticatePart::Realm(realm.to_string()));
+                auth_parts.insert(AuthenticatePart::Username(username.to_string()));
+                auth_parts.insert(AuthenticatePart::Realm(realm.to_string()));
 
-                auth_parts.insert(WWWAuthenticatePart::Nonce(nonce.to_string()));
+                auth_parts.insert(AuthenticatePart::Nonce(nonce.to_string()));
 
-                auth_parts.insert(WWWAuthenticatePart::Uri(uri.to_string()));
+                auth_parts.insert(AuthenticatePart::Uri(uri.to_string()));
 
-                auth_parts.insert(WWWAuthenticatePart::Response(response.to_string()));
-                return Authorization{method:WWWAuthenticateMethod::Digest, parts:auth_parts };
+                auth_parts.insert(AuthenticatePart::Response(response.to_string()));
+                return Authorization{method:AuthenticateMethod::Digest, parts:auth_parts };
                 // return Authorization::Digest(auth_parts);
             },
         }

@@ -1,12 +1,17 @@
 use crate::proto::rtsp::codec::{CodecEvent, ProtocolError};
 use futures::channel::mpsc::UnboundedSender;
 use tokio_util::codec::{Decoder, Encoder};
-use bytes::BytesMut;
+use bytes::{BytesMut, Buf, BufMut};
 use crate::proto::rtp::rtp::{RtpPacket, RtpPacketReader};
 use crate::proto::rtp::mutex::{MuxedPacket, MuxPacketReader};
 use crate::proto::rtcp::rtcp_packet::{RtcpCompoundPacket, RtcpPacket, RtcpPacketReader};
 use crate::proto::traits::{WriteTo, ReadPacket};
 use crate::proto::error::{Error, ErrorKind};
+use bytes::buf::BufExt;
+use std::borrow::{BorrowMut, Borrow};
+
+use log::{info, error};
+use std::io;
 
 #[derive(Debug)]
 pub struct Codec {
@@ -51,7 +56,7 @@ impl Codec {
 }
 
 impl Decoder for Codec {
-    type Item = MuxedPacket<RtpPacket, RtcpCompoundPacket<RtcpPacket>>;
+    type Item = MuxedPacket<RtpPacket, RtcpCompoundPacket>;
     type Error = Error;
 
     /// Decodes a message.
@@ -74,32 +79,76 @@ impl Decoder for Codec {
         // Otherwise, we check if the message starts with `"RTSP/"` which indicates that it is a
         // response. If not, it is a request.
         self.send_codec_event(CodecEvent::EncodingStarted);
-        let result = self.packet_reader.read_packet(buffer);
+
+        // info!("decode buffer length:{}", buffer.len());
+
+        let mut data = buffer.bytes();
+
+        // let (result, bytes_decoded) = self.response_decoder.decode(&buffer);
+        // buffer.split_to(bytes_decoded);
+
+
+
+        let result = self.packet_reader.read_packet(&mut data);
+
+        buffer.split_to(buffer.len());
         self.send_codec_event(CodecEvent::EncodingEnded);
         match result{
-            Ok(t)=> Ok(Some(t)),
-            Err(e) => Err(e),
+            Ok(t)=> {
+                // info!("packet_reader success");
+                // info!("rtp packet:{:?}", t);
+                return Ok(Some(t));
+
+                // return Ok(None);
+            },
+            Err(e) => {
+                info!("packet_reader error:{}", e);
+                return  Err(e);
+            },
         }
+        // info!("packet_reader success:{}", buffer.len());
+        // buffer.split_to(buffer.len());
+        info!("packet_reader error return None");
+        Ok(None)
     }
 
-    /// Called when there are no more bytes available to be read from the underlying I/O.
-    ///
-    /// This function will attempt to decode a message as described in [`Codec::decode`]. If there
-    /// is not enough data to do so, then `Err(`[`ProtocolError::UnexpectedEOF`]`)` will be
-    /// returned.
-    fn decode_eof(&mut self, buffer: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error> {
-        match self.decode(buffer)? {
-            Some(message) => Ok(Some(message)),
+    fn decode_eof(&mut self, buf: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error> {
+        match self.decode(buf)? {
+            Some(frame) => {
+                info!("frame decoded");
+                Ok(Some(frame))
+            },
             None => {
-                if buffer.is_empty() {
+                if buf.is_empty() {
                     Ok(None)
                 } else {
-                    track_panic!( ErrorKind::Other,  "UnexpectedEOF")
-                    // Err(Error(ErrorKind::Other))
+                    Err(io::Error::new(io::ErrorKind::Other, "bytes remaining on stream").into())
                 }
             }
         }
     }
+
+
+    // Called when there are no more bytes available to be read from the underlying I/O.
+    //
+    // This function will attempt to decode a message as described in [`Codec::decode`]. If there
+    // is not enough data to do so, then `Err(`[`ProtocolError::UnexpectedEOF`]`)` will be
+    // returned.
+    // fn decode_eof(&mut self, buffer: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error> {
+    //
+    //     info!("decode_eof");
+    //     match self.decode(buffer)? {
+    //         Some(message) => Ok(Some(message)),
+    //         None => {
+    //             if buffer.is_empty() {
+    //                 Ok(None)
+    //             } else {
+    //                 track_panic!( ErrorKind::Other,  "UnexpectedEOF")
+    //                 // Err(Error(ErrorKind::Other))
+    //             }
+    //         }
+    //     }
+    // }
 }
 
 impl Default for Codec {
@@ -108,7 +157,7 @@ impl Default for Codec {
     }
 }
 
-impl Encoder<MuxedPacket<RtpPacket, RtcpCompoundPacket<RtcpPacket>>> for Codec {
+impl Encoder<MuxedPacket<RtpPacket, RtcpCompoundPacket>> for Codec {
     // type Item = Message;
     type Error = Error;
 
@@ -120,14 +169,15 @@ impl Encoder<MuxedPacket<RtpPacket, RtcpCompoundPacket<RtcpPacket>>> for Codec {
     ///
     /// Although a [`Result`] is returned, this function will never return an error as the actual
     /// message encoding cannot fail. As a result, `Ok(())` will always be returned.
-    fn encode(&mut self, message: MuxedPacket<RtpPacket, RtcpCompoundPacket<RtcpPacket>>, buffer: &mut BytesMut) -> Result<(), Self::Error> {
+    fn encode(&mut self, message: MuxedPacket<RtpPacket, RtcpCompoundPacket>, buffer: &mut BytesMut) -> Result<(), Self::Error> {
         self.send_codec_event(CodecEvent::EncodingStarted);
 
+        let mut data = buffer.as_mut();
+
         match message {
-            MuxedPacket::Rtp(rtp) => rtp.write_to(buffer),
-            MuxedPacket::Rtcp(rtcp) => rtcp.write_to(buffer),
-            _ => {}
-        }
+            MuxedPacket::Rtp(rtp) => rtp.write_to(&mut data),
+            MuxedPacket::Rtcp(rtcp) => rtcp.write_to(&mut data),
+        };
 
         self.send_codec_event(CodecEvent::EncodingEnded);
         Ok(())

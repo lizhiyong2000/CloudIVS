@@ -1242,14 +1242,12 @@ checksum = "238ce071d267c5710f9d31451efec16c5ee22de34df17cc05e56cbc92e967117"
 
 [[package]]
 name = "tokio"
-version = "0.2.22"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5d34ca54d84bf2b5b4d7d31e901a8464f7b60ac145a284fba25ceb801f2ddccd"
+version = "0.3.0"
+source = "git+https://github.com.cnpmjs.org/tokio-rs/tokio.git#13de30c53eb90a5453f1cecf47b188e254a293ac"
 dependencies = [
  "bytes",
  "fnv",
  "futures-core",
- "iovec",
  "lazy_static",
  "libc",
  "memchr",
@@ -1266,9 +1264,8 @@ dependencies = [
 
 [[package]]
 name = "tokio-macros"
-version = "0.2.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f0c3acc6aa564495a0f2e1d59fab677cd7f81a19994cfc7f3ad0e64301560389"
+version = "0.3.0"
+source = "git+https://github.com.cnpmjs.org/tokio-rs/tokio.git#13de30c53eb90a5453f1cecf47b188e254a293ac"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1277,9 +1274,8 @@ dependencies = [
 
 [[package]]
 name = "tokio-util"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be8242891f2b6cbef26a2d7e8605133c2c554cd35b3e4948ea892d6d68436499"
+version = "0.4.0"
+source = "git+https://github.com.cnpmjs.org/tokio-rs/tokio.git#13de30c53eb90a5453f1cecf47b188e254a293ac"
 dependencies = [
  "bytes",
  "futures-core",

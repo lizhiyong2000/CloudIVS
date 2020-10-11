@@ -12,7 +12,7 @@ use std::pin::Pin;
 use futures::task::{Context, Poll};
 use crate::proto::rtsp::codec::ProtocolError;
 use futures::channel::oneshot::Canceled;
-use tokio::time::{Delay, delay_for};
+use tokio::time::{Delay, sleep};
 use std::fmt::{Display, Formatter};
 use std::fmt;
 
@@ -212,8 +212,8 @@ impl SendRequest {
         timeout_duration: Option<Duration>,
         max_timeout_duration: Option<Duration>,
     ) -> Self {
-        let max_timer = max_timeout_duration.map(|duration| delay_for(duration));
-        let timer = timeout_duration.map(|duration| delay_for(duration));
+        let max_timer = max_timeout_duration.map(|duration| sleep(duration));
+        let timer = timeout_duration.map(|duration| sleep(duration));
 
         SendRequest {
             max_timer,
@@ -254,7 +254,7 @@ impl SendRequest {
                     self.rx_response = rx_response;
                     self.timer = self
                         .timeout_duration
-                        .map(|duration| delay_for(duration));
+                        .map(|duration| sleep(duration));
                 }
                 PendingRequestResponse::None => return Poll::Ready(Err(OperationError::RequestCancelled)),
                 PendingRequestResponse::Response(response) =>{

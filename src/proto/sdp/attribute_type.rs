@@ -1235,8 +1235,6 @@ impl SdpAttribute {
             | SdpAttribute::Setup(..)
             | SdpAttribute::XDimensions(..)
             | SdpAttribute::Control(..)
-            | SdpAttribute::XDimensions(..)
-            | SdpAttribute::Control(..)
             => true,
         }
     }

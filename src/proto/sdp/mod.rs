@@ -664,12 +664,12 @@ fn sanity_check_sdp_session(session: &SdpSession) -> Result<(), SdpParserError> 
     // Checks that all media have connections if there is no top level
     // This explicitly allows for zero connection lines if there are no media
     // sections for interoperability reasons.
-    let media_cons = &session.media.iter().all(|m| m.get_connection().is_some());
-    if !media_cons && session.get_connection().is_none() {
-        return Err(make_seq_error(
-            "Without connection type at session level all media sections must have connection types",
-        ));
-    }
+    // let media_cons = &session.media.iter().all(|m| m.get_connection().is_some());
+    // if !media_cons && session.get_connection().is_none() {
+    //     return Err(make_seq_error(
+    //         "Without connection type at session level all media sections must have connection types",
+    //     ));
+    // }
 
     // Check that extmaps are not defined on session and media level
     if session.get_attribute(SdpAttributeType::Extmap).is_some() {

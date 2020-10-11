@@ -111,6 +111,9 @@ impl ReadFrom for RtpFixedHeader {
         let payload_type = b & 0b0111_1111;
 
         let seq_num = track_try_unwrap!(reader.read_u16be().map_err(Error::from));
+
+        //TODO
+
         let timestamp = track_try_unwrap!(reader.read_u32be().map_err(Error::from));
         let ssrc = track_try_unwrap!(reader.read_u32be().map_err(Error::from));
         let csrc_list = (0..csrc_count).map(|_| track_try_unwrap!(reader.read_u32be().map_err(Error::from))).collect();

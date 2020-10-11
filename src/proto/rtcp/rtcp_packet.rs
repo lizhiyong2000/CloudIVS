@@ -286,7 +286,7 @@ impl PacketData for CommonHeader{
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RtcpPacketReader;
 impl ReadPacket for RtcpPacketReader {
-    type Packet = RtcpCompoundPacket<RtcpPacket>;
+    type Packet = RtcpCompoundPacket;
     fn read_packet<R: Read>(&mut self, reader: &mut R) -> Result<Self::Packet> {
         // TODO: optimize
         let buf = track_try_unwrap!(reader.read_all_bytes().map_err(Error::from));
@@ -315,7 +315,7 @@ impl ReadPacket for RtcpPacketReader {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RtcpPacketWriter;
 impl WritePacket for RtcpPacketWriter {
-    type Packet = RtcpCompoundPacket<RtcpPacket>;
+    type Packet = RtcpCompoundPacket;
     fn write_packet<W: Write>(&mut self, writer: &mut W, packet: &Self::Packet) -> Result<()> {
         for p in packet.packets.iter() {
             track!(p.write_to(writer).map_err(Error::from));
@@ -392,19 +392,46 @@ impl WriteTo for RtcpPacket {
 
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct RtcpCompoundPacket<T> {
-    pub packets: Vec<T>,
+pub struct RtcpCompoundPacket {
+    pub packets: Vec<RtcpPacket>,
 }
-impl<T> RtcpCompoundPacket<T> {
-    pub fn new(packets: Vec<T>) -> Self {
+impl RtcpCompoundPacket{
+    pub fn new(packets: Vec<RtcpPacket>) -> Self {
         RtcpCompoundPacket { packets: packets }
     }
 }
-impl<T: PacketTrait> PacketTrait for RtcpCompoundPacket<T> {}
-impl<T: RtcpPacketTrait> RtcpPacketTrait for RtcpCompoundPacket<T> {}
+impl PacketTrait for RtcpCompoundPacket {}
+impl RtcpPacketTrait for RtcpCompoundPacket {}
 
 
+impl WriteTo for RtcpCompoundPacket {
+    fn write_to<W: Write>(&self, writer: &mut W) -> Result<()> {
+        for p in self.packets.iter() {
+            track!(p.write_to(writer).map_err(Error::from));
+        }
 
+        Ok(())
+    }
+    // fn write_to<W: Write>(&self, writer: &mut W) -> Result<()> {
+    //     track!(self.header.write_to(writer).map_err(Error::from));
+    //     track!(writer.write_all(&self.payload).map_err(Error::from));
+    //
+    //     track_assert_ne!(
+    //         self.header.padding,
+    //         self.padding.is_empty(),
+    //         ErrorKind::Invalid
+    //     );
+    //     if !self.padding.is_empty() {
+    //         track_assert_eq!(
+    //             *self.padding.last().unwrap() as usize,
+    //             self.padding.len(),
+    //             ErrorKind::Invalid
+    //         );
+    //         track!(writer.write_all(&self.padding).map_err(Error::from));
+    //     }
+    //     Ok(())
+    // }
+}
 
 impl From<SenderReportPacket> for RtcpPacket {
     fn from(f: SenderReportPacket) -> Self {

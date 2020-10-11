@@ -1,5 +1,5 @@
 mod rtcp_session;
-mod rtp_session;
+pub mod rtp_session;
 mod rtp_transport;
 
 // pub enum SessionTransportType{
